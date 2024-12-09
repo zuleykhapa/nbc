@@ -7,18 +7,16 @@ parser.add_argument("input_file")
 parser.add_argument("--jobs")
 parser.add_argument("--artifacts")
 parser.add_argument("--nightly_build")
-parser.add_argument("--url")
 args = parser.parse_args()
 
 if not args:
-    print("Usage: python scripts/count_consecutive_failures.py <input_file>.json --jobs <nightly-build>.json --artifacts <nightly-build_artifacts>.csv \
-            --nightly_build <nightly-build> --url <url>")
+    print("Usage: python scripts/count_consecutive_failures.py <input_file>.json --jobs <nightly-build>.json --artifacts <nightly-build_artifacts>.json \
+            --nightly_build <nightly-build>")
 
 input_file = args.input_file
 nightly_build = args.nightly_build
 jobs = args.jobs
 artifacts = args.artifacts
-url = args.url
 
 # count consecutive failures
 all = duckdb.sql(f"SELECT * FROM read_json('{ input_file }') WHERE status = 'completed'")
@@ -33,6 +31,7 @@ for c in conclusions:
     else:
         break
 
+url= duckdb.sql(f"""SELECT url FROM '{ input_file }'""").fetchone()[0]
 def create_run_status():
     if failures > 0:
         failures_list = "failures_list.md"

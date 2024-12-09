@@ -12,9 +12,6 @@ on:
         required: true
         type: string
     outputs:
-      run_url:
-        description: "Stores run URL."
-        value: ${{ jobs.check-build.outputs.run_url }}
       run_conclusion: 
         description: "If nightly-build's conclusion."
         value: ${{ jobs.check-build.outputs.run_conclusion }}
@@ -28,9 +25,8 @@ jobs:
   check-build:
     runs-on: ${{ inputs.runs-on }}
     outputs:
-      run_url: ${{ steps.get-url.outputs.run_url }}
       run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
-      run_id: ${{ steps.get-run-id.outputs.run_id }}
+      run_id: ${{ steps.check-build.outputs.run_id }}
     steps:
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
@@ -45,30 +41,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install duckdb --pre --upgrade
 
-      - name: Get run url ${{ inputs.nightly-build }} and a file with the runs list
-        shell: bash
-        id: get-url
-        run: |
-          echo "Listing ${{ inputs.nightly-build }} runs..."
-          gh run list --repo ${{ env.GH_REPO }} --event repository_dispatch --workflow ${{ inputs.nightly-build }} --json status,conclusion,url,name,createdAt,databaseId,headSha > ${{ inputs.nightly-build }}.json 
-          url=$(python -c "import duckdb; print()")
-          url=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key url)
-          echo "run_url=$url" >> $GITHUB_OUTPUT
-          echo "Got run URL: $url"
-      
-      - name: Check ${{ inputs.nightly-build }} build conclusion
+      - name: Get ${{ inputs.nightly-build }} run ID and conclusion
         shell: bash
         id: check-build
         run: |
+          echo "Listing ${{ inputs.nightly-build }} runs..."
+          gh run list --repo ${{ env.GH_REPO }} --event repository_dispatch --workflow ${{ inputs.nightly-build }} \
+            --json status,conclusion,url,name,createdAt,databaseId,headSha > ${{ inputs.nightly-build }}.json 
+          
+          echo "Getting the run conclusion..."
           conclusion=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key conclusion)
           echo "run_conclusion=$conclusion" >> $GITHUB_OUTPUT
-
-          echo "Got run conclusion: $conclusion"
-
-      - name: Get ${{ inputs.nightly-build }} run ID
-        shell: bash
-        id: get-run-id
-        run: |
+          echo "Found run_conclusion: $conclusion"
+          
           echo "Getting the run id..."
           run_id=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key databaseId)
           echo "run_id=$run_id" >> $GITHUB_OUTPUT
@@ -78,16 +63,16 @@ jobs:
         shell: bash
         run: |
           echo "Getting the run info..."
-          gh run view --repo ${{ env.GH_REPO }} ${{ steps.get-run-id.outputs.run_id}} --json jobs > ${{ inputs.nightly-build }}_run.json 
+          gh run view --repo ${{ env.GH_REPO }} ${{ steps.check-build.outputs.run_id}} --json jobs > ${{ inputs.nightly-build }}_run.json 
           echo "Getting the list of run artifacts..."
-          gh api repos/${{ env.GH_REPO }}/actions/runs/${{ steps.get-run-id.outputs.run_id}}/artifacts > ${{ inputs.nightly-build }}_artifacts.json
+          gh api repos/${{ env.GH_REPO }}/actions/runs/${{ steps.check-build.outputs.run_id}}/artifacts > ${{ inputs.nightly-build }}_artifacts.json
           
           echo "Generating run status report..."
           # scripts/count_consecutive_failures.py creates a file named run_status_<nightly-build>.md with the run status report
           # containing information about available build artifacts
           python scripts/count_consecutive_failures.py ${{ inputs.nightly-build }}.json \
             --jobs ${{ inputs.nightly-build }}_run.json --artifacts ${{ inputs.nightly-build }}_artifacts.json \
-            --nightly_build ${{ inputs.nightly-build }} --url ${{ steps.get-url.outputs.run_url }}
+            --nightly_build ${{ inputs.nightly-build }}
 
       - name: Upload Run Status file
         uses: actions/upload-artifact@v4
