@@ -1,0 +1,107 @@
+name: Verify Nightly Builds (Reusable)
+on:
+  workflow_call:
+    inputs:
+      nightly-build:
+        required: true
+        type: string
+      platform: 
+        required: false
+        type: string
+      architecture: 
+        required: false
+        type: string
+      runs-on:
+        required: true
+        type: string
+      extension:
+        required: false
+        type: string
+env:
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  test:
+    runs-on: ${{ inputs.runs-on }}
+    continue-on-error: true
+    steps:
+      - name: Set up QEMU
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/aarch64
+      - name: Checkout the repo with the script
+        uses: actions/checkout@v4
+      - name: Checkout repo with extensions config file
+        uses: actions/checkout@v4
+        with:
+          repository: duckdb/duckdb
+          sparse-checkout: |
+            .github/config
+          path: ext
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install QEMU dependencies
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc6-arm64-cross qemu-user-static
+      - name: Download artifact 
+        uses: actions/download-artifact@v4
+        with:
+          name: duckdb_cli-${{ inputs.architecture }}
+      - name: Test ${{ inputs.nightly-build }} in an aarch64 Docker container
+        shell: bash
+        if: inputs.architecture == 'linux-aarch64'
+        run: |
+          unzip duckdb_cli-${{ inputs.architecture }}.zip
+          
+          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
+
+          for ext in $matches; do
+            is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;"')
+            
+            action="INSTALL LOAD"
+            if [[ $is_installed == 'false' ]]; then
+              for act in $action; do
+                echo "$act'ing $ext extension..."
+                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext -e duckdb=$duckdb ubuntu:22.04 /bin/bash -c '$duckdb -c "$act $ext;"'; then 
+                  echo "Failed to $act $ext extension."
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
+                fi
+              done
+            fi
+          done
+      - name: Test ${{ inputs.nightly-build }}
+        shell: bash
+        if: inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64'
+        run: |
+          unzip duckdb_cli-${{ inputs.architecture }}.zip
+          if [[ ${{ inputs.nightly-build }} == Windows ]]; then
+            duckdb=./duckdb.exe
+          else
+            duckdb=./duckdb
+          fi
+          
+          action="INSTALL LOAD"
+          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
+          for ext in $matches; do
+            is_installed=$($duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;")
+            if [[ $is_installed == 'false' ]]; then
+              for act in $action; do
+                echo "$act'ing $ext extension..."  
+                if ! $duckdb -c "$act $ext;"; then
+                  echo "Failed to $act $ext extension."
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ inputs.architecture }}.txt
+                fi
+              done
+            fi
+          done
+      - name: Upload actions for extensions
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue_ext_${{ inputs.architecture }}
+          path: issue_ext_${{ inputs.architecture }}.txt
+          if-no-files-found: ignore
