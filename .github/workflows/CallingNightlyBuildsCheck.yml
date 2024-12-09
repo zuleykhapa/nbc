@@ -16,7 +16,7 @@ env:
 jobs:
   linux:
     name: Check Linux Release build status
-    uses: ./.github/workflows/nbst.yml
+    uses: ./.github/workflows/NightlyBuildsCheck.yml
     with:
       nightly-build: LinuxRelease
       runs-on: ubuntu-latest
@@ -25,7 +25,7 @@ jobs:
     name: Test Linux Release Builds
     needs: linux
     if: needs.linux.outputs.run_conclusion == 'success'
-    uses: ./.github/workflows/NightlyBuildsTest.yml
+    uses: ./.github/workflows/nbst.yml
     with:
       nightly-build: LinuxRelease
       runs-on: ubuntu-latest
