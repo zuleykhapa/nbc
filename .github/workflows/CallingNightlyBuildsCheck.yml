@@ -31,6 +31,7 @@ jobs:
       runs-on: ubuntu-latest
       platform: linux
       architecture: ${{ matrix.architecture }}
+      run_id: ${{ needs.linux.outputs.run_id }}
     strategy:
       matrix:
         architecture: [ linux-amd64, linux-aarch64 ]
