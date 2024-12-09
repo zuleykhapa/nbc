@@ -15,19 +15,15 @@ env:
 jobs:
   linux:
     name: Check Linux Release build status
-    uses: ./.github/workflows/nbsc.yml
+    uses: ./.github/workflows/nbst.yml
     with:
       nightly-build: LinuxRelease
       runs-on: ubuntu-latest
       platform: linux
-      architecture: ${{ matrix.architecture }}
-    strategy:
-      matrix:
-        architecture: [ linux-amd64, linux-aarch64 ]
   linux-test:
     name: Test Linux Release Builds
-    needs: linux-verify
-    if: needs.linux-verify.outputs.has_artifact == 'true'
+    needs: linux
+    if: needs.linux.outputs.run_conclusion == 'success'
     uses: ./.github/workflows/NightlyBuildsTest.yml
     with:
       nightly-build: LinuxRelease
