@@ -1,4 +1,4 @@
-name: Nightly Build Status
+name: Verify Nightly Build Version
 on:
   workflow_call:
     inputs:
@@ -14,21 +14,15 @@ on:
       runs-on:
         required: true
         type: string
-    outputs:
-      run_url:
-        description: "Stores run URL."
-        value: ${{ jobs.check-build.outputs.run_url }}
-      run_conclusion: 
-        description: "If nightly-build's conclusion."
-        value: ${{ jobs.check-build.outputs.run_conclusion }}
       run_id:
-        description: "Stores run id."
-        value: ${{ jobs.check-build.outputs.run_id }}
+        required: true
+        type: string
+        
 env:
   GH_TOKEN: ${{ github.token }}
   GH_REPO: duckdb/duckdb
 jobs:
-  verify-build:
+  check-build:
     runs-on: ${{ inputs.runs-on }}
     outputs:
       has_artifact: ${{ steps.verify-build.outputs.has_artifact }}
@@ -47,6 +41,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libc6-arm64-cross qemu-user-static
+          pip install duckdb pandas tabulate
+
       - name: Verify ${{ inputs.nightly-build }} version
         id: verify-build
         shell: bash
@@ -58,13 +54,17 @@ jobs:
           fi
 
           echo "Downloading duckdb-binaries-$name artifact..."
-          if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+          # if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+          
+          if gh run download 12021416084 --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
             echo "has_artifact=true" >> $GITHUB_OUTPUT
             unzip duckdb_cli-${{ inputs.architecture }}.zip
 
             echo "Verifying version..."
-            full_sha=$(gh run view ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} --json headSha -q .headSha)
+            # full_sha=$(gh run view ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} --json headSha -q .headSha)
+            
+            full_sha=$(gh run view 12021416084 --repo ${{ env.GH_REPO }} --json headSha -q .headSha)
             if [[ ${{ inputs.architecture }} == linux-aarch64 ]]; then
               tmp_sha=$(docker run --rm --platform linux/aarch64 -v $(pwd):/duckdb -e full_sha=$full_sha ubuntu:22.04 /bin/bash -c 'cd /duckdb; ./duckdb --version')
             else
@@ -72,82 +72,79 @@ jobs:
             fi
             short_sha=$(echo $tmp_sha | awk -F' ' "{ print \$2 }")
             if [[ "$full_sha" != "$short_sha"* ]]; then
-              printf "- The version of \`${{ inputs.nightly-build }}\` build (\`$short_sha\`) doesn't match to the version triggered the build (\`$full_sha\`).\n " > issue_body_${{ inputs.architecture }}.txt
-              cat issue_body_${{ inputs.architecture }}.txt
+              printf "- The version of \`${{ inputs.nightly-build }}\` build (\`$short_sha\`) doesn't match to the version triggered the build (\`$full_sha\`).\n " > issue_verify_version_${{ inputs.architecture }}.txt
+              cat issue_verify_version_${{ inputs.architecture }}.txt
               exit 1
             fi
           else  
             echo "Downloading duckdb-binaries-$name artifact is failed."
-            printf "#### No artifacts with name duckdb-binaries-$name provided.\n" > issue_body_${{ inputs.architecture }}.txt
-            cat issue_body_${{ inputs.architecture }}.txt
+            printf "#### No artifacts with name duckdb-binaries-$name provided.\n" > issue_verify_version_${{ inputs.architecture }}.txt
+            cat issue_verify_version_${{ inputs.architecture }}.txt
             echo "has_artifact=false" >> $GITHUB_OUTPUT
           fi
-  check-build:
-    runs-on: ${{ inputs.runs-on }}
-    outputs:
-      run_url: ${{ steps.get-url.outputs.run_url }}
-      run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
-      run_id: ${{ steps.get-run-id.outputs.run_id }}
-    steps:
-      - name: Checkout the repo with the script
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Install DuckDB for Python
-        shell: bash
-        if: 
-        run: |
-          python -m pip install --upgrade pip
-          pip install duckdb --pre --upgrade
-
-      - name: Get run url ${{ inputs.nightly-build }} and a file with the runs list
-        shell: bash
-        id: get-url
-        run: |
-          echo "Listing ${{ inputs.nightly-build }} runs..."
-          gh run list --repo ${{ env.GH_REPO }} --event repository_dispatch --workflow ${{ inputs.nightly-build }} --json status,conclusion,url,name,createdAt,databaseId,headSha > ${{ inputs.nightly-build }}.json 
-          url=$(python -c "import duckdb; print()")
-          url=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key url)
-          echo "run_url=$url" >> $GITHUB_OUTPUT
-          echo "Got run URL: $url"
-      
-      - name: Check ${{ inputs.nightly-build }} build conclusion
-        shell: bash
-        id: check-build
-        run: |
-          conclusion=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key conclusion)
-          echo "run_conclusion=$conclusion" >> $GITHUB_OUTPUT
-
-          echo "Got run conclusion: $conclusion"
-
-      - name: Get ${{ inputs.nightly-build }} run ID
-        shell: bash
-        id: get-run-id
-        run: |
-          echo "Getting the run id..."
-          run_id=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key databaseId)
-          echo "run_id=$run_id" >> $GITHUB_OUTPUT
-          echo "Found run_id: $run_id"
-      
-      - name: Create ${{ inputs.nightly-build }} run status report
-        shell: bash
-        run: |
-          echo "Getting the run info..."
-          gh run view --repo ${{ env.GH_REPO }} ${{ steps.get-run-id.outputs.run_id}} --json jobs > ${{ inputs.nightly-build }}_run.json 
-          echo "Getting the list of run artifacts..."
-          gh api repos/${{ env.GH_REPO }}/actions/runs/${{ steps.get-run-id.outputs.run_id}}/artifacts > ${{ inputs.nightly-build }}_artifacts.json
-          
-          echo "Generating run status report..."
-          # scripts/count_consecutive_failures.py creates a file named run_status_<nightly-build>.md with the run status report
-          # containing information about available build artifacts
-          python scripts/count_consecutive_failures.py ${{ inputs.nightly-build }}.json \
-            --jobs ${{ inputs.nightly-build }}_run.json --artifacts ${{ inputs.nightly-build }}_artifacts.json \
-            --nightly_build ${{ inputs.nightly-build }} --url ${{ steps.get-url.outputs.run_url }}
-
-      - name: Upload Run Status file
+      # probably remove this
+      - name: Upload issue
         uses: actions/upload-artifact@v4
         with:
-          name: run_status_${{ inputs.nightly-build }}
-          path: run_status_${{ inputs.nightly-build }}.md
+          name: issue_verify_version_${{ inputs.architecture }}
+          path: issue_verify_version_${{ inputs.architecture }}.txt
+          if-no-files-found: ignore
+
+      - name: Checkout repo with extensions config file
+        uses: actions/checkout@v4
+        with:
+          repository: duckdb/duckdb
+          sparse-checkout: |
+            .github/config
+          path: ext
+      - name: Test ${{ inputs.nightly-build }} in an aarch64 Docker container
+        shell: bash
+        if: inputs.architecture == 'linux-aarch64' && steps.verify-build.outputs.has_artifact == 'true'
+        run: |
+          
+          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d "[],''")
+
+          for ext in $matches; do
+            is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name='$ext';"')
+            
+            action=("INSTALL" "LOAD")
+            if [[ $is_installed == 'false' ]]; then
+              for act in $action; do
+                echo "$act'ing $ext extension..."
+                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -c "$act '$ext';"'; then 
+                  echo "Failed to $act $ext extension."
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
+                fi
+              done
+            fi
+          done
+      - name: Test ${{ inputs.nightly-build }}
+        shell: bash
+        if: (inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64') && steps.verify-build.outputs.has_artifact == 'true'
+        run: |
+          if [[ ${{ inputs.nightly-build }} == Windows ]]; then
+            duckdb=./duckdb.exe
+          else
+            duckdb=./duckdb
+          fi
+          
+          action="INSTALL LOAD"
+          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
+          for ext in $matches; do
+            is_installed=$($duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;")
+            if [[ $is_installed == 'false' ]]; then
+              for act in $action; do
+                echo "$act'ing $ext extension..."  
+                if ! $duckdb -c "$act $ext;"; then
+                  echo "Failed to $act $ext extension."
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ inputs.architecture }}.txt
+                fi
+              done
+            fi
+          done
+      - name: Upload actions for extensions
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue_ext_${{ inputs.architecture }}
+          path: issue_ext_${{ inputs.architecture }}.txt
+          if-no-files-found: ignore

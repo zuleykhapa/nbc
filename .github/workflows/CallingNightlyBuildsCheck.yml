@@ -3,6 +3,7 @@ on:
   schedule:
     - cron: 0 5 * * * # runs at 6am CET DAILY
   workflow_dispatch:
+  push:
 
 permissions:
   contents: read
@@ -15,81 +16,67 @@ env:
 jobs:
   linux:
     name: Check Linux Release build status
-    uses: ./.github/workflows/nbsc.yml
+    uses: ./.github/workflows/NightlyBuildsCheck.yml
     with:
       nightly-build: LinuxRelease
       runs-on: ubuntu-latest
       platform: linux
-      architecture: ${{ matrix.architecture }}
-    strategy:
-      matrix:
-        architecture: [ linux-amd64, linux-aarch64 ]
   linux-test:
     name: Test Linux Release Builds
-    needs: linux-verify
-    if: needs.linux-verify.outputs.has_artifact == 'true'
-    uses: ./.github/workflows/NightlyBuildsTest.yml
+    needs: linux
+    # if: needs.linux.outputs.run_conclusion == 'success'
+    uses: ./.github/workflows/nbst.yml
     with:
       nightly-build: LinuxRelease
       runs-on: ubuntu-latest
       platform: linux
       architecture: ${{ matrix.architecture }}
+      run_id: ${{ needs.linux.outputs.run_id }}
     strategy:
       matrix:
         architecture: [ linux-amd64, linux-aarch64 ]
+      fail-fast: false
   linux-report:
     name: Create Report for Linux Release Build
     needs: 
       - linux
-      - linux-verify
       - linux-test
     if: always()
     uses: ./.github/workflows/CreateReport.yml
     with:
       platform: linux
       nightly-build: LinuxRelease
-      run_url: ${{ needs.linux.outputs.run_url }}
+      run_url: ${{ needs.linux.outputs.run_id }}
         
-  # osx:
-  #   name: Check OSX build status
-  #   uses: ./.github/workflows/NightlyBuildsCheck.yml
-  #   with:
-  #     nightly-build: OSX
-  #     platform: osx
-  #     runs-on: macos-latest
-  # osx-verify:
-  #   name: Verify OSX build version
-  #   needs: osx
-  #   if: needs.osx.outputs.run_conclusion == 'success'
-  #   uses: ./.github/workflows/VerifyNightlyBuildVersion.yml
-  #   with:
-  #     nightly-build: OSX
-  #     runs-on: macos-latest
-  #     platform: osx
-  #     architecture: osx-universal
-  #     run_id: ${{ needs.osx.outputs.run_id }}
-  # osx-test:
-  #   name: Test OSX Builds
-  #   needs: osx-verify
-  #   if: needs.osx-verify.outputs.has_artifact == 'true'
-  #   uses: ./.github/workflows/NightlyBuildsTest.yml
-  #   with:
-  #     nightly-build: OSX
-  #     platform: osx
-  #     architecture: osx-universal
-  #     runs-on: macos-latest
-  # osx-report:
-  #   name: Create Report for OSX Build
-  #   needs: 
-  #     - osx
-  #     - osx-verify
-  #     - osx-test
-  #   if: always()
-  #   uses: ./.github/workflows/CreateReport.yml
-  #   with:
-  #     platform: osx
-  #     nightly-build: OSX
-  #     run_url: ${{ needs.osx.outputs.run_url }}
+  osx:
+    name: Check OSX build status
+    uses: ./.github/workflows/NightlyBuildsCheck.yml
+    with:
+      nightly-build: OSX
+      platform: osx
+      runs-on: macos-latest
+  osx-test:
+    name: Verify OSX build version
+    needs: osx
+    if: needs.osx.outputs.run_conclusion == 'success'
+    uses: ./.github/workflows/nbst.yml
+    with:
+      nightly-build: OSX
+      runs-on: macos-latest
+      platform: osx
+      architecture: osx-universal
+      run_id: ${{ needs.osx.outputs.run_id }}
+  osx-report:
+    name: Create Report for OSX Build
+    needs: 
+      - osx
+      - osx-test
+    if: always()
+    uses: ./.github/workflows/CreateReport.yml
+    with:
+      platform: osx
+      nightly-build: OSX
+      run_url: ${{ needs.osx.outputs.run_id }}
  
   # windows:
   #   name: Check Windows build status
@@ -166,7 +153,7 @@ jobs:
     if: always()
     needs:
       - linux-report
-      # - osx-report
+      - osx-report
       # - windows-report
       # - python-report
     steps:

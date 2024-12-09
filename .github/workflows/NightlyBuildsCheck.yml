@@ -1,0 +1,83 @@
+name: Check Nightly Build Status
+on:
+  workflow_call:
+    inputs:
+      nightly-build:
+        required: true
+        type: string
+      platform: 
+        required: false
+        type: string
+      runs-on:
+        required: true
+        type: string
+    outputs:
+      run_conclusion: 
+        description: "If nightly-build's conclusion."
+        value: ${{ jobs.check-build.outputs.run_conclusion }}
+      run_id:
+        description: "Stores run id."
+        value: ${{ jobs.check-build.outputs.run_id }}
+      
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: duckdb/duckdb
+jobs:
+  check-build:
+    runs-on: ${{ inputs.runs-on }}
+    outputs:
+      run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
+      run_id: ${{ steps.check-build.outputs.run_id }}
+    steps:
+      - name: Checkout the repo with the script
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install DuckDB for Python
+        shell: bash
+        if: 
+        run: |
+          python -m pip install --upgrade pip
+          pip install duckdb --pre --upgrade
+          pip install duckdb pandas tabulate
+
+      - name: Get ${{ inputs.nightly-build }} run ID and conclusion
+        shell: bash
+        id: check-build
+        run: |
+          echo "Listing ${{ inputs.nightly-build }} runs..."
+          gh run list --repo ${{ env.GH_REPO }} --event repository_dispatch --workflow ${{ inputs.nightly-build }} \
+            --json status,conclusion,url,name,createdAt,databaseId,headSha > ${{ inputs.nightly-build }}.json 
+          
+          echo "Getting the run conclusion..."
+          conclusion=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key conclusion)
+          echo "run_conclusion=$conclusion" >> $GITHUB_OUTPUT
+          echo "Found run_conclusion: $conclusion"
+          
+          echo "Getting the run id..."
+          run_id=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key databaseId)
+          echo "run_id=$run_id" >> $GITHUB_OUTPUT
+          echo "Found run_id: $run_id"
+      
+      - name: Create ${{ inputs.nightly-build }} run status report
+        shell: bash
+        run: |
+          echo "Getting the run info..."
+          gh run view --repo ${{ env.GH_REPO }} ${{ steps.check-build.outputs.run_id}} --json jobs > ${{ inputs.nightly-build }}_run.json 
+          echo "Getting the list of run artifacts..."
+          gh api repos/${{ env.GH_REPO }}/actions/runs/${{ steps.check-build.outputs.run_id}}/artifacts > ${{ inputs.nightly-build }}_artifacts.json
+          
+          echo "Generating run status report..."
+          # scripts/count_consecutive_failures.py creates a file named run_status_<nightly-build>.md with the run status report
+          # containing information about available build artifacts
+          python scripts/count_consecutive_failures.py ${{ inputs.nightly-build }}.json \
+            --jobs ${{ inputs.nightly-build }}_run.json --artifacts ${{ inputs.nightly-build }}_artifacts.json \
+            --nightly_build ${{ inputs.nightly-build }}
+
+      - name: Upload Run Status file
+        uses: actions/upload-artifact@v4
+        with:
+          name: run_status_${{ inputs.nightly-build }}
+          path: run_status_${{ inputs.nightly-build }}.md
