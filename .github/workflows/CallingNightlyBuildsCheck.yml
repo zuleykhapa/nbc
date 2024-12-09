@@ -3,6 +3,7 @@ on:
   schedule:
     - cron: 0 5 * * * # runs at 6am CET DAILY
   workflow_dispatch:
+  push:
 
 permissions:
   contents: read
@@ -37,7 +38,6 @@ jobs:
     name: Create Report for Linux Release Build
     needs: 
       - linux
-      - linux-verify
       - linux-test
     if: always()
     uses: ./.github/workflows/CreateReport.yml
