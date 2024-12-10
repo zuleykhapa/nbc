@@ -29,20 +29,31 @@ jobs:
     steps:
         # Verify aarch64 builds in docker container
       - name: Set up QEMU
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
         uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/aarch64
-        if: ${{ inputs.architecture == 'linux-aarch64' }}
-      - name: Checkout the repo with the script
-        uses: actions/checkout@v4
-      - name: Install qemu dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install QEMU and duckdb dependencies
         if: ${{ inputs.architecture == 'linux-aarch64' }}
         shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y libc6-arm64-cross qemu-user-static
           pip install duckdb pandas tabulate
-
+      
+      - name: Checkout the repo with the script
+        uses: actions/checkout@v4
+      - name: Checkout repo with extensions config file
+        uses: actions/checkout@v4
+        with:
+          repository: duckdb/duckdb
+          sparse-checkout: |
+            .github/config
+          path: ext
       - name: Verify ${{ inputs.nightly-build }} version
         id: verify-build
         shell: bash
@@ -90,34 +101,34 @@ jobs:
           path: issue_verify_version_${{ inputs.architecture }}.txt
           if-no-files-found: ignore
 
-      - name: Checkout repo with extensions config file
-        uses: actions/checkout@v4
-        with:
-          repository: duckdb/duckdb
-          sparse-checkout: |
-            .github/config
-          path: ext
+      
       - name: Test ${{ inputs.nightly-build }} in an aarch64 Docker container
         shell: bash
         if: inputs.architecture == 'linux-aarch64' && steps.verify-build.outputs.has_artifact == 'true'
         run: |
           
-          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d "[],")
+          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
 
           for ext in $matches; do
             is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;"')
             
+            echo $is_installed
+
             action=("INSTALL" "LOAD")
             if [[ $is_installed == 'false' ]]; then
               for act in $action; do
                 echo "$act'ing $ext extension..."
-                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -c "$act $ext;"'; then 
+                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c "./duckdb -c \"$act $ext;\""; then 
                   echo "Failed to $act $ext extension."
                   echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
                 fi
               done
             fi
           done
+      
+      # - uses: owenthereal/action-upterm@v1
+      #   if: inputs.architecture == 'linux-aarch64'
+
       - name: Test ${{ inputs.nightly-build }}
         shell: bash
         if: (inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64') && steps.verify-build.outputs.has_artifact == 'true'
