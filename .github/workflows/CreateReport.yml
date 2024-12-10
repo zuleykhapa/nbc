@@ -37,7 +37,7 @@ jobs:
       - name: Download build verification results
         uses: actions/download-artifact@v4
         with:
-          pattern: issue_body_${{ inputs.platform }}*
+          pattern: issue_verify_version_${{ inputs.platform }}*
           path: failures_${{ inputs.platform }}
       - name: Download extensions test results
         if: always()
