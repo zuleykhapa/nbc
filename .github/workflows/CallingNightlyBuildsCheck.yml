@@ -35,6 +35,7 @@ jobs:
     strategy:
       matrix:
         architecture: [ linux-amd64, linux-aarch64 ]
+      fail-fast: false
   linux-report:
     name: Create Report for Linux Release Build
     needs: 
