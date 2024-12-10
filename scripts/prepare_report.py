@@ -16,7 +16,7 @@ file_name = args.file_name
 platform = args.platform
 url = args.url
 with open("res_{}.md".format(platform), 'w') as f:
-    f.write(f"\n#### Extensions failed to INSTALL\n")
+    f.write(f"\n\n#### Extensions failed to INSTALL\n")
     f.write(duckdb.query(f"""
                 SELECT nightly_build, architecture, version, extension
                 FROM read_csv("{ file_name }")
@@ -24,7 +24,7 @@ with open("res_{}.md".format(platform), 'w') as f:
                 ORDER BY nightly_build, architecture, runs_on, version, extension, failed_statement
                 """).to_df().to_markdown(index=False)
     )
-    f.write(f"\n#### Extensions failed to LOAD\n")
+    f.write(f"\n\n#### Extensions failed to LOAD\n")
     f.write(duckdb.query(f"""
                 SELECT nightly_build, architecture, version, extension
                 FROM read_csv("{ file_name }")
