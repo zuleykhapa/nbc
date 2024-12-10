@@ -14,79 +14,68 @@ env:
   GH_REPO: ${{ github.repository }}
 
 jobs:
-  linux:
-    name: Check Linux Release build status
-    uses: ./.github/workflows/NightlyBuildsCheck.yml
-    with:
-      nightly-build: LinuxRelease
-      runs-on: ubuntu-latest
-      platform: linux
-  linux-test:
-    name: Test Linux Release Builds
-    needs: linux
-    if: needs.linux.outputs.run_conclusion == 'success'
-    uses: ./.github/workflows/nbst.yml
-    with:
-      nightly-build: LinuxRelease
-      runs-on: ubuntu-latest
-      platform: linux
-      architecture: ${{ matrix.architecture }}
-      run_id: ${{ needs.linux.outputs.run_id }}
-    strategy:
-      matrix:
-        architecture: [ linux-amd64, linux-aarch64 ]
-  linux-report:
-    name: Create Report for Linux Release Build
-    needs: 
-      - linux
-      - linux-test
-    if: always()
-    uses: ./.github/workflows/CreateReport.yml
-    with:
-      platform: linux
-      nightly-build: LinuxRelease
-      run_url: ${{ needs.linux.outputs.run_url }}
-        
-  # osx:
-  #   name: Check OSX build status
+  # linux:
+  #   name: Check Linux Release build status
   #   uses: ./.github/workflows/NightlyBuildsCheck.yml
   #   with:
-  #     nightly-build: OSX
-  #     platform: osx
-  #     runs-on: macos-latest
-  # osx-verify:
-  #   name: Verify OSX build version
-  #   needs: osx
-  #   if: needs.osx.outputs.run_conclusion == 'success'
-  #   uses: ./.github/workflows/VerifyNightlyBuildVersion.yml
+  #     nightly-build: LinuxRelease
+  #     runs-on: ubuntu-latest
+  #     platform: linux
+  # linux-test:
+  #   name: Test Linux Release Builds
+  #   needs: linux
+  #   if: needs.linux.outputs.run_conclusion == 'success'
+  #   uses: ./.github/workflows/nbst.yml
   #   with:
-  #     nightly-build: OSX
-  #     runs-on: macos-latest
-  #     platform: osx
-  #     architecture: osx-universal
-  #     run_id: ${{ needs.osx.outputs.run_id }}
-  # osx-test:
-  #   name: Test OSX Builds
-  #   needs: osx-verify
-  #   if: needs.osx-verify.outputs.has_artifact == 'true'
-  #   uses: ./.github/workflows/NightlyBuildsTest.yml
-  #   with:
-  #     nightly-build: OSX
-  #     platform: osx
-  #     architecture: osx-universal
-  #     runs-on: macos-latest
-  # osx-report:
-  #   name: Create Report for OSX Build
+  #     nightly-build: LinuxRelease
+  #     runs-on: ubuntu-latest
+  #     platform: linux
+  #     architecture: ${{ matrix.architecture }}
+  #     run_id: ${{ needs.linux.outputs.run_id }}
+  #   strategy:
+  #     matrix:
+  #       architecture: [ linux-amd64, linux-aarch64 ]
+  # linux-report:
+  #   name: Create Report for Linux Release Build
   #   needs: 
-  #     - osx
-  #     - osx-verify
-  #     - osx-test
+  #     - linux
+  #     - linux-test
   #   if: always()
   #   uses: ./.github/workflows/CreateReport.yml
   #   with:
-  #     platform: osx
-  #     nightly-build: OSX
-  #     run_url: ${{ needs.osx.outputs.run_url }}
+  #     platform: linux
+  #     nightly-build: LinuxRelease
+  #     run_url: ${{ needs.linux.outputs.run_url }}
+        
+  osx:
+    name: Check OSX build status
+    uses: ./.github/workflows/NightlyBuildsCheck.yml
+    with:
+      nightly-build: OSX
+      platform: osx
+      runs-on: macos-latest
+  osx-test:
+    name: Verify OSX build version
+    needs: osx
+    if: needs.osx.outputs.run_conclusion == 'success'
+    uses: ./.github/workflows/nbst.yml
+    with:
+      nightly-build: OSX
+      runs-on: macos-latest
+      platform: osx
+      architecture: osx-universal
+      run_id: ${{ needs.osx.outputs.run_id }}
+  osx-report:
+    name: Create Report for OSX Build
+    needs: 
+      - osx
+      - osx-test
+    if: always()
+    uses: ./.github/workflows/CreateReport.yml
+    with:
+      platform: osx
+      nightly-build: OSX
+      run_url: ${{ needs.osx.outputs.run_id }}
  
   # windows:
   #   name: Check Windows build status
@@ -162,10 +151,10 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
-      - linux-report
-      # - osx-report
-      # - windows-report
-      # - python-report
+      # - linux-report
+      - osx-report
+      - windows-report
+      - python-report
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
