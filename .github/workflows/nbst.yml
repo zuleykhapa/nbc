@@ -41,6 +41,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libc6-arm64-cross qemu-user-static
+          pip install duckdb pandas tabulate
+
       - name: Verify ${{ inputs.nightly-build }} version
         id: verify-build
         shell: bash
