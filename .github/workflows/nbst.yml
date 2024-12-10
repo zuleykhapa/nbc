@@ -28,7 +28,7 @@ jobs:
       has_artifact: ${{ steps.verify-build.outputs.has_artifact }}
     strategy:
       matrix:
-        architecture: ${{ inputs.architecture }}
+        architecture: [ inputs.architecture ]
     steps:
         # Verify aarch64 builds in docker container
       - name: Set up QEMU
