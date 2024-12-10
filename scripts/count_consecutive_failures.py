@@ -54,18 +54,18 @@ def create_run_status():
         f.write(f"\nSee the latest run: [ Run Link ]({ url })\n")
 
     if nightly_build != 'Python':
-        with open("run_status_{}.md".format(nightly_build), 'a') as f:
-            f.write(f"#### Run Details\n\n")
-            duckdb.sql(f"""
-                CREATE OR REPLACE TABLE steps AS (
-                    SELECT * FROM read_json('{ jobs }')
-                )
+        duckdb.sql(f"""
+            CREATE OR REPLACE TABLE steps AS (
+                SELECT * FROM read_json('{ jobs }')
+            )
+        """)
+        duckdb.sql(f"""
+                CREATE OR REPLACE TABLE artifacts AS (
+                    SELECT * FROM read_json('{ artifacts }')
+                );
             """)
-            duckdb.sql(f"""
-                    CREATE OR REPLACE TABLE artifacts AS (
-                        SELECT * FROM read_json('{ artifacts }')
-                    );
-                """)
+        with open("run_status_{}.md".format(nightly_build), 'a') as f:
+            f.write(f"\n#### Run Details\n\n")
             # check if the artifatcs table is not empty
             artifacts_count = duckdb.sql(f"SELECT list_count(artifacts) FROM artifacts;").fetchone()[0]
             if artifacts_count > 0:
