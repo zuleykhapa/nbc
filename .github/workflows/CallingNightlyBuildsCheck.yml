@@ -24,7 +24,7 @@ jobs:
   linux-test:
     name: Test Linux Release Builds
     needs: linux
-    if: needs.linux.outputs.run_conclusion == 'success'
+    # if: needs.linux.outputs.run_conclusion == 'success'
     uses: ./.github/workflows/nbst.yml
     with:
       nightly-build: LinuxRelease
