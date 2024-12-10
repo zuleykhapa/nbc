@@ -26,20 +26,17 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     outputs:
       has_artifact: ${{ steps.verify-build.outputs.has_artifact }}
-    strategy:
-      matrix:
-        architecture: [ inputs.architecture ]
     steps:
         # Verify aarch64 builds in docker container
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/aarch64
-        if: ${{ matrix.architecture == 'linux-aarch64' }}
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
       - name: Install qemu dependencies
-        if: ${{ matrix.architecture == 'linux-aarch64' }}
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
         shell: bash
         run: |
           sudo apt-get update
@@ -48,8 +45,8 @@ jobs:
         id: verify-build
         shell: bash
         run: |
-          if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
-            name="${{ matrix.architecture }}"
+          if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
+            name="${{ inputs.architecture }}"
           else 
             name="${{ inputs.platform }}"
           fi
@@ -60,35 +57,35 @@ jobs:
           if gh run download 12021416084 --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
             echo "has_artifact=true" >> $GITHUB_OUTPUT
-            unzip duckdb_cli-${{ matrix.architecture }}.zip
+            unzip duckdb_cli-${{ inputs.architecture }}.zip
 
             echo "Verifying version..."
             # full_sha=$(gh run view ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} --json headSha -q .headSha)
             
             full_sha=$(gh run view 12021416084 --repo ${{ env.GH_REPO }} --json headSha -q .headSha)
-            if [[ ${{ matrix.architecture }} == linux-aarch64 ]]; then
+            if [[ ${{ inputs.architecture }} == linux-aarch64 ]]; then
               tmp_sha=$(docker run --rm --platform linux/aarch64 -v $(pwd):/duckdb -e full_sha=$full_sha ubuntu:22.04 /bin/bash -c 'cd /duckdb; ./duckdb --version')
             else
               tmp_sha=$(./duckdb --version)
             fi
             short_sha=$(echo $tmp_sha | awk -F' ' "{ print \$2 }")
             if [[ "$full_sha" != "$short_sha"* ]]; then
-              printf "- The version of \`${{ inputs.nightly-build }}\` build (\`$short_sha\`) doesn't match to the version triggered the build (\`$full_sha\`).\n " > issue_verify_version_${{ matrix.architecture }}.txt
-              cat issue_verify_version_${{ matrix.architecture }}.txt
+              printf "- The version of \`${{ inputs.nightly-build }}\` build (\`$short_sha\`) doesn't match to the version triggered the build (\`$full_sha\`).\n " > issue_verify_version_${{ inputs.architecture }}.txt
+              cat issue_verify_version_${{ inputs.architecture }}.txt
               exit 1
             fi
           else  
             echo "Downloading duckdb-binaries-$name artifact is failed."
-            printf "#### No artifacts with name duckdb-binaries-$name provided.\n" > issue_verify_version_${{ matrix.architecture }}.txt
-            cat issue_verify_version_${{ matrix.architecture }}.txt
+            printf "#### No artifacts with name duckdb-binaries-$name provided.\n" > issue_verify_version_${{ inputs.architecture }}.txt
+            cat issue_verify_version_${{ inputs.architecture }}.txt
             echo "has_artifact=false" >> $GITHUB_OUTPUT
           fi
       # probably remove this
       - name: Upload issue
         uses: actions/upload-artifact@v4
         with:
-          name: issue_verify_version_${{ matrix.architecture }}
-          path: issue_verify_version_${{ matrix.architecture }}.txt
+          name: issue_verify_version_${{ inputs.architecture }}
+          path: issue_verify_version_${{ inputs.architecture }}.txt
           if-no-files-found: ignore
 
       - name: Checkout repo with extensions config file
@@ -100,7 +97,7 @@ jobs:
           path: ext
       - name: Test ${{ inputs.nightly-build }} in an aarch64 Docker container
         shell: bash
-        if: matrix.architecture == 'linux-aarch64'
+        if: inputs.architecture == 'linux-aarch64'
         run: |
           
           matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
@@ -114,14 +111,14 @@ jobs:
                 echo "$act'ing $ext extension..."
                 if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext -e duckdb=$duckdb ubuntu:22.04 /bin/bash -c '$duckdb -c "$act $ext;"'; then 
                   echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ matrix.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ matrix.architecture }}.txt
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
                 fi
               done
             fi
           done
       - name: Test ${{ inputs.nightly-build }}
         shell: bash
-        if: matrix.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || matrix.architecture == 'windows-amd64'
+        if: inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64'
         run: |
 
           if [[ ${{ inputs.nightly-build }} == Windows ]]; then
@@ -139,7 +136,7 @@ jobs:
                 echo "$act'ing $ext extension..."  
                 if ! $duckdb -c "$act $ext;"; then
                   echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ matrix.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ matrix.architecture }}.txt
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ inputs.architecture }}.txt
                 fi
               done
             fi
@@ -147,6 +144,6 @@ jobs:
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: issue_ext_${{ matrix.architecture }}
-          path: issue_ext_${{ matrix.architecture }}.txt
+          name: issue_ext_${{ inputs.architecture }}
+          path: issue_ext_${{ inputs.architecture }}.txt
           if-no-files-found: ignore

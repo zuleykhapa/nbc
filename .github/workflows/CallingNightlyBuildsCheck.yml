@@ -30,12 +30,11 @@ jobs:
       nightly-build: LinuxRelease
       runs-on: ubuntu-latest
       platform: linux
-      architecture: linux-amd64, linux-aarch64
-      # architecture: ${{ matrix.architecture }}
+      architecture: ${{ matrix.architecture }}
       run_id: ${{ needs.linux.outputs.run_id }}
-    # strategy:
-    #   matrix:
-    #     architecture: [ linux-amd64, linux-aarch64 ]
+    strategy:
+      matrix:
+        architecture: [ linux-amd64, linux-aarch64 ]
   linux-report:
     name: Create Report for Linux Release Build
     needs: 
