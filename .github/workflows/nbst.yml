@@ -105,13 +105,13 @@ jobs:
           matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d "[],''")
 
           for ext in $matches; do
-            is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name='$ext';"')
+            is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=\'$ext\';"')
             
             action=("INSTALL" "LOAD")
             if [[ $is_installed == 'false' ]]; then
               for act in $action; do
                 echo "$act'ing $ext extension..."
-                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -c "$act '$ext';"'; then 
+                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -c "$act \'$ext\';"'; then 
                   echo "Failed to $act $ext extension."
                   echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
                 fi
