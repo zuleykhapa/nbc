@@ -40,13 +40,11 @@ def create_run_status():
             f.write(f"\nThe **'{ nightly_build }'** nightly-build has not succeeded the previous '{ failures }' times.\n")
             f.write(f"#### Failure Details\n\n")
             f.write(duckdb.query(f"""
-                        COPY (
-                            SELECT conclusion, createdAt, url
-                            FROM read_json('{ input_file }') 
-                            WHERE conclusion='failure'
-                            LIMIT '{ failures }'
-                        )
-                        """).to_df().to_markdown(index=False)
+                        SELECT conclusion, createdAt, url
+                        FROM read_json('{ input_file }') 
+                        WHERE conclusion='failure'
+                        LIMIT { failures }
+                """).to_df().to_markdown(index=False)
             )
     else:
         with open("run_status_{}.md".format(nightly_build), 'w') as f:
@@ -73,40 +71,36 @@ def create_run_status():
             if artifacts_count > 0:
                 with open("run_status_{}.md".format(nightly_build), 'a') as f:
                     f.write(duckdb.query(f"""
-                        COPY (
-                            SELECT job_name, conclusion, artifact_name 
+                        SELECT job_name, conclusion, artifact_name 
+                        FROM (
+                            SELECT a['name'] artifact_name, a['created_at'] created_at
                             FROM (
-                                SELECT a['name'] artifact_name, a['created_at'] created_at
-                                FROM (
-                                    SELECT unnest(artifacts) a 
-                                    FROM artifacts)) tmp1 
-                                    ASOF JOIN (
-                                        SELECT * 
+                                SELECT unnest(artifacts) a 
+                                FROM artifacts)) tmp1 
+                                ASOF JOIN (
+                                    SELECT * 
+                                    FROM (
+                                        SELECT unnest(j['steps']) step, j['name'] job_name, j['completedAt'] completedAt, j['conclusion'] conclusion 
                                         FROM (
-                                            SELECT unnest(j['steps']) step, j['name'] job_name, j['completedAt'] completedAt, j['conclusion'] conclusion 
-                                            FROM (
-                                                SELECT unnest(jobs) j 
-                                                FROM steps)) 
-                                                WHERE step['name'] LIKE '%upload-artifact%') tmp2 
-                                                ON tmp1.created_at >= tmp2.step['completedAt']
-                            )
-                        """).to_df().to_markdown(indexx=False)
+                                            SELECT unnest(jobs) j 
+                                            FROM steps)) 
+                                            WHERE step['name'] LIKE '%upload-artifact%') tmp2 
+                                            ON tmp1.created_at >= tmp2.step['completedAt']
+                        """).to_df().to_markdown(index=False)
                     )
             else:
                 with open("run_status_{}.md".format(nightly_build), 'a') as f:
                     f.write(duckdb.query(f"""
-                        COPY (
-                            SELECT job_name, conclusion 
+                        SELECT job_name, conclusion 
+                        FROM (
+                            SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
                             FROM (
-                                SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
-                                FROM (
-                                    SELECT unnest(jobs) j 
-                                    FROM steps
-                                    )
-                                ) 
-                                WHERE steps['name'] LIKE '%upload-artifact%'
-                            )
-                        """).to_df().to_markdown(indexx=False)
+                                SELECT unnest(jobs) j 
+                                FROM steps
+                                )
+                            ) 
+                            WHERE steps['name'] LIKE '%upload-artifact%'
+                        """).to_df().to_markdown(index=False)
                     )
     else:
         with open("run_status_{}.md".format(nightly_build), 'a') as f:
