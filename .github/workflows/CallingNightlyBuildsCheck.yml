@@ -153,8 +153,8 @@ jobs:
     needs:
       # - linux-report
       - osx-report
-      - windows-report
-      - python-report
+      # - windows-report
+      # - python-report
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
