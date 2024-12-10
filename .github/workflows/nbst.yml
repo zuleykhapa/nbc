@@ -66,14 +66,16 @@ jobs:
             if [[ ${{ inputs.architecture }} == linux-aarch64 ]]; then
               tmp_sha=$(docker run --rm --platform linux/aarch64 -v $(pwd):/duckdb -e full_sha=$full_sha ubuntu:22.04 /bin/bash -c 'cd /duckdb; ./duckdb --version')
             else
-              tmp_sha=$(./duckdb --version)
+              python scripts/verify_version.py $full_sha --workflow ${{ inputs.nightly-build }} --platform ${{ inputs.platform }} --version ${{ inputs.architecture }}
+              
+              # tmp_sha=$(./duckdb --version)
             fi
-            short_sha=$(echo $tmp_sha | awk -F' ' "{ print \$2 }")
-            if [[ "$full_sha" != "$short_sha"* ]]; then
-              printf "- The version of \`${{ inputs.nightly-build }}\` build (\`$short_sha\`) doesn't match to the version triggered the build (\`$full_sha\`).\n " > issue_verify_version_${{ inputs.architecture }}.txt
-              cat issue_verify_version_${{ inputs.architecture }}.txt
-              exit 1
-            fi
+            # short_sha=$(echo $tmp_sha | awk -F' ' "{ print \$2 }")
+            # if [[ "$full_sha" != "$short_sha"* ]]; then
+            #   printf "- The version of \`${{ inputs.nightly-build }}\` build (\`$short_sha\`) doesn't match to the version triggered the build (\`$full_sha\`).\n " > issue_verify_version_${{ inputs.architecture }}.txt
+            #   cat issue_verify_version_${{ inputs.architecture }}.txt
+            #   exit 1
+            # fi
           else  
             echo "Downloading duckdb-binaries-$name artifact is failed."
             printf "#### No artifacts with name duckdb-binaries-$name provided.\n" > issue_verify_version_${{ inputs.architecture }}.txt

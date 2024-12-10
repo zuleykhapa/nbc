@@ -21,5 +21,5 @@ with open("res_{}.md".format(platform), 'w') as f:
                 SELECT * 
                 FROM read_csv("{ file_name }")
                     ORDER BY nightly_build, architecture, runs_on, version, extension, failed_statement
-                """).to_df().to_markdown()
+                """).to_df().to_markdown(index=False)
     )
