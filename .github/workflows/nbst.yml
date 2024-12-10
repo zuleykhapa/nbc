@@ -82,25 +82,7 @@ jobs:
         with:
           name: issue_body_${{ inputs.architecture }}
           path: issue_body_${{ inputs.architecture }}.txt
-      # passes the build to the next job
-      - name: Upload build
-        if: steps.verify-build.outputs.has_artifact == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: duckdb_cli-${{ inputs.architecture }}
-          path: duckdb_cli-${{ inputs.architecture }}.zip
 
-  test:
-    runs-on: ${{ inputs.runs-on }}
-    continue-on-error: true
-    steps:
-      # - name: Set up QEMU
-      #   if: ${{ inputs.architecture == 'linux-aarch64' }}
-      #   uses: docker/setup-qemu-action@v3
-      #   with:
-      #     platforms: linux/aarch64
-      # - name: Checkout the repo with the script
-      #   uses: actions/checkout@v4
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
         with:
@@ -108,20 +90,6 @@ jobs:
           sparse-checkout: |
             .github/config
           path: ext
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.10'
-      # - name: Install QEMU dependencies
-      #   if: ${{ inputs.architecture == 'linux-aarch64' }}
-      #   shell: bash
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y libc6-arm64-cross qemu-user-static
-      - name: Download artifact 
-        uses: actions/download-artifact@v4
-        with:
-          name: duckdb_cli-${{ inputs.architecture }}
       - name: Test ${{ inputs.nightly-build }} in an aarch64 Docker container
         shell: bash
         if: inputs.architecture == 'linux-aarch64'
