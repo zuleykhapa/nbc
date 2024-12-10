@@ -94,7 +94,6 @@ jobs:
         shell: bash
         if: inputs.architecture == 'linux-aarch64'
         run: |
-          unzip duckdb_cli-${{ inputs.architecture }}.zip
           
           matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
 
@@ -116,7 +115,7 @@ jobs:
         shell: bash
         if: inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64'
         run: |
-          unzip duckdb_cli-${{ inputs.architecture }}.zip
+
           if [[ ${{ inputs.nightly-build }} == Windows ]]; then
             duckdb=./duckdb.exe
           else
