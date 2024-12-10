@@ -86,6 +86,7 @@ def create_run_status():
                                         WHERE step['name'] LIKE '%upload-artifact%') tmp2 
                                         ON tmp1.created_at >= tmp2.step['completedAt']
                     """).to_df().to_markdown(index=False)
+                )
             else:
                 f.write(duckdb.query(f"""
                     SELECT job_name, conclusion 
@@ -98,6 +99,7 @@ def create_run_status():
                         ) 
                         WHERE steps['name'] LIKE '%upload-artifact%'
                     """).to_df().to_markdown(index=False)
+                )
     else:
         with open("run_status_{}.md".format(nightly_build), 'a') as f:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
