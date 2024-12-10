@@ -102,7 +102,7 @@ jobs:
         if: inputs.architecture == 'linux-aarch64' && steps.verify-build.outputs.has_artifact == 'true'
         run: |
           
-          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d "[],''")
+          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d "[],")
 
           for ext in $matches; do
             is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name='${ext}';"')
