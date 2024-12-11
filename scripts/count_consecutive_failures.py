@@ -136,7 +136,9 @@ def create_run_status():
                                 WHERE steps['name'] LIKE '%upload%'
                             )
                         )
-                        ORDER BY startedAt
+                        ORDER BY 
+                            conclusion DESC
+                            startedAt
                     ) t1 
                     POSITIONAL JOIN (
                         SELECT
