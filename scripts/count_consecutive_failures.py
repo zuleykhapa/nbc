@@ -137,7 +137,7 @@ def create_run_status():
                             )
                         )
                         ORDER BY 
-                            conclusion DESC
+                            conclusion DESC,
                             startedAt
                     ) t1 
                     POSITIONAL JOIN (
