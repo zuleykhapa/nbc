@@ -62,7 +62,7 @@ jobs:
         run: |
           # run_status_*/ is an artifact of the Check Nightly Build Status workflow
           if [[ $(ls run_status_*/run_status*/ | wc -l) -gt 0 || -f res_${{ inputs.platform }}.md ]]; then
-            echo "\n" > report_${{ inputs.platform }}.md
+            echo "" > report_${{ inputs.platform }}.md
             echo "## ${{ inputs.nightly-build }}" >> report_${{ inputs.platform }}.md
             cat run_status_*/run_status*/* >> report_${{ inputs.platform }}.md
           fi
