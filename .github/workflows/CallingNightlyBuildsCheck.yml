@@ -78,50 +78,39 @@ jobs:
       nightly-build: OSX
       run_url: ${{ needs.osx.outputs.run_id }}
  
-  # windows:
-  #   name: Check Windows build status
-  #   uses: ./.github/workflows/NightlyBuildsCheck.yml
-  #   with:
-  #     nightly-build: Windows
-  #     runs-on: windows-2019
-  #     platform: windows
-  # windows-verify:
-  #   name: Verify Windows build version
-  #   needs: windows
-  #   if: needs.windows.outputs.run_conclusion == 'success'
-  #   uses: ./.github/workflows/VerifyNightlyBuildVersion.yml
-  #   with:
-  #     nightly-build: Windows
-  #     runs-on: windows-2019
-  #     platform: windows
-  #     architecture: ${{ matrix.architecture }}
-  #     run_id: ${{ needs.windows.outputs.run_id }}
-  #   strategy:
-  #     matrix:
-  #       architecture: [ windows-amd64 ]
-  #       # architecture: [ windows-amd64, windows-arm64 ] 
-  # windows-test:
-  #   name: Test Windows Builds
-  #   needs: windows-verify
-  #   if: needs.windows-verify.outputs.has_artifact == 'true'
-  #   uses: ./.github/workflows/NightlyBuildsTest.yml
-  #   with:
-  #     nightly-build: Windows
-  #     platform: windows
-  #     architecture: windows-amd64
-  #     runs-on: windows-2019
-  # windows-report:
-  #   name: Create Report for Windows Build
-  #   needs: 
-  #     - windows
-  #     - windows-verify
-  #     - windows-test
-  #   if: always()
-  #   uses: ./.github/workflows/CreateReport.yml
-  #   with:
-  #     platform: windows
-  #     nightly-build: Windows
-  #     run_url: ${{ needs.windows.outputs.run_url }}
+  windows:
+    name: Check Windows build status
+    uses: ./.github/workflows/NightlyBuildsCheck.yml
+    with:
+      nightly-build: Windows
+      runs-on: windows-2019
+      platform: windows
+  windows-test:
+    name: Verify Windows build version
+    needs: windows
+    if: needs.windows.outputs.run_conclusion == 'success'
+    uses: ./.github/workflows/nbst.yml
+    with:
+      nightly-build: Windows
+      runs-on: windows-2019
+      platform: windows
+      architecture: ${{ matrix.architecture }}
+      run_id: ${{ needs.windows.outputs.run_id }}
+    strategy:
+      matrix:
+        architecture: [ windows-amd64 ]
+        # architecture: [ windows-amd64, windows-arm64 ] 
+  windows-report:
+    name: Create Report for Windows Build
+    needs: 
+      - windows
+      - windows-test
+    if: always()
+    uses: ./.github/workflows/CreateReport.yml
+    with:
+      platform: windows
+      nightly-build: Windows
+      run_url: ${{ needs.windows.outputs.run_id }}
 
   # python:
   #   name: Check Python build status
@@ -154,7 +143,7 @@ jobs:
     needs:
       - linux-report
       - osx-report
-      # - windows-report
+      - windows-report
       # - python-report
     steps:
       - name: Download artifacts
