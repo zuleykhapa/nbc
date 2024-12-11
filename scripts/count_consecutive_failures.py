@@ -21,37 +21,74 @@ jobs = args.jobs
 artifacts = args.artifacts
 
 # count consecutive failures
-all = duckdb.sql(f"SELECT * FROM read_json('{ input_file }') WHERE status = 'completed'")
-rows = all.fetchall()
-conclusions = [row[0] for row in rows]
-failures=0
-for c in conclusions:
-    if c == 'failure':
-        failures+=1
-    elif c == '':
-        continue
-    else:
-        break
+def count_consecutive_failures():
+    duckdb.sql(f"""
+        CREATE OR REPLACE TABLE gh_run_list AS (
+            SELECT *
+            FROM '{ input_file }')
+            ORDER BY createdAt DESC
+    """)
+    latest_success_rowid = duckdb.sql(f"""
+        SELECT rowid
+        FROM gh_run_list
+        WHERE conclusion = 'success'
+        ORDER BY createdAt DESC
+    """).fetchone()
+    count_consecutive_failures = latest_success_rowid[0] if latest_success_rowid else -1 # when -1 then all runs in the json file have conclusion 'failure'
 
-url= duckdb.sql(f"""SELECT url FROM '{ input_file }'""").fetchone()[0]
-def create_run_status():
-    if failures > 0:
-        with open("run_status_{}.md".format(nightly_build), 'w') as f:
-            f.write(f"\nThe **'{ nightly_build }'** nightly-build has not succeeded the previous '{ failures }' times.\n")
-            f.write(f"#### Failure Details\n\n")
-            f.write(duckdb.query(f"""
-                        SELECT conclusion, createdAt, url
-                        FROM read_json('{ input_file }') 
-                        WHERE conclusion='failure'
-                        LIMIT { failures }
-                """).to_df().to_markdown(index=False)
-            )
-    else:
-        with open("run_status_{}.md".format(nightly_build), 'w') as f:
-            f.write(f"\nThe **'{ nightly_build }'** nightly-build has succeeded.\n")
+    tmp_url = duckdb.sql(f"""
+                SELECT
+                    url
+                FROM gh_run_list
+                WHERE conclusion = 'success'
+                ORDER BY createdAt DESC
+            """).fetchone()
+    url = tmp_url[0] if tmp_url else ''
+
+    if count_consecutive_failures == 0:
+        with open("run_status_{}.md".format(nightly_build), 'a') as f:
+            f.write(f"\n\n### { nightly_build } nightly-build has succeeded.\n")            
+            f.write(f"Latest run: [ Run Link ]({ url })\n")
+            return
+    # since all runs in the json file have conclusion = 'failure', we count them all 
+    # and don't include the link to the last successfull run in a report
+    if count_consecutive_failures == -1:
+        count_consecutive_failures = duckdb.sql(f"""
+            SELECT
+                count(*)
+            FROM gh_run_list
+            WHERE conclusion = 'failure'
+        """).fetchone()[0]
     
+    total_count = duckdb.sql(f"""
+        SELECT
+            count(*)
+        FROM gh_run_list
+    """).fetchone()[0]
+    
+    with open("run_status_{}.md".format(nightly_build), 'w') as f:
+        f.write(f"\n\n### { nightly_build } nightly-build has not succeeded the previous **{ count_consecutive_failures }** times.\n")
+        if count_consecutive_failures < total_count:
+            f.write(f"Latest successfull run: [ Run Link ]({ url })\n")
+
     with open("run_status_{}.md".format(nightly_build), 'a') as f:
-        f.write(f"\nSee the latest run: [ Run Link ]({ url })\n")
+        f.write(f"\n#### Failure Details\n")
+        f.write(duckdb.query(f"""
+                    SELECT
+                        conclusion,
+                        createdAt,
+                        url
+                    FROM gh_run_list
+                    WHERE conclusion = 'failure'
+                    ORDER BY createdAt DESC
+                    LIMIT { count_consecutive_failures }
+            """).to_df().to_markdown(index=False)
+        )
+
+
+def create_run_status():
+    url= duckdb.sql(f"""SELECT url FROM '{ input_file }'""").fetchone()[0]
+    count_consecutive_failures()
 
     if nightly_build != 'Python':
         duckdb.sql(f"""
@@ -65,26 +102,57 @@ def create_run_status():
                 );
             """)
         with open("run_status_{}.md".format(nightly_build), 'a') as f:
-            f.write(f"\n#### Run Details\n")
+            f.write(f"\n#### Workflow Artifacts \n")
             # check if the artifatcs table is not empty
             artifacts_count = duckdb.sql(f"SELECT list_count(artifacts) FROM artifacts;").fetchone()[0]
             if artifacts_count > 0:
                 f.write(duckdb.query(f"""
-                    SELECT job_name, conclusion, artifact_name 
+                    SELECT
+                        t1.job_name,
+                        t1.conclusion,
+                        t2.name
                     FROM (
-                        SELECT a['name'] artifact_name, a['created_at'] created_at
+                        SELECT
+                            *
                         FROM (
-                            SELECT unnest(artifacts) a 
-                            FROM artifacts)) tmp1 
-                            ASOF JOIN (
-                                SELECT * 
+                            SELECT
+                                job_name,
+                                steps.conclusion,
+                                steps.startedAt 
+                            FROM (
+                                SELECT
+                                    * 
                                 FROM (
-                                    SELECT unnest(j['steps']) step, j['name'] job_name, j['completedAt'] completedAt, j['conclusion'] conclusion 
+                                    SELECT
+                                        unnest(steps) steps,
+                                        job_name 
                                     FROM (
-                                        SELECT unnest(jobs) j 
-                                        FROM steps)) 
-                                        WHERE step['name'] LIKE '%upload-artifact%') tmp2 
-                                        ON tmp1.created_at >= tmp2.step['completedAt']
+                                        SELECT
+                                            unnest(jobs)['steps'] steps,
+                                            unnest(jobs)['name'] job_name 
+                                        FROM steps
+                                        )
+                                    )
+                                WHERE steps['name'] LIKE '%upload%'
+                            )
+                        )
+                        ORDER BY startedAt
+                    ) t1 
+                    POSITIONAL JOIN (
+                        SELECT
+                            * 
+                        FROM (
+                            SELECT
+                                art.name,
+                                art.expires_at  
+                            FROM (
+                                SELECT
+                                    unnest(artifacts) art
+                                FROM artifacts
+                                )
+                            ) 
+                        ORDER BY expires_at
+                        ) as t2;
                     """).to_df().to_markdown(index=False)
                 )
             else:
