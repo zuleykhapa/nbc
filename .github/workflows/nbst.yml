@@ -29,20 +29,31 @@ jobs:
     steps:
         # Verify aarch64 builds in docker container
       - name: Set up QEMU
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
         uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/aarch64
-        if: ${{ inputs.architecture == 'linux-aarch64' }}
-      - name: Checkout the repo with the script
-        uses: actions/checkout@v4
-      - name: Install qemu dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install QEMU and duckdb dependencies
         if: ${{ inputs.architecture == 'linux-aarch64' }}
         shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y libc6-arm64-cross qemu-user-static
           pip install duckdb pandas tabulate
-
+      
+      - name: Checkout the repo with the script
+        uses: actions/checkout@v4
+      - name: Checkout repo with extensions config file
+        uses: actions/checkout@v4
+        with:
+          repository: duckdb/duckdb
+          sparse-checkout: |
+            .github/config
+          path: ext
       - name: Verify ${{ inputs.nightly-build }} version
         id: verify-build
         shell: bash
@@ -90,13 +101,7 @@ jobs:
           path: issue_verify_version_${{ inputs.architecture }}.txt
           if-no-files-found: ignore
 
-      - name: Checkout repo with extensions config file
-        uses: actions/checkout@v4
-        with:
-          repository: duckdb/duckdb
-          sparse-checkout: |
-            .github/config
-          path: ext
+      
       - name: Test ${{ inputs.nightly-build }} in an aarch64 Docker container
         shell: bash
         if: inputs.architecture == 'linux-aarch64' && steps.verify-build.outputs.has_artifact == 'true'
