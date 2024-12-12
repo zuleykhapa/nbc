@@ -66,5 +66,5 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
-          name: issue_body_Python_extensions_${{ matrix.runs-on }}_${{ matrix.python-version }}
-          path: issue_body_*.txt
+          name: issue_ext_${{ matrix.runs-on }}_${{ matrix.python-version }}
+          path: issue_ext_*.txt
