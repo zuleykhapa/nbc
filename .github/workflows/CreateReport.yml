@@ -55,8 +55,8 @@ jobs:
 
             # scripts/prepare_report.py creates res_${{ inputs.platform }}.md file
             python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }} --url ${{ inputs.run_url }}
+            rm -r ext_failures_*/issue_ext_Py*/
           fi
-          rm -r ext_failures_*/issue_ext_Py*/
           if [ $(ls ext_failures_*/issue_ext_*/ | wc -l) -gt 0 ]; then
             echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
             cat ext_failures_${{ inputs.platform }}/issue_ext*/*.txt >> result.csv
