@@ -8,6 +8,7 @@ import random
 import os
 # import string
 import subprocess
+import docker
 
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
@@ -71,6 +72,7 @@ counter = 0
 
 for ext in extensions:
     # try:
+    print(architecture, "🦑")
     if architecture.count("aarch64"):
         select_installed = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
