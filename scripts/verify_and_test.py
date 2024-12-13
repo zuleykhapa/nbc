@@ -97,16 +97,16 @@ for ext in extensions:
             print(f"{ act }ing { ext }...")
             if architecture.count("aarch64"):
                 install_ext = [
-                    duckdb,
-                    "-c",
-                    f"{ act } '{ ext }';"
-                ]
-            else:
-                install_ext = [
                     "docker", "run", "--rm", "--platform", "linux/aarch64",
                     "-v", f"{ os.getcwd() }/duckdb:/duckdb",
                     "-e", f"ext={ ext }"
                     "ubuntu:22.04", "/bin/bash", "-c", f"./duckdb -c '{ act } { ext };'"
+                ]
+            else:
+                install_ext = [
+                    duckdb,
+                    "-c",
+                    f"{ act } '{ ext }';"
                 ]
             try:
                 subprocess.run(install_ext, check=True, text=True, capture_output=True)
