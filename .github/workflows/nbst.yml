@@ -102,53 +102,57 @@ jobs:
         shell: bash
         if: inputs.architecture == 'linux-aarch64' && steps.verify-build.outputs.has_artifact == 'true'
         run: |
-          
-          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
+          python scripts/verify_and_test.py \
+            --nightly_build ${{ inputs.nightly-build }} --platform ${{ inputs.platform }} --architecture ${{ inputs.architecture }} \
+            --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
+            --config ext/config/out_of_tree_extensions.cmake
 
-          for ext in $matches; do
-            is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;"')
+      #     matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
+
+      #     for ext in $matches; do
+      #       is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;"')
             
-            echo $is_installed
+      #       echo $is_installed
 
-            action=("INSTALL" "LOAD")
-            if [[ $is_installed == 'false' ]]; then
-              for act in $action; do
-                echo "$act'ing $ext extension..."
-                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c "./duckdb -c \"$act $ext;\""; then 
-                  echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
-                fi
-              done
-            fi
-          done
+      #       action=("INSTALL" "LOAD")
+      #       if [[ $is_installed == 'false' ]]; then
+      #         for act in $action; do
+      #           echo "$act'ing $ext extension..."
+      #           if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c "./duckdb -c \"$act $ext;\""; then 
+      #             echo "Failed to $act $ext extension."
+      #             echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
+      #           fi
+      #         done
+      #       fi
+      #     done
       
-      # - uses: owenthereal/action-upterm@v1
-      #   if: inputs.architecture == 'linux-aarch64'
+      # # - uses: owenthereal/action-upterm@v1
+      # #   if: inputs.architecture == 'linux-aarch64'
 
-      - name: Test ${{ inputs.nightly-build }}
-        shell: bash
-        if: (inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64') && steps.verify-build.outputs.has_artifact == 'true'
-        run: |
-          if [[ ${{ inputs.nightly-build }} == Windows ]]; then
-            duckdb=./duckdb.exe
-          else
-            duckdb=./duckdb
-          fi
+      # - name: Test ${{ inputs.nightly-build }}
+      #   shell: bash
+      #   if: (inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64') && steps.verify-build.outputs.has_artifact == 'true'
+      #   run: |
+      #     if [[ ${{ inputs.nightly-build }} == Windows ]]; then
+      #       duckdb=./duckdb.exe
+      #     else
+      #       duckdb=./duckdb
+      #     fi
           
-          action="INSTALL LOAD"
-          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
-          for ext in $matches; do
-            is_installed=$($duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;")
-            if [[ $is_installed == 'false' ]]; then
-              for act in $action; do
-                echo "$act'ing $ext extension..."  
-                if ! $duckdb -c "$act $ext;"; then
-                  echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ inputs.architecture }}.txt
-                fi
-              done
-            fi
-          done
+      #     action="INSTALL LOAD"
+      #     matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
+      #     for ext in $matches; do
+      #       is_installed=$($duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;")
+      #       if [[ $is_installed == 'false' ]]; then
+      #         for act in $action; do
+      #           echo "$act'ing $ext extension..."  
+      #           if ! $duckdb -c "$act $ext;"; then
+      #             echo "Failed to $act $ext extension."
+      #             echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ inputs.architecture }}.txt
+      #           fi
+      #         done
+      #       fi
+      #     done
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
