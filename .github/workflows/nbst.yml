@@ -67,7 +67,6 @@ jobs:
           echo "Downloading duckdb-binaries-$name artifact..."
           if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-            echo "has_artifact=true" >> $GITHUB_OUTPUT
             unzip duckdb_cli-${{ inputs.architecture }}.zip
 
             echo "Verifying version..."

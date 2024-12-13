@@ -46,7 +46,7 @@ jobs:
     with:
       platform: linux
       nightly-build: LinuxRelease
-      run_url: ${{ needs.linux.outputs.run_id }}
+      run_url: ${{ needs.linux.outputs.run_url }}
         
   osx:
     name: Check OSX build status
@@ -76,7 +76,7 @@ jobs:
     with:
       platform: osx
       nightly-build: OSX
-      run_url: ${{ needs.osx.outputs.run_id }}
+      run_url: ${{ needs.osx.outputs.run_url }}
  
   windows:
     name: Check Windows build status
@@ -110,7 +110,7 @@ jobs:
     with:
       platform: windows
       nightly-build: Windows
-      run_url: ${{ needs.windows.outputs.run_id }}
+      run_url: ${{ needs.windows.outputs.run_url }}
 
   python:
     name: Check Python build status
@@ -135,7 +135,7 @@ jobs:
     with:
       platform: Python
       nightly-build: Python
-      run_url: ${{ needs.python.outputs.run_id }}
+      run_url: ${{ needs.python.outputs.run_url }}
   
   create-issue:
     runs-on: ubuntu-latest

@@ -12,6 +12,9 @@ on:
         required: true
         type: string
     outputs:
+      run_url:
+        description: "Stores run URL."
+        value: ${{ jobs.check-build.outputs.run_url }}
       run_conclusion: 
         description: "If nightly-build's conclusion."
         value: ${{ jobs.check-build.outputs.run_conclusion }}
@@ -26,6 +29,7 @@ jobs:
   check-build:
     runs-on: ${{ inputs.runs-on }}
     outputs:
+      run_url: ${{ steps.get-url.outputs.run_url }}
       run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
       run_id: ${{ steps.check-build.outputs.run_id }}
     steps:
@@ -42,6 +46,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install duckdb --pre --upgrade
           pip install duckdb pandas tabulate
+
+      - name: Get run url ${{ inputs.nightly-build }} and a file with the runs list
+        shell: bash
+        id: get-url
+        run: |
+          echo "Listing ${{ inputs.nightly-build }} runs..."
+          gh run list --repo ${{ env.GH_REPO }} --event repository_dispatch --workflow ${{ inputs.nightly-build }} --json status,conclusion,url,name,createdAt,databaseId,headSha > ${{ inputs.nightly-build }}.json 
+          url=$(python -c "import duckdb; print()")
+          url=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key url)
+          echo "run_url=$url" >> $GITHUB_OUTPUT
+          echo "Got run URL: $url"
 
       - name: Get ${{ inputs.nightly-build }} run ID and conclusion
         shell: bash
