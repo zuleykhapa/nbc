@@ -82,6 +82,7 @@ jobs:
               cat issue_verify_version_${{ inputs.architecture }}.txt
               exit 1
             fi
+            echo "has_artifact=true" >> $GITHUB_OUTPUT
           else  
             echo "Downloading duckdb-binaries-$name artifact is failed."
             printf "#### No artifacts with name duckdb-binaries-$name provided.\n" > issue_verify_version_${{ inputs.architecture }}.txt

@@ -9,7 +9,7 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument("nightly_build")
 parser.add_argument("--runs_on")
-parser.add_argument("--versions")
+parser.add_argument("--version")
 args = parser.parse_args()
 if not args:
     sys.stderr.write("Usage: python scripts/test_install_load_extensions.py <nightly_build> --runs_on <runs_on> --version <version>")
@@ -17,7 +17,7 @@ if not args:
 
 nightly_build = args.nightly_build
 runs_on = args.runs_on
-versions = args.versions
+version = args.version
 
 # TODO: if it is a release, check also "delta" (only for linux-python3) and "motherduck"
 # .github/config/out_of_tree_extensions.cmake is sparse-checked out to the 'ext' directory
