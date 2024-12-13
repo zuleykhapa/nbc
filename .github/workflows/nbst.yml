@@ -103,6 +103,7 @@ jobs:
         # if: inputs.architecture == 'linux-aarch64' && steps.verify-build.outputs.has_artifact == 'true'
         if: steps.verify-build.outputs.has_artifact == 'true'
         run: |
+          python -m pip show duckdb
           python scripts/verify_and_test.py \
             --nightly_build ${{ inputs.nightly-build }} --platform ${{ inputs.platform }} --architecture ${{ inputs.architecture }} \
             --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
