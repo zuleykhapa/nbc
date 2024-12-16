@@ -122,15 +122,16 @@ def test_extensions(duckdb):
                     print(f"stderr: { e.stderr }")
 
 def main():
-    print(duckdb_path)
-    if nightly_build == 'Windows':
-        duckdb = duckdb_path
-    else:
-        ls_duckdb_path = os.listdir(duckdb_path)
-        if ls_duckdb_path:
-            duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
-        else:
-            print(f"No files found in the unzipped binaries.")
+    # print(duckdb_path)
+    # if nightly_build == 'Windows':
+        # duckdb = duckdb_path
+    # else:
+    #     ls_duckdb_path = os.listdir(duckdb_path)
+    #     if ls_duckdb_path:
+    #         duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
+    #     else:
+    #         print(f"No files found in the unzipped binaries.")
+    duckdb = duckdb_path
     repo = "duckdb/duckdb"
 
     verify_version(duckdb, repo)
