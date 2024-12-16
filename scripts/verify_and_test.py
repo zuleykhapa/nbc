@@ -140,8 +140,8 @@ def main():
     else:
         name=platform
 
-        verify_version(duckdb, repo, name)
-        test_extensions(duckdb, name)
+    verify_version(duckdb, repo, name)
+    test_extensions(duckdb, name)
 
 if __name__ == "__main__":
     main()
