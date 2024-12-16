@@ -59,7 +59,7 @@ jobs:
   osx-test:
     name: Verify OSX build version
     needs: osx
-    if: needs.osx.outputs.run_conclusion == 'success'
+    # if: needs.osx.outputs.run_conclusion == 'success'
     uses: ./.github/workflows/nbst.yml
     with:
       nightly-build: OSX
@@ -122,7 +122,7 @@ jobs:
   python-test:
     name: Test Python Builds
     needs: python
-    if: needs.python.outputs.run_conclusion == 'success'
+    # if: needs.python.outputs.run_conclusion == 'success'
     uses: ./.github/workflows/NightlyBuildsTestPython.yml
     with:
       nightly-build: Python

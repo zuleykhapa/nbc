@@ -59,6 +59,9 @@ jobs:
       - name: Verify ${{ inputs.nightly-build }} version
         id: verify-build
         shell: bash
+        env:
+          INPUT_NIGHTLY_BUILD: ${{ inputs.nightly-build }}
+          INPUT_RUN_ID: ${{ inputs.run_id }}
         run: |
           if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
             name="${{ inputs.architecture }}"
@@ -66,14 +69,14 @@ jobs:
             name="${{ inputs.platform }}"
           fi
 
-          if [[ '${{ inputs.nightly-build }}' == 'LinuxRelease']]; then
+          if [[ "$INPUT_NIGHTLY_BUILD" == 'LinuxRelease']]; then
             run_id=12021416084
-          elif [[ '${{ inputs.nightly-build }}' == 'OSX']]; then
+          elif [[ "$INPUT_NIGHTLY_BUILD" == 'OSX']]; then
             run_id=12110544714
-          elif [[ '${{ inputs.nightly-build }}' == 'Python']]; then
+          elif [[ "$INPUT_NIGHTLY_BUILD" == 'Python']]; then
             run_id=12307320954
           else
-            run_id=${{ inputs.run_id }}
+            run_id="$INPUT_RUN_ID"
           fi
 
           echo "Downloading duckdb-binaries-$name artifact..."
