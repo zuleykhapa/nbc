@@ -12,6 +12,7 @@ import prepare_report
 
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
+parser.add_argument("duckdb")
 parser.add_argument("--nightly_build")
 parser.add_argument("--platform")
 parser.add_argument("--architecture")
@@ -22,7 +23,7 @@ parser.add_argument("--config")
 # parser.add_argument("--url")
 args = parser.parse_args()
 
-# file_name = args.file_name
+duckdb = args.duckdb
 nightly_build = args.nightly_build
 platform = args.platform # linux
 architecture = args.architecture # linux-amd64
@@ -30,6 +31,8 @@ run_id = args.run_id
 runs_on = args.runs_on
 # url = args.url
 config = args.config
+
+subprocess.run("unzip", duckdb)
 
 def list_extensions(config) :
     with open(config, "r") as file:
