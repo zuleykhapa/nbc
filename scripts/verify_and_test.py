@@ -13,7 +13,6 @@ parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
 parser.add_argument("duckdb_path")
 parser.add_argument("--nightly_build")
-parser.add_argument("--platform")
 parser.add_argument("--architecture")
 parser.add_argument("--run_id")
 parser.add_argument("--runs_on")
@@ -24,7 +23,6 @@ args = parser.parse_args()
 
 duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
 nightly_build = args.nightly_build
-platform = args.platform # linux
 architecture = args.architecture # linux-amd64
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
@@ -39,7 +37,7 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-def verify_version(duckdb, repo, name):
+def verify_version(duckdb, repo):
     gh_headSha_command = [
         "gh", "run", "view",
         run_id,
@@ -63,16 +61,16 @@ def verify_version(duckdb, repo, name):
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        with open("res_{}.md".format(platform), 'w') as f:
-            f.write(f"- The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
+        with open("res_{}.md".format(nightly_build), 'w') as f:
+            f.write(f"- The version of { nightly_build } build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
         return
     print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
 
-def test_extensions(duckdb, name):
+def test_extensions(duckdb):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
-    file_name = "issue_ext_{}.txt".format(nightly_build)
+    file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
     counter = 0
 
     for ext in extensions:
@@ -131,17 +129,12 @@ def main():
         ls_duckdb_path = os.listdir(duckdb_path)
         if ls_duckdb_path:
             duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
-            print(duckdb)
         else:
             print(f"No files found in the unzipped binaries.")
     repo = "duckdb/duckdb"
-    if architecture.count("aarch64"):
-        name=architecture
-    else:
-        name=platform
 
-    verify_version(duckdb, repo, name)
-    test_extensions(duckdb, name)
+    verify_version(duckdb, repo)
+    test_extensions(duckdb)
 
 if __name__ == "__main__":
     main()
