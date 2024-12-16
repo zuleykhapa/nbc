@@ -12,6 +12,7 @@ permissions:
 env:
   GH_TOKEN: ${{ github.token }}
   GH_REPO: ${{ github.repository }}
+  CURR_DATE: $(date +'%Y-%m-%d')
 
 jobs:
   linux:
@@ -155,11 +156,11 @@ jobs:
       - name: Report an issue
         if: success()
         run: |
-          cat report/report*/* > $(date +'%Y-%m-%d')_nightly_builds_status.md
+          cat report/report*/* > ${{ env.CURR_DATE }}_nightly_builds_status.md
           ls -lah
       #     gh issue create --repo ${{ env.GH_REPO }} --title "Nightly Builds Status" --body-file $curr_date_nightly_builds_status.md
 
       - uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: $(date +'%Y-%m-%d')_nightly_builds_status.md
+          path: ${{ env.CURR_DATE }}_nightly_builds_status.md
