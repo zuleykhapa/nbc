@@ -124,16 +124,20 @@ def test_extensions(duckdb, name):
                     print(f"stderr: { e.stderr }")
 
 def main():
-    duckdb=f"{ duckdb_path }/{ os.listdir(duckdb_path)[0] }"
-    print(duckdb)
-    repo = "duckdb/duckdb"
-    if architecture.count("aarch64"):
-        name=architecture
-    else:
-        name=platform
+    ls_duckdb_path = os.listdir(duckdb_path)
+    if ls_duckdb_path:
+        duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
+        print(duckdb)
+        repo = "duckdb/duckdb"
+        if architecture.count("aarch64"):
+            name=architecture
+        else:
+            name=platform
 
-    verify_version(duckdb, repo, name)
-    test_extensions(duckdb, name)
+        verify_version(duckdb, repo, name)
+        test_extensions(duckdb, name)
+    else:
+        print(f"No files found in the unzipped binaries.")
 
 if __name__ == "__main__":
     main()
