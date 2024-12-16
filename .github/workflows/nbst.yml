@@ -71,7 +71,7 @@ jobs:
             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
             unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
             
-            ls ducksb_path
+            ls duckdb_path
             
             echo "Verifying version and test extensions..."
             
