@@ -155,10 +155,11 @@ jobs:
       - name: Report an issue
         if: success()
         run: |
-          cat report/report*/* > final_report.md
-      #     gh issue create --repo ${{ env.GH_REPO }} --title "Nightly Builds Status" --body-file final_report.md
+          curr_date=$(date +'%Y-%m-%d')
+          cat report/report*/* > $curr_date_nightly_builds_status.md
+      #     gh issue create --repo ${{ env.GH_REPO }} --title "Nightly Builds Status" --body-file $curr_date_nightly_builds_status.md
 
       - uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: final_report.md
+          path: $curr_date_nightly_builds_status.md
