@@ -74,7 +74,7 @@ jobs:
             echo "Verifying version..."
             full_sha=$(gh run view ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} --json headSha -q .headSha)            
             if [[ ${{ inputs.architecture }} == linux-aarch64 ]]; then
-              tmp_sha=$(docker run --rm --platform linux/aarch64 -v $(pwd):/duckdb -e full_sha=$full_sha ubuntu:22.04 /bin/bash -c 'cd /duckdb; ./duckdb --version')
+              tmp_sha=$(docker run --rm --platform linux/aarch64 -v $(pwd):/duckdb/duckdb ubuntu:22.04 /bin/bash -c './duckdb --version')
             else
               tmp_sha=$(./duckdb --version)
             fi
