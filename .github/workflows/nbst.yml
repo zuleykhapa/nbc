@@ -62,8 +62,9 @@ jobs:
         env:
           INPUT_NIGHTLY_BUILD: ${{ inputs.nightly-build }}
           INPUT_RUN_ID: ${{ inputs.run_id }}
+          INPUT_ARCH: ${{ inputs.architecture }}
         run: |
-          if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
+          if [[ "$INPUT_ARCH" == 'linux-aarch64' ]]; then
             name="${{ inputs.architecture }}"
           else 
             name="${{ inputs.platform }}"
