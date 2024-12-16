@@ -125,7 +125,10 @@ def test_extensions(duckdb, name):
 
 def main():
     print(duckdb_path)
-    ls_duckdb_path = os.listdir(duckdb_path)
+    if nightly_build == 'Windows':
+        duckdb = duckdb_path
+    else:
+        ls_duckdb_path = os.listdir(duckdb_path)
     if ls_duckdb_path:
         duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
         print(duckdb)
