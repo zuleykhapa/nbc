@@ -124,7 +124,7 @@ def test_extensions(duckdb, name):
                     print(f"stderr: { e.stderr }")
 
 def main():
-    print(duckdb_path, "🦑")
+    print(duckdb_path)
     ls_duckdb_path = os.listdir(duckdb_path)
     if ls_duckdb_path:
         duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
