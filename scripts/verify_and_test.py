@@ -34,7 +34,6 @@ config = args.config
 def list_extensions(config) :
     with open(config, "r") as file:
         content = file.read()
-
     # Adjusted regex for matching after `load(`
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     matches = re.findall(pattern, content)
@@ -43,10 +42,10 @@ def list_extensions(config) :
 # VERIFY VERSION
 # repo = "duckdb/duckdb"
 
-# if architecture.count("aarch64"):
-#     name=architecture
-# else:
-#     name=platform
+if architecture.count("aarch64"):
+    name=architecture
+else:
+    name=platform
 
 # gh_command = [
 #     "gh", "run", "download",
@@ -55,9 +54,7 @@ def list_extensions(config) :
 #     "--name", f"duckdb-binaries-{ name }"
 # ]
 # result = subprocess.run(gh_command, check=True, text=True, capture_output=True)
-
 # # subprocess.run()
-
 # print(result)
 
 # TEST ISTANLLING AND LOADING EXTENSIONS
@@ -73,8 +70,6 @@ file_name = "issue_ext_{}.txt".format(nightly_build)
 counter = 0
 
 for ext in extensions:
-    # try:
-    print(architecture)
     if architecture.count("aarch64"):
         select_installed = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
@@ -91,7 +86,6 @@ for ext in extensions:
             "-c",
             f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
         ]
-
     result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
     is_installed = result.stdout.strip()
     if is_installed == 'false':
@@ -122,8 +116,6 @@ for ext in extensions:
                     f.write(f"{nightly_build },{ architecture },{ runs_on },,{ ext },{ act }\n")
                 print(f"Error running command for extesion { ext }: { e }")
                 print(f"stderr: { e.stderr }")
-
-
 # create a Markdown report file
 import prepare_report
 prepare_report.report(file_name, platform, "url")

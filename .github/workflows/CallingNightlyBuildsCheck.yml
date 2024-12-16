@@ -156,10 +156,11 @@ jobs:
         if: success()
         run: |
           curr_date=$(date +'%Y-%m-%d')
-          cat report/report*/* > $curr_date_nightly_builds_status.md
+          echo $curr_date
+          cat report/report*/* > ${curr_date}_nightly_builds_status.md
       #     gh issue create --repo ${{ env.GH_REPO }} --title "Nightly Builds Status" --body-file $curr_date_nightly_builds_status.md
 
       - uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: $curr_date_nightly_builds_status.md
+          path: ${curr_date}_nightly_builds_status.md
