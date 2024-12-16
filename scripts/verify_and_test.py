@@ -40,6 +40,7 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
+# VERIFY VERSION
 # repo = "duckdb/duckdb"
 
 # if architecture.count("aarch64"):
@@ -59,6 +60,7 @@ def list_extensions(config) :
 
 # print(result)
 
+# TEST ISTANLLING AND LOADING EXTENSIONS
 if nightly_build == 'Windows':
     duckdb='./duckdb.exe'
 else:
@@ -72,7 +74,7 @@ counter = 0
 
 for ext in extensions:
     # try:
-    print(architecture, "🦑")
+    print(architecture)
     if architecture.count("aarch64"):
         select_installed = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
