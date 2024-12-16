@@ -66,8 +66,19 @@ jobs:
             name="${{ inputs.platform }}"
           fi
 
+          if [[ '${{ inputs.nightly-build }}' == 'LinuxRelease']]; then
+            run_id=12021416084
+          elif [[ '${{ inputs.nightly-build }}' == 'OSX']]; then
+            run_id=12110544714
+          elif [[ '${{ inputs.nightly-build }}' == 'Python']]; then
+            run_id=12307320954
+          else
+            run_id=${{ inputs.run_id }}
+          fi
+
           echo "Downloading duckdb-binaries-$name artifact..."
-          if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+          # if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+          if gh run download $run_id --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
             unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
             
