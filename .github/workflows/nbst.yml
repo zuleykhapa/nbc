@@ -69,11 +69,11 @@ jobs:
           echo "Downloading duckdb-binaries-$name artifact..."
           if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-            # unzip duckdb_cli-${{ inputs.architecture }}.zip
+            unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
 
             echo "Verifying version and test extensions..."
-
-            python scripts/verify_and_test.py duckdb_cli-${{ inputs.architecture }}.zip \
+            ls scripts
+            python scripts/verify_and_test.py duckdb_path/duckdb* \
               --nightly_build ${{ inputs.nightly-build }} --platform ${{ inputs.platform }} \
               --architecture ${{ inputs.architecture }} \
               --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \

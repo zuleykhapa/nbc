@@ -1,4 +1,3 @@
-import duckdb
 import argparse
 import pandas
 import tabulate
@@ -8,11 +7,11 @@ import random
 import os
 import subprocess
 import docker
-import prepare_report
+# import prepare_report
 
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
-parser.add_argument("duckdb")
+parser.add_argument("duckdb_path")
 parser.add_argument("--nightly_build")
 parser.add_argument("--platform")
 parser.add_argument("--architecture")
@@ -23,16 +22,14 @@ parser.add_argument("--config")
 # parser.add_argument("--url")
 args = parser.parse_args()
 
-duckdb = args.duckdb
+duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
 nightly_build = args.nightly_build
 platform = args.platform # linux
 architecture = args.architecture # linux-amd64
 run_id = args.run_id
-runs_on = args.runs_on
+runs_on = args.runs_on # linux-latest
 # url = args.url
-config = args.config
-
-subprocess.run("unzip", duckdb)
+config = args.config # ext/config/out_of_tree_extensions.cmake
 
 def list_extensions(config) :
     with open(config, "r") as file:
@@ -42,18 +39,7 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-if nightly_build == 'Windows':
-    duckdb='./duckdb.exe'
-else:
-    duckdb='./duckdb'
-repo = "duckdb/duckdb"
-
-def verify_version():
-    if architecture.count("aarch64"):
-        name=architecture
-    else:
-        name=platform
-
+def verify_version(duckdb, repo, name):
     gh_headSha_command = [
         "gh", "run", "view",
         run_id,
@@ -68,20 +54,21 @@ def verify_version():
             "-v", f"{ os.getcwd() }/duckdb:/duckdb",
             "-e", f"full_sha={ full_sha }"
             "ubuntu:22.04", "/bin/bash", "-c", 
-            f"./duckdb --version"
+            f"{ duckdb } --version"
         ]
     else:
         pragma_version = [
-            duckdb, "--version"
+            f"{ duckdb }", "--version"
         ]
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
-        print(f"- The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
+        print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
         with open("res_{}.md".format(platform), 'w') as f:
             f.write(f"- The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
         return
+    print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
 
-def test_extensions():
+def test_extensions(duckdb, name):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
@@ -95,7 +82,7 @@ def test_extensions():
                 "-v", f"{ os.getcwd() }/duckdb:/duckdb",
                 "-e", f"ext={ ext }"
                 "ubuntu:22.04", "/bin/bash", "-c", 
-                f"./duckdb -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
+                f"{ duckdb } -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
             ]
         else:
             select_installed = [
@@ -115,7 +102,7 @@ def test_extensions():
                         "docker", "run", "--rm", "--platform", "linux/aarch64",
                         "-v", f"{ os.getcwd() }/duckdb:/duckdb",
                         "-e", f"ext={ ext }"
-                        "ubuntu:22.04", "/bin/bash", "-c", f"./duckdb -c '{ act } { ext };'"
+                        "ubuntu:22.04", "/bin/bash", "-c", f"./{ duckdb } -c '{ act } { ext };'"
                     ]
                 else:
                     install_ext = [
@@ -132,35 +119,21 @@ def test_extensions():
                         if counter == 0:
                             f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
                             counter += 1
-                        f.write(f"{nightly_build },{ architecture },{ runs_on },,{ ext },{ act }\n")
+                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ act }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
 
-# create a Markdown report file
-# def prepare_report(file_name, platform, url):
-#     with open("res_{}.md".format(platform), 'w') as f:
-#         f.write(f"\n\n#### Extensions failed to INSTALL\n")
-#         f.write(duckdb.query(f"""
-#                     SELECT architecture, version, extension
-#                     FROM read_csv("{ file_name }")
-#                     WHERE failed_statement = 'INSTALL' 
-#                     ORDER BY nightly_build, architecture, runs_on, version, extension, failed_statement
-#                     """).to_df().to_markdown(index=False)
-#         )
-#         f.write(f"\n\n#### Extensions failed to LOAD\n")
-#         f.write(duckdb.query(f"""
-#                     SELECT architecture, version, extension
-#                     FROM read_csv("{ file_name }")
-#                     WHERE failed_statement = 'LOAD' 
-#                     ORDER BY nightly_build, architecture, runs_on, version, extension, failed_statement
-#                     """).to_df().to_markdown(index=False)
-#         )
-# prepare_report.report(file_name, platform, "url")
-
 def main():
-    verify_version()
-    test_extensions()
-    # prepare_report(file_name, platform, "url")
+    duckdb=f"{ duckdb_path }/{ os.listdir(duckdb_path)[0] }"
+    print(duckdb)
+    repo = "duckdb/duckdb"
+    if architecture.count("aarch64"):
+        name=architecture
+    else:
+        name=platform
+
+    verify_version(duckdb, repo, name)
+    test_extensions(duckdb, name)
 
 if __name__ == "__main__":
     main()
