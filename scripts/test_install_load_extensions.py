@@ -26,7 +26,7 @@ with open("ext/.github/config/out_of_tree_extensions.cmake", "r") as file:
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     extensions = re.findall(pattern, content)
 
-with open("issue_ext_{}.csv".format(nightly_build), 'w') as f:
+with open("issue_ext_{}_{}.csv".format(nightly_build, version), 'w') as f:
     for extension in extensions:
         try:
             duckdb.sql(f"INSTALL { extension }")
