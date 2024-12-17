@@ -52,7 +52,7 @@ def verify_version(tested_binary, repo):
             "docker", "run", "--rm", "--platform", "linux/aarch64",
             "-v", f"{ tested_binary }:/duckdb",
             "ubuntu:22.04",
-            "/bin/bash", "-c", f"duckdb --version"
+            "/bin/bash", "-c", f"/duckdb --version"
         ]
     else:
         pragma_version = [ tested_binary, "--version" ]
@@ -78,7 +78,7 @@ def test_extensions(tested_binary):
                 "-v", f"{ tested_binary }:/duckdb",
                 "-e", f"ext={ ext }"
                 "ubuntu:22.04", "/bin/bash", "-c", 
-                f"duckdb -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
+                f"/duckdb -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
             ]
         else:
             select_installed = [
@@ -99,7 +99,7 @@ def test_extensions(tested_binary):
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
-                        "/bin/bash", "-c", f"duckdb -c '{ act } { ext };'"
+                        "/bin/bash", "-c", f"/duckdb -c '{ act } { ext };'"
                     ]
                 else:
                     install_ext = [
