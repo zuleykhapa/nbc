@@ -38,7 +38,7 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-def verify_version(duckdb, repo):
+def verify_version(tested_binary, repo):
     gh_headSha_command = [
         "gh", "run", "view",
         run_id,
@@ -50,14 +50,12 @@ def verify_version(duckdb, repo):
     if architecture.count("aarch64"):
         pragma_version = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
-            "-v", f"{ os.getcwd() }/duckdb_path/duckdb:/duckdb",
+            "-v", f"{ tested_binary }:/duckdb",
             "ubuntu:22.04",
-            "/bin/bash", "-c", f"{ duckdb } --version"
+            "/bin/bash", "-c", f"duckdb --version"
         ]
     else:
-        pragma_version = [
-            f"{ duckdb }", "--version"
-        ]
+        pragma_version = [ tested_binary, "--version" ]
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
@@ -66,7 +64,7 @@ def verify_version(duckdb, repo):
         return
     print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
 
-def test_extensions(duckdb):
+def test_extensions(tested_binary):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
@@ -77,14 +75,14 @@ def test_extensions(duckdb):
         if architecture.count("aarch64"):
             select_installed = [
                 "docker", "run", "--rm", "--platform", "linux/aarch64",
-                "-v", f"{ os.getcwd() }/duckdb_path/duckdb:/duckdb",
+                "-v", f"{ tested_binary }:/duckdb",
                 "-e", f"ext={ ext }"
                 "ubuntu:22.04", "/bin/bash", "-c", 
-                f"{ duckdb } -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
+                f"duckdb -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
             ]
         else:
             select_installed = [
-                duckdb,
+                tested_binary,
                 "-csv",
                 "-noheader",
                 "-c",
@@ -98,14 +96,14 @@ def test_extensions(duckdb):
                 if architecture.count("aarch64"):
                     install_ext = [
                         "docker", "run", "--rm", "--platform", "linux/aarch64",
-                        "-v", f"{ os.getcwd() }/duckdb_path/duckdb:/duckdb",
+                        "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
-                        "/bin/bash", "-c", f"./{ duckdb } -c '{ act } { ext };'"
+                        "/bin/bash", "-c", f"duckdb -c '{ act } { ext };'"
                     ]
                 else:
                     install_ext = [
-                        duckdb,
+                        tested_binary,
                         "-c",
                         f"{ act } '{ ext }';"
                     ]
@@ -136,14 +134,14 @@ def main():
     binary_pattern = os.path.join("duckdb_path", "duckdb*")
     matches = glob.glob(binary_pattern)
     if matches:
-        duckdb = os.path.abspath(matches[0])
-        print(f"Found binary: {duckdb}")
+        tested_binary = os.path.abspath(matches[0])
+        print(f"Found binary: {tested_binary}")
     else:
         raise FileNotFoundError(f"No binary matching '{binary_pattern} found in duckdb_path dir.")
     repo = "duckdb/duckdb"
 
-    verify_version(duckdb, repo)
-    test_extensions(duckdb)
+    verify_version(tested_binary, repo)
+    test_extensions(tested_binary)
 
 if __name__ == "__main__":
     main()
