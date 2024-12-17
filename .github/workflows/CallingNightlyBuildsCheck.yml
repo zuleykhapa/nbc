@@ -30,7 +30,7 @@ jobs:
       runs-on: ubuntu-latest
       platform: linux
   linux-test:
-    name: Test Linux Release Builds
+    name: Verify and Test Linux Release Builds
     needs: linux
     # if: needs.linux.outputs.run_conclusion == 'success'
     uses: ./.github/workflows/nbst.yml
@@ -64,7 +64,7 @@ jobs:
       platform: osx
       runs-on: macos-latest
   osx-test:
-    name: Verify OSX build version
+    name: Verify and Test OSX builds
     needs: osx
     # if: needs.osx.outputs.run_conclusion == 'success'
     uses: ./.github/workflows/nbst.yml
@@ -94,7 +94,7 @@ jobs:
       runs-on: windows-2019
       platform: windows
   windows-test:
-    name: Verify Windows build version
+    name: Verify and Test Windows builds
     needs: windows
     if: needs.windows.outputs.run_conclusion == 'success'
     uses: ./.github/workflows/nbst.yml
@@ -127,7 +127,7 @@ jobs:
       nightly-build: Python
       runs-on: ubuntu-20.04
   python-test:
-    name: Test Python Builds
+    name: Verify and Test Python Builds
     needs: python
     # if: needs.python.outputs.run_conclusion == 'success'
     # uses: ./.github/workflows/NightlyBuildsTestPython.yml
