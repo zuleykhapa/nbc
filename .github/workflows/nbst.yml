@@ -102,5 +102,5 @@ jobs:
           path: issue_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.txt
           if-no-files-found: ignore
       
-      - uses: owenthereal/action-upterm@v1
+      # - uses: owenthereal/action-upterm@v1
       
