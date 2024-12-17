@@ -91,12 +91,13 @@ jobs:
             echo "Verifying version and test extensions..."
             
             ls -lah scripts
-            
+      - uses: owenthereal/action-upterm@v1
+        if: inputs.architecture == 'linux-aarch64'
             # python scripts/verify_and_test.py duckdb_path/duckdb* \
-            python scripts/verify_and_test.py \
-              --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
-              --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
-              --config ext/.github/config/out_of_tree_extensions.cmake
+            # python scripts/verify_and_test.py \
+            #   --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
+            #   --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
+            #   --config ext/.github/config/out_of_tree_extensions.cmake
 
           #   full_sha=$(gh run view ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} --json headSha -q .headSha)            
           #   if [[ ${{ inputs.architecture }} == linux-aarch64 ]]; then

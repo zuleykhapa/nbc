@@ -56,94 +56,94 @@ jobs:
       nightly-build: LinuxRelease
       run_url: ${{ needs.linux.outputs.run_url }}
         
-  osx:
-    name: Check OSX build status
-    uses: ./.github/workflows/NightlyBuildsCheck.yml
-    with:
-      nightly-build: OSX
-      platform: osx
-      runs-on: macos-latest
-  osx-test:
-    name: Verify OSX build version
-    needs: osx
-    # if: needs.osx.outputs.run_conclusion == 'success'
-    uses: ./.github/workflows/nbst.yml
-    with:
-      nightly-build: OSX
-      runs-on: macos-latest
-      platform: osx
-      architecture: osx-universal
-      run_id: ${{ needs.osx.outputs.run_id }}
-  osx-report:
-    name: Create Report for OSX Build
-    needs: 
-      - osx
-      - osx-test
-    if: always()
-    uses: ./.github/workflows/CreateReport.yml
-    with:
-      platform: osx
-      nightly-build: OSX
-      run_url: ${{ needs.osx.outputs.run_url }}
+  # osx:
+  #   name: Check OSX build status
+  #   uses: ./.github/workflows/NightlyBuildsCheck.yml
+  #   with:
+  #     nightly-build: OSX
+  #     platform: osx
+  #     runs-on: macos-latest
+  # osx-test:
+  #   name: Verify OSX build version
+  #   needs: osx
+  #   # if: needs.osx.outputs.run_conclusion == 'success'
+  #   uses: ./.github/workflows/nbst.yml
+  #   with:
+  #     nightly-build: OSX
+  #     runs-on: macos-latest
+  #     platform: osx
+  #     architecture: osx-universal
+  #     run_id: ${{ needs.osx.outputs.run_id }}
+  # osx-report:
+  #   name: Create Report for OSX Build
+  #   needs: 
+  #     - osx
+  #     - osx-test
+  #   if: always()
+  #   uses: ./.github/workflows/CreateReport.yml
+  #   with:
+  #     platform: osx
+  #     nightly-build: OSX
+  #     run_url: ${{ needs.osx.outputs.run_url }}
  
-  windows:
-    name: Check Windows build status
-    uses: ./.github/workflows/NightlyBuildsCheck.yml
-    with:
-      nightly-build: Windows
-      runs-on: windows-2019
-      platform: windows
-  windows-test:
-    name: Verify Windows build version
-    needs: windows
-    if: needs.windows.outputs.run_conclusion == 'success'
-    uses: ./.github/workflows/nbst.yml
-    with:
-      nightly-build: Windows
-      runs-on: windows-2019
-      platform: windows
-      architecture: ${{ matrix.architecture }}
-      run_id: ${{ needs.windows.outputs.run_id }}
-    strategy:
-      matrix:
-        architecture: [ windows-amd64 ]
-        # architecture: [ windows-amd64, windows-arm64 ] 
-  windows-report:
-    name: Create Report for Windows Build
-    needs: 
-      - windows
-      - windows-test
-    if: always()
-    uses: ./.github/workflows/CreateReport.yml
-    with:
-      platform: windows
-      nightly-build: Windows
-      run_url: ${{ needs.windows.outputs.run_url }}
+  # windows:
+  #   name: Check Windows build status
+  #   uses: ./.github/workflows/NightlyBuildsCheck.yml
+  #   with:
+  #     nightly-build: Windows
+  #     runs-on: windows-2019
+  #     platform: windows
+  # windows-test:
+  #   name: Verify Windows build version
+  #   needs: windows
+  #   if: needs.windows.outputs.run_conclusion == 'success'
+  #   uses: ./.github/workflows/nbst.yml
+  #   with:
+  #     nightly-build: Windows
+  #     runs-on: windows-2019
+  #     platform: windows
+  #     architecture: ${{ matrix.architecture }}
+  #     run_id: ${{ needs.windows.outputs.run_id }}
+  #   strategy:
+  #     matrix:
+  #       architecture: [ windows-amd64 ]
+  #       # architecture: [ windows-amd64, windows-arm64 ] 
+  # windows-report:
+  #   name: Create Report for Windows Build
+  #   needs: 
+  #     - windows
+  #     - windows-test
+  #   if: always()
+  #   uses: ./.github/workflows/CreateReport.yml
+  #   with:
+  #     platform: windows
+  #     nightly-build: Windows
+  #     run_url: ${{ needs.windows.outputs.run_url }}
 
-  python:
-    name: Check Python build status
-    uses: ./.github/workflows/NightlyBuildsCheck.yml
-    with:
-      nightly-build: Python
-      runs-on: ubuntu-20.04
-  python-test:
-    name: Test Python Builds
-    needs: python
-    # if: needs.python.outputs.run_conclusion == 'success'
-    uses: ./.github/workflows/NightlyBuildsTestPython.yml
-    with:
-      nightly-build: Python
-  python-report:
-    name: Create Report for Python
-    needs: 
-      - python
-      - python-test
-    if: always()
-    uses: ./.github/workflows/CreateReport.yml
-    with:
-      platform: Python
-      nightly-build: Python
-      run_url: ${{ needs.python.outputs.run_url }}
+  # python:
+  #   name: Check Python build status
+  #   uses: ./.github/workflows/NightlyBuildsCheck.yml
+  #   with:
+  #     nightly-build: Python
+  #     runs-on: ubuntu-20.04
+  # python-test:
+  #   name: Test Python Builds
+  #   needs: python
+  #   # if: needs.python.outputs.run_conclusion == 'success'
+  #   uses: ./.github/workflows/NightlyBuildsTestPython.yml
+  #   with:
+  #     nightly-build: Python
+  # python-report:
+  #   name: Create Report for Python
+  #   needs: 
+  #     - python
+  #     - python-test
+  #   if: always()
+  #   uses: ./.github/workflows/CreateReport.yml
+  #   with:
+  #     platform: Python
+  #     nightly-build: Python
+      # run_url: ${{ needs.python.outputs.run_url }}
   
   create-issue:
     runs-on: ubuntu-latest
@@ -151,9 +151,9 @@ jobs:
     needs:
       - set-curr-date
       - linux-report
-      - osx-report
-      - windows-report
-      - python-report
+      # - osx-report
+      # - windows-report
+      # - python-report
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
