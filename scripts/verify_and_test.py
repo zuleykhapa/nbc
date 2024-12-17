@@ -50,7 +50,6 @@ def verify_version(duckdb, repo):
         pragma_version = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
             "-v", f"{ os.getcwd() }/duckdb:/duckdb",
-            "-e", f"full_sha={ full_sha }"
             "ubuntu:22.04", "/bin/bash", "-c", 
             f"{ duckdb } --version"
         ]
