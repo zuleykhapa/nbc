@@ -76,8 +76,9 @@ def test_extensions(tested_binary):
             select_installed = [
                 "docker", "run", "--rm", "--platform", "linux/aarch64",
                 "-v", f"{ tested_binary }:/duckdb",
-                "-e", f"ext={ ext }"
-                "ubuntu:22.04", "/bin/bash", "-c", 
+                "-e", f"ext={ ext }",
+                "ubuntu:22.04",
+                "/bin/bash", "-c", 
                 f"/duckdb -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
             ]
         else:
