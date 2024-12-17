@@ -34,11 +34,6 @@ jobs:
         with:
           pattern: run_status_${{ inputs.nightly-build }}*
           path: run_status_${{ inputs.nightly-build }}
-      - name: Download build verification results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: issue_verify_version_${{ inputs.platform }}*
-          path: failures_${{ inputs.platform }}
       - name: Download extensions test results
         if: always()
         uses: actions/download-artifact@v4
@@ -74,13 +69,9 @@ jobs:
             echo "## ${{ inputs.nightly-build }}" >> report_${{ inputs.platform }}.md
             cat run_status_*/run_status*/* >> report_${{ inputs.platform }}.md
           fi
-          # failures_*/ are artifacts of the Verify Nightly Build Version workflow
-          if [ $(ls failures_*/issue_body*/ | wc -l) -gt 0 ]; then
-            cat failures_${{ inputs.platform }}/issue_body*/* >> report_${{ inputs.platform }}.md
-          fi
           # this adds the extensions part to the report
-          if [ -f res_${{ inputs.platform }}.md ]; then
-            cat res_${{ inputs.platform }}.md >> report_${{ inputs.platform }}.md
+          if [ -f issue_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.txt ]; then
+            cat rissue_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.txt >> report_${{ inputs.platform }}.md
           fi
       - name: Upload result file
         uses: actions/upload-artifact@v4
