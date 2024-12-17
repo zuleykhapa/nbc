@@ -79,13 +79,13 @@ jobs:
         if: inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64'
         run: |
           unzip duckdb_cli-${{ inputs.architecture }}.zip
-          if [[ ${{ inputs.nightly-build }} == Windows ]]; then
-            duckdb=./duckdb.exe
-          else
-            duckdb=./duckdb
-          fi
+          # if [[ ${{ inputs.nightly-build }} == Windows ]]; then
+          #   duckdb=./duckdb.exe
+          # else
+          #   duckdb=./duckdb
+          # fi
           
-          action="INSTALL LOAD"
+          # action="INSTALL LOAD"
           matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
           for ext in $matches; do
             is_installed=$($duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;")
