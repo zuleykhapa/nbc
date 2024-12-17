@@ -29,6 +29,7 @@ run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 # url = args.url
 config = args.config # ext/config/out_of_tree_extensions.cmake
+file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
 
 def list_extensions(config) :
     with open(config, "r") as file:
@@ -59,7 +60,7 @@ def verify_version(tested_binary, repo):
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        with open("res_{}.md".format(nightly_build), 'w') as f:
+        with open({ file_name }, 'w') as f:
             f.write(f"- The version of { nightly_build } build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
         return
     print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
@@ -68,7 +69,6 @@ def test_extensions(tested_binary):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
-    file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
     counter = 0
 
     for ext in extensions:
