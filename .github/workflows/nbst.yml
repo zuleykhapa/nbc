@@ -90,7 +90,8 @@ jobs:
             
             ls -lah scripts
             
-            python scripts/verify_and_test.py duckdb_path/duckdb* \
+            # python scripts/verify_and_test.py duckdb_path/duckdb* \
+            python scripts/verify_and_test.py \
               --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
               --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
               --config ext/.github/config/out_of_tree_extensions.cmake

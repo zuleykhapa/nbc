@@ -7,11 +7,12 @@ import random
 import os
 import subprocess
 import docker
+import glob
 # import prepare_report
 
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
-parser.add_argument("duckdb_path")
+# parser.add_argument("duckdb_path")
 parser.add_argument("--nightly_build")
 parser.add_argument("--architecture")
 parser.add_argument("--run_id")
@@ -21,7 +22,7 @@ parser.add_argument("--config")
 # parser.add_argument("--url")
 args = parser.parse_args()
 
-duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
+# duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
 nightly_build = args.nightly_build
 architecture = args.architecture # linux-amd64
 run_id = args.run_id
@@ -131,7 +132,14 @@ def main():
     #         duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
     #     else:
     #         print(f"No files found in the unzipped binaries.")
-    duckdb = duckdb_path
+    # duckdb = duckdb_path
+    binary_pattern = os.path.join("duckdb_path", "duckdb*")
+    matches = glob.glob(binary_pattern)
+    if matches:
+        duckdb = os.path.abspath(matches[0])
+        print(f"Found binary: {duckdb}")
+    else:
+        raise FileNotFoundError(f"No binary matching '{binary_pattern} found in duckdb_path dir.")
     repo = "duckdb/duckdb"
 
     verify_version(duckdb, repo)
