@@ -133,13 +133,13 @@ def main():
     #     else:
     #         print(f"No files found in the unzipped binaries.")
     # duckdb = duckdb_path
-    binary_pattern = os.path.join("duckdb_path", "duckdb*")
-    matches = glob.glob(binary_pattern)
+    path_pattern = os.path.join("duckdb_path", "duckdb*")
+    matches = glob.glob(path_pattern)
     if matches:
         tested_binary = os.path.abspath(matches[0])
-        print(f"Found binary: {tested_binary}")
+        print(f"Found binary: { tested_binary }")
     else:
-        raise FileNotFoundError(f"No binary matching '{binary_pattern} found in duckdb_path dir.")
+        raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
     repo = "duckdb/duckdb"
 
     print(f"VERIFY BUILD SHA")
