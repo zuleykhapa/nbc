@@ -38,8 +38,8 @@ jobs:
         if: always()
         uses: actions/download-artifact@v4
         with:
-          pattern: issue_ext_${{ inputs.platform }}*
-          path: ext_failures_${{ inputs.platform }}
+          pattern: issue_ext_${{ inputs.nightly-build }}*
+          path: ext_failures_${{ inputs.nightly-build }}
       - name: Prepare a result table with extensions
         shell: bash
         run: |
@@ -50,7 +50,7 @@ jobs:
 
             # scripts/prepare_report.py creates res_${{ inputs.platform }}.md file
             python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }} --url ${{ inputs.run_url }}
-            rm -r ext_failures_*/issue_ext_Py*/
+            rm -r ext_failures_${{ inputs.nightly-build }}*/issue_ext_Py*/
           fi
           if [ $(ls ext_failures_*/issue_ext_*/ | wc -l) -gt 0 ]; then
             echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
