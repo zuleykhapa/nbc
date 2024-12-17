@@ -172,7 +172,6 @@ jobs:
           cat report/report*/* > ${{ needs.set-curr-date.outputs.curr_date }}_nightly_builds_status.md
           ls -lah
       #     gh issue create --repo ${{ env.GH_REPO }} --title "Nightly Builds Status" --body-file $curr_date_nightly_builds_status.md
-      - uses: owenthereal/action-upterm@v1
 
       - uses: actions/upload-artifact@v4
         with:
