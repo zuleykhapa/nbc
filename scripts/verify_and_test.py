@@ -90,8 +90,6 @@ def test_extensions(tested_binary):
                 f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
             ]
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
-        print(result.stdout)
-        print(result.stderr)
 
         is_installed = result.stdout.strip()
         if is_installed == 'false':
@@ -148,6 +146,7 @@ def main():
     verify_version(tested_binary, repo)
     print(f"TEST EXTENSIONS")
     test_extensions(tested_binary)
+    print(f"FINISH")
 
 if __name__ == "__main__":
     main()
