@@ -50,8 +50,8 @@ def verify_version(duckdb, repo):
         pragma_version = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
             "-v", f"{ os.getcwd() }/duckdb:/duckdb",
-            "ubuntu:22.04", "/bin/bash", "-c", 
-            f"{ duckdb } --version"
+            "ubuntu:22.04",
+            "/bin/bash", "-c", f"{ duckdb } --version"
         ]
     else:
         pragma_version = [
@@ -98,8 +98,9 @@ def test_extensions(duckdb):
                     install_ext = [
                         "docker", "run", "--rm", "--platform", "linux/aarch64",
                         "-v", f"{ os.getcwd() }/duckdb:/duckdb",
-                        "-e", f"ext={ ext }"
-                        "ubuntu:22.04", "/bin/bash", "-c", f"./{ duckdb } -c '{ act } { ext };'"
+                        "-e", f"ext={ ext }",
+                        "ubuntu:22.04",
+                        "/bin/bash", "-c", f"./{ duckdb } -c '{ act } { ext };'"
                     ]
                 else:
                     install_ext = [

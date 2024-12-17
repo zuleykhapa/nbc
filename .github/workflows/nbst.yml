@@ -43,6 +43,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libc6-arm64-cross qemu-user-static
+          # set up QEMU for Docker
+          docker run --rm --priviledged multiarch/qemu-user-static --rest -p yes
       
       - name: Install Python dependencies
         run: pip install duckdb pandas tabulate docker
