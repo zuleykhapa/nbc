@@ -49,7 +49,7 @@ jobs:
 
       
       - name: Install Python dependencies
-        run: pip install pandas tabulate
+        run: pip install pandas tabulate docker
       
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
