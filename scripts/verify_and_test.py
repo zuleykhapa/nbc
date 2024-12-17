@@ -50,7 +50,7 @@ def verify_version(duckdb, repo):
     if architecture.count("aarch64"):
         pragma_version = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
-            "-v", f"{ os.getcwd() }/duckdb/duckdb:/duckdb",
+            "-v", f"{ os.getcwd() }/duckdb_path/duckdb:/duckdb",
             "ubuntu:22.04",
             "/bin/bash", "-c", f"{ duckdb } --version"
         ]
@@ -77,7 +77,7 @@ def test_extensions(duckdb):
         if architecture.count("aarch64"):
             select_installed = [
                 "docker", "run", "--rm", "--platform", "linux/aarch64",
-                "-v", f"{ os.getcwd() }/duckdb/duckdb:/duckdb",
+                "-v", f"{ os.getcwd() }/duckdb_path/duckdb:/duckdb",
                 "-e", f"ext={ ext }"
                 "ubuntu:22.04", "/bin/bash", "-c", 
                 f"{ duckdb } -c 'SELECT installed FROM duckdb_extensions() WHERE extension_name={ ext }';"
@@ -98,7 +98,7 @@ def test_extensions(duckdb):
                 if architecture.count("aarch64"):
                     install_ext = [
                         "docker", "run", "--rm", "--platform", "linux/aarch64",
-                        "-v", f"{ os.getcwd() }/duckdb/duckdb:/duckdb",
+                        "-v", f"{ os.getcwd() }/duckdb_path/duckdb:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
                         "/bin/bash", "-c", f"./{ duckdb } -c '{ act } { ext };'"
