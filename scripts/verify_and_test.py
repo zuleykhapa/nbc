@@ -29,7 +29,6 @@ run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 # url = args.url
 config = args.config # ext/config/out_of_tree_extensions.cmake
-file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
 
 def list_extensions(config) :
     with open(config, "r") as file:
@@ -39,7 +38,7 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-def verify_version(tested_binary, repo):
+def verify_version(tested_binary, repo, file_name):
     gh_headSha_command = [
         "gh", "run", "view",
         run_id,
@@ -60,13 +59,13 @@ def verify_version(tested_binary, repo):
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        with open({ file_name }, 'w') as f:
+        with open(file_name, 'w') as f:
             f.write(f"- The version of { nightly_build } build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
         return 1
     print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
     return 0
 
-def test_extensions(tested_binary):
+def test_extensions(tested_binary, file_name):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
@@ -142,11 +141,11 @@ def main():
     else:
         raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
     repo = "duckdb/duckdb"
-
+    file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
     print(f"VERIFY BUILD SHA")
-    if verify_version(tested_binary, repo) == 0:    
+    if verify_version(tested_binary, repo, file_name) == 0:
         print(f"TEST EXTENSIONS")
-        test_extensions(tested_binary)
+        test_extensions(tested_binary, file_name)
     print(f"FINISH")
 
 if __name__ == "__main__":
