@@ -91,8 +91,8 @@ jobs:
             echo "Verifying version and test extensions..."
             
             ls -lah scripts
-      - uses: owenthereal/action-upterm@v1
-        if: inputs.architecture == 'linux-aarch64'
+
+
             # python scripts/verify_and_test.py duckdb_path/duckdb* \
             # python scripts/verify_and_test.py \
             #   --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
@@ -118,6 +118,8 @@ jobs:
           #   cat issue_verify_version_${{ inputs.architecture }}.txt
           #   echo "has_artifact=false" >> $GITHUB_OUTPUT
           fi
+      - uses: owenthereal/action-upterm@v1
+        if: inputs.architecture == 'linux-aarch64'
       # probably remove this
       # - name: Upload issue
       #   uses: actions/upload-artifact@v4
