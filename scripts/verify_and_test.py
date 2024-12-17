@@ -90,6 +90,9 @@ def test_extensions(tested_binary):
                 f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
             ]
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
+        print(result.stdout)
+        print(result.stderr)
+        
         is_installed = result.stdout.strip()
         if is_installed == 'false':
             for act in action:
@@ -141,7 +144,9 @@ def main():
         raise FileNotFoundError(f"No binary matching '{binary_pattern} found in duckdb_path dir.")
     repo = "duckdb/duckdb"
 
+    print(f"VERIFY BUILD SHA")
     verify_version(tested_binary, repo)
+    print(f"TEST EXTENSIONS")
     test_extensions(tested_binary)
 
 if __name__ == "__main__":
