@@ -84,11 +84,11 @@ jobs:
             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
             unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
             
-            ls duckdb_path
+            ls -lah duckdb_path
             
             echo "Verifying version and test extensions..."
             
-            ls scripts
+            ls -lah scripts
             
             python scripts/verify_and_test.py duckdb_path/duckdb* \
               --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
