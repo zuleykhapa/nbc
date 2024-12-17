@@ -95,8 +95,8 @@ jobs:
             python scripts/verify_and_test.py \
               --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
               --run_id $run_id --runs_on ${{ inputs.runs-on }} \
-              # --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
               --config ext/.github/config/out_of_tree_extensions.cmake
+              # --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
           fi
       # - uses: owenthereal/action-upterm@v1
       #   if: inputs.architecture == 'linux-aarch64'
