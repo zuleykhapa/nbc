@@ -49,7 +49,7 @@ jobs:
 
       
       - name: Install Python dependencies
-        run: pip install duckdb pandas tabulate docker
+        run: pip install pandas tabulate
       
       - name: Checkout the repo with the script
         uses: actions/checkout@v4

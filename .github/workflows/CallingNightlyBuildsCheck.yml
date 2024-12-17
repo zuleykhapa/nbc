@@ -54,7 +54,7 @@ jobs:
     with:
       platform: linux
       nightly-build: LinuxRelease
-      run_url: ${{ needs.linux.outputs.run_url }}
+      run_url: ${{ needs.linux.outputs.run_id }}
         
   osx:
     name: Check OSX build status
