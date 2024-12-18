@@ -1,14 +1,14 @@
 import argparse
-import pandas
-import tabulate
-import sys
-import re
-import random
-import os
-import subprocess
 import docker
 import glob
-# import prepare_report
+import os
+import pandas
+import random
+import re
+import subprocess
+import sys
+import tabulate
+
 
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
@@ -30,6 +30,7 @@ runs_on = args.runs_on # linux-latest
 # url = args.url
 config = args.config # ext/config/out_of_tree_extensions.cmake
 
+
 def list_extensions(config) :
     with open(config, "r") as file:
         content = file.read()
@@ -38,11 +39,31 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-def verify_version(tested_binary, repo):
+def get_python_versions_from_run():
+    with open("python_run_info.md", "r") as file:
+        content = file.read()
+        pattern = r"cp([0-9]+)-.*"
+        matches = sorted(set(re.findall(pattern, content)))
+        # puts a '.' after the first character: '310' => '3.10'
+        result = [word[0] + '.' + word[1:] if len(word) > 1 else word + '.' for word in matches]
+        return result
+
+def verify_python():
+    python_versions = get_python_versions_from_run()
+    install_command = "pip install duckdb"
+    version_commad = "duckdb --version"
+
+    for version in python_versions:
+        print(version)
+        
+def teest_python_extensions():
+    return
+
+def verify_version(tested_binary, file_name):
     gh_headSha_command = [
         "gh", "run", "view",
         run_id,
-        "--repo", repo,
+        "--repo", "duckdb/duckdb",
         "--json", "headSha",
         "-q", ".headSha"
     ]
@@ -59,17 +80,17 @@ def verify_version(tested_binary, repo):
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        with open("res_{}.md".format(nightly_build), 'w') as f:
+        with open(file_name, 'w') as f:
             f.write(f"- The version of { nightly_build } build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        return
+        return False
     print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
+    return True
 
-def test_extensions(tested_binary):
+def test_extensions(tested_binary, file_name):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
-    file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
-    counter = 0
+    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.md only once
 
     for ext in extensions:
         if architecture.count("aarch64"):
@@ -79,7 +100,7 @@ def test_extensions(tested_binary):
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",
                 "/bin/bash", "-c", 
-                f'/duckdb -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=\'{ ext }\';"'
+                f"/duckdb -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='\$ext';\""
             ]
         else:
             select_installed = [
@@ -101,7 +122,7 @@ def test_extensions(tested_binary):
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
-                        "/bin/bash", "-c", f'/duckdb -c "{ act } \'{ ext }\'";'
+                        "/bin/bash", "-c", f"/duckdb -c \"\$act '\$ext';\""
                     ]
                 else:
                     install_ext = [
@@ -110,9 +131,8 @@ def test_extensions(tested_binary):
                         f"{ act } '{ ext }';"
                     ]
                 try:
-                    subprocess.run(install_ext, check=True, text=True, capture_output=True)
-
-                    print(act, ext, ": ", is_installed)
+                    result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
+                    print(result.stdout)
                 except subprocess.CalledProcessError as e:
                     with open(file_name, 'a') as f:
                         if counter == 0:
@@ -123,30 +143,22 @@ def test_extensions(tested_binary):
                     print(f"stderr: { e.stderr }")
 
 def main():
-    # print(duckdb_path)
-    # if nightly_build == 'Windows':
-        # duckdb = duckdb_path
-    # else:
-    #     ls_duckdb_path = os.listdir(duckdb_path)
-    #     if ls_duckdb_path:
-    #         duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
-    #     else:
-    #         print(f"No files found in the unzipped binaries.")
-    # duckdb = duckdb_path
-    path_pattern = os.path.join("duckdb_path", "duckdb*")
-    matches = glob.glob(path_pattern)
-    if matches:
-        tested_binary = os.path.abspath(matches[0])
-        print(f"Found binary: { tested_binary }")
+    if nightly_build == 'Python':
+        verify_python()
     else:
-        raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-    repo = "duckdb/duckdb"
-
-    print(f"VERIFY BUILD SHA")
-    verify_version(tested_binary, repo)
-    print(f"TEST EXTENSIONS")
-    test_extensions(tested_binary)
-    print(f"FINISH")
+        path_pattern = os.path.join("duckdb_path", "duckdb*")
+        matches = glob.glob(path_pattern)
+        if matches:
+            tested_binary = os.path.abspath(matches[0])
+            print(f"Found binary: { tested_binary }")
+        else:
+            raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
+        file_name = "list_failed_ext_{}_{}.md".format(nightly_build, architecture)
+        print(f"VERIFY BUILD SHA")
+        if verify_version(tested_binary, file_name):
+            print(f"TEST EXTENSIONS")
+            test_extensions(tested_binary, file_name)
+        print(f"FINISH")
 
 if __name__ == "__main__":
     main()

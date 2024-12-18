@@ -46,7 +46,7 @@ def count_consecutive_failures():
     url = tmp_url[0] if tmp_url else ''
 
     if count_consecutive_failures == 0:
-        with open("run_status_{}.md".format(nightly_build), 'a') as f:
+        with open("build_report_{}.md".format(nightly_build), 'a') as f:
             f.write(f"\n\n### { nightly_build } nightly-build has succeeded.\n")            
             f.write(f"Latest run: [ Run Link ]({ url })\n")
             return
@@ -66,12 +66,12 @@ def count_consecutive_failures():
         FROM gh_run_list
     """).fetchone()[0]
     
-    with open("run_status_{}.md".format(nightly_build), 'w') as f:
+    with open("build_report_{}.md".format(nightly_build), 'w') as f:
         f.write(f"\n\n### { nightly_build } nightly-build has not succeeded the previous **{ count_consecutive_failures }** times.\n")
         if count_consecutive_failures < total_count:
             f.write(f"Latest successfull run: [ Run Link ]({ url })\n")
 
-    with open("run_status_{}.md".format(nightly_build), 'a') as f:
+    with open("build_report_{}.md".format(nightly_build), 'a') as f:
         f.write(f"\n#### Failure Details\n")
         f.write(duckdb.query(f"""
                     SELECT
@@ -86,7 +86,7 @@ def count_consecutive_failures():
         )
 
 
-def create_run_status():
+def create_build_report():
     url= duckdb.sql(f"""SELECT url FROM '{ input_file }'""").fetchone()[0]
     count_consecutive_failures()
 
@@ -101,7 +101,7 @@ def create_run_status():
                     SELECT * FROM read_json('{ artifacts }')
                 );
             """)
-        with open("run_status_{}.md".format(nightly_build), 'a') as f:
+        with open("build_report_{}.md".format(nightly_build), 'a') as f:
             f.write(f"\n#### Workflow Artifacts \n")
             # check if the artifatcs table is not empty
             artifacts_count = duckdb.sql(f"SELECT list_count(artifacts) FROM artifacts;").fetchone()[0]
@@ -171,11 +171,11 @@ def create_run_status():
                     """).to_df().to_markdown(index=False)
                 )
     else:
-        with open("run_status_{}.md".format(nightly_build), 'a') as f:
+        with open("build_report_{}.md".format(nightly_build), 'a') as f:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
     
 def main():
-    create_run_status()
+    create_build_report()
     
 if __name__ == "__main__":
     main()

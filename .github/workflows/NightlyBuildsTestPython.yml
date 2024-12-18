@@ -57,7 +57,7 @@ jobs:
             --platform ${{ matrix.runs-on }} --version ${{ matrix.python-version }}
   
       - name: Install extensions
-        if: ${{ hashFiles(format('issue_body_Python_extensions_{0}.txt', matrix.runs-on)) == '' }}
+        if: ${{ hashFiles(format('issue_body_Python_extensions_{0}.md', matrix.runs-on)) == '' }}
         shell: bash
         run: |  
           echo "Trying to INSTALL and LOAD extensions..."
@@ -66,5 +66,5 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
-          name: issue_ext_Python_${{ matrix.runs-on }}_${{ matrix.python-version }}
-          path: issue_ext_*.csv
+          name: list_failed_ext_Python_${{ matrix.runs-on }}_${{ matrix.python-version }}
+          path: list_failed_ext_*.csv
