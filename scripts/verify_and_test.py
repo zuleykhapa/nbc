@@ -113,6 +113,7 @@ def test_extensions(tested_binary, file_name):
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
 
         is_installed = result.stdout.strip()
+        print(is_installed)
         if is_installed == 'false':
             for act in action:
                 print(f"{ act }ing { ext }...")
@@ -122,7 +123,7 @@ def test_extensions(tested_binary, file_name):
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
-                        "/bin/bash", "-c", f"/duckdb -c \"{ act } '{ ext };\""
+                        "/bin/bash", "-c", f"/duckdb -c \"{ act } '{ ext }';\""
                     ]
                 else:
                     install_ext = [
