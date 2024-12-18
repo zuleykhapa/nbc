@@ -1,14 +1,13 @@
 import argparse
-import pandas
-import tabulate
-import sys
-import re
-import random
-import os
-import subprocess
 import docker
 import glob
-# import prepare_report
+import os
+import pandas
+import random
+import re
+import subprocess
+import sys
+import tabulate
 
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
@@ -38,11 +37,29 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-def verify_version(tested_binary, repo, file_name):
+def get_python_versions_from_run():
+    with open("python_run_info.txt", "r") as file:
+        content = file.read()
+        pattern = r"cp([0-9]+)-.*"
+        matches = sorted(set(re.findall(pattern, content)))
+        # puts a '.' after the first character: '310' => '3.10'
+        result = [word[0] + '.' + word[1:] if len(word) > 1 else word + '.' for word in matches]
+        return result
+
+def verify_python():
+    python_versions = get_python_versions_from_run()
+    install_command = "pip install duckdb"
+    version_commad = "duckdb --version"
+
+    for version in python_versions:
+        
+
+
+def verify_version(tested_binary, file_name):
     gh_headSha_command = [
         "gh", "run", "view",
         run_id,
-        "--repo", repo,
+        "--repo", "duckdb/duckdb",
         "--json", "headSha",
         "-q", ".headSha"
     ]
@@ -122,16 +139,6 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
 
 def main():
-    # print(duckdb_path)
-    # if nightly_build == 'Windows':
-        # duckdb = duckdb_path
-    # else:
-    #     ls_duckdb_path = os.listdir(duckdb_path)
-    #     if ls_duckdb_path:
-    #         duckdb = f"{ duckdb_path }/{ ls_duckdb_path[0] }"
-    #     else:
-    #         print(f"No files found in the unzipped binaries.")
-    # duckdb = duckdb_path
     path_pattern = os.path.join("duckdb_path", "duckdb*")
     matches = glob.glob(path_pattern)
     if matches:
@@ -139,10 +146,9 @@ def main():
         print(f"Found binary: { tested_binary }")
     else:
         raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-    repo = "duckdb/duckdb"
     file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
     print(f"VERIFY BUILD SHA")
-    if verify_version(tested_binary, repo, file_name):
+    if verify_version(tested_binary, file_name):
         print(f"TEST EXTENSIONS")
         test_extensions(tested_binary, file_name)
     print(f"FINISH")

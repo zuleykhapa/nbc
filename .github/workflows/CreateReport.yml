@@ -55,7 +55,7 @@ jobs:
           ls ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/ | wc -l
           
           if [ $(ls ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
-            echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
+            # echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
             cat ext_failures_${{ inputs.nightly-build }}/issue_ext_${{ inputs.nightly-build }}*/*.txt >> result.csv
 
             # scripts/prepare_report.py creates res_${{ inputs.platform }}.md file

@@ -60,7 +60,7 @@ jobs:
           sparse-checkout: |
             .github/config
           path: ext
-      - name: Verify ${{ inputs.nightly-build }} version
+      - name: Verify and Test ${{ inputs.nightly-build }} version
         id: verify-build
         shell: bash
         run: |
@@ -86,18 +86,22 @@ jobs:
           # if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
 
           echo $run_id
-
-          if gh run download $run_id --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-            echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-            unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
-            
-            echo "Verifying version and test extensions..."
-            python scripts/verify_and_test.py \
-              --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
-              --run_id $run_id --runs_on ${{ inputs.runs-on }} \
-              --config ext/.github/config/out_of_tree_extensions.cmake
-              # --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
+          if ${{ inputs.nightly-build }} != 'Python'; then
+            if gh run download $run_id --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+              echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+              unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
+          else
+            # for Python save the run information to get all python builds versions on verify_and_test.py
+            gh run view --repo duckdb/duckdb $run_id -v > python_run_info.txt
           fi
+
+          echo "Verifying version and test extensions..."
+          python scripts/verify_and_test.py \
+            --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
+            --run_id $run_id --runs_on ${{ inputs.runs-on }} \
+            --config ext/.github/config/out_of_tree_extensions.cmake
+            # --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
+          
       # - uses: owenthereal/action-upterm@v1
       #   if: inputs.architecture == 'linux-aarch64'
     
