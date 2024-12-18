@@ -51,7 +51,7 @@ def verify_python():
     install_command = "pip install duckdb"
     version_commad = "duckdb --version"
 
-    for version in python_versions:
+    # for version in python_versions:
         
 
 
