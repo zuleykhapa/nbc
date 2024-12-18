@@ -100,14 +100,14 @@ def test_extensions(tested_binary, file_name):
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",
                 "/bin/bash", "-c", 
-                f"/duckdb --csv --noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
+                f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
             ]
         else:
             select_installed = [
                 tested_binary,
                 "-csv",
                 "-noheader",
-                "-c", "--csv", "--noheader",
+                "-c",
                 f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
             ]
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
@@ -139,7 +139,7 @@ def test_extensions(tested_binary, file_name):
                             f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
                             counter += 1
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ act }\n")
-                        
+
                 except subprocess.CalledProcessError as e:
                     with open(file_name, 'a') as f:
                         if counter == 0:
