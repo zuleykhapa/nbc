@@ -107,7 +107,7 @@ def test_extensions(tested_binary, file_name):
                 tested_binary,
                 "-csv",
                 "-noheader",
-                "-c", "--csv", "--noheader"
+                "-c", "--csv", "--noheader",
                 f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
             ]
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
