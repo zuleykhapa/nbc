@@ -69,7 +69,7 @@ jobs:
                 echo "$act'ing $ext extension..."
                 if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext -e duckdb=$duckdb ubuntu:22.04 /bin/bash -c '$duckdb -c "$act $ext;"'; then 
                   echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> list_failed_ext_${{ inputs.architecture }}.md
                 fi
               done
             fi
@@ -94,7 +94,7 @@ jobs:
                 echo "$act'ing $ext extension..."  
                 if ! $duckdb -c "$act $ext;"; then
                   echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ inputs.architecture }}.txt
+                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> list_failed_ext_${{ inputs.architecture }}.md
                 fi
               done
             fi
@@ -102,6 +102,6 @@ jobs:
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: issue_ext_${{ inputs.architecture }}
-          path: issue_ext_${{ inputs.architecture }}.txt
+          name: list_failed_ext_${{ inputs.architecture }}
+          path: list_failed_ext_${{ inputs.architecture }}.md
           if-no-files-found: ignore

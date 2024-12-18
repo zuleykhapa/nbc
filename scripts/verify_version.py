@@ -24,6 +24,6 @@ tested_version = f"{ workflow }_{ platform }_{ version }"
 print(short_sha, full_sha)
 if not args.full_sha.startswith(short_sha):
     message = f"- The version of `{ tested_version }` build (`{ short_sha }`) is not the same as the version triggered the build (`{ full_sha }`).\n "
-    with open("issue_verify_version_{}.txt".format(tested_version), 'w') as f:
+    with open("issue_verify_version_{}.md".format(tested_version), 'w') as f:
         f.write(message)
     print(message)

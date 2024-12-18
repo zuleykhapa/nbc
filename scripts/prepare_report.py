@@ -14,7 +14,6 @@ if not args:
 input_csv = args.input_csv
 platform = args.platform
 
-# def prepare_report(input_csv, platform, url):
 def prepare_report():
     with open("failed_extensions_{}.md".format(platform), 'w') as f:
         f.write(f"\n\n#### Extensions failed to INSTALL\n")
@@ -33,3 +32,9 @@ def prepare_report():
                     ORDER BY nightly_build, architecture, runs_on, version, extension, failed_statement
                     """).to_df().to_markdown(index=False)
         )
+
+def main():
+    prepare_report()
+
+if __name__ == "__main__":
+    main()

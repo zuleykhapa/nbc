@@ -93,7 +93,7 @@ jobs:
             fi
           else
             # for Python save the run information to get all python builds versions on verify_and_test.py
-            gh run view --repo duckdb/duckdb $run_id -v > python_run_info.txt
+            gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
           fi
 
           echo "Verifying version and test extensions..."
@@ -110,8 +110,8 @@ jobs:
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: issue_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}
-          path: issue_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.txt
+          name: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}
+          path: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.md
           if-no-files-found: ignore
       
       # - uses: owenthereal/action-upterm@v1

@@ -38,30 +38,23 @@ jobs:
         if: always()
         uses: actions/download-artifact@v4
         with:
-          pattern: issue_ext_${{ inputs.nightly-build }}*
-          path: ext_failures_${{ inputs.nightly-build }}
+          pattern: list_failed_ext_${{ inputs.nightly-build }}*
+          path: list_failed_ext_${{ inputs.nightly-build }}
       - name: Prepare a result table with extensions
         shell: bash
         run: |
-          # # ext_failures_*/ are artifacts of the previous job and, for Python, produced by scripts/test_install_load_extensions.py
-          # if [ $(ls ext_failures_${{ inputs.nightly-build }}*/issue_ext_Py*/ | wc -l) -gt 0 ]; then
-          #   echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
-          #   cat ext_failures_${{ inputs.nightly-build }}/issue_ext_Py*/*.csv >> result.csv
-
-            # scripts/prepare_report.py creates failed_extensions_${{ inputs.platform }}.md file
-          #   python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }} --url ${{ inputs.run_url }}
-          #   rm -r ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/
-          # fi
+          # list_failed_ext_*/ are artifacts of the previous job and, for Python, produced by scripts/test_install_load_extensions.py
           
-          if [ $(ls ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
-            cat ext_failures_${{ inputs.nightly-build }}/issue_ext_${{ inputs.nightly-build }}*/*.txt >> result.csv
+          if [ $(ls list_failed_ext_${{ inputs.nightly-build }}*/list_failed_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
+            cat list_failed_ext_${{ inputs.nightly-build }}/list_failed_ext_${{ inputs.nightly-build }}*/*.md >> result.csv
 
             cat result.csv
 
             # scripts/prepare_report.py creates failed_extensions_${{ inputs.platform }}.md file
             python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }}
 
-            ls -lahR
+            cat failed_extensions_${{ inputs.platform }}.md
+            ls -lah
           fi
       - name: Create result file
         shell: bash

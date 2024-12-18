@@ -38,7 +38,7 @@ def list_extensions(config) :
     return matches
 
 def get_python_versions_from_run():
-    with open("python_run_info.txt", "r") as file:
+    with open("python_run_info.md", "r") as file:
         content = file.read()
         pattern = r"cp([0-9]+)-.*"
         matches = sorted(set(re.findall(pattern, content)))
@@ -88,7 +88,7 @@ def test_extensions(tested_binary, file_name):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
-    counter = 0 # to add a header to issue_ext_nightly_build_architecture.txt only once
+    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.md only once
 
     for ext in extensions:
         if architecture.count("aarch64"):
@@ -151,7 +151,7 @@ def main():
             print(f"Found binary: { tested_binary }")
         else:
             raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-        file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
+        file_name = "list_failed_ext_{}_{}.md".format(nightly_build, architecture)
         print(f"VERIFY BUILD SHA")
         if verify_version(tested_binary, file_name):
             print(f"TEST EXTENSIONS")
