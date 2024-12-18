@@ -9,6 +9,28 @@ import subprocess
 import sys
 import tabulate
 
+
+parser = argparse.ArgumentParser()
+# parser.add_argument("file_name")
+# parser.add_argument("duckdb_path")
+parser.add_argument("--nightly_build")
+parser.add_argument("--architecture")
+parser.add_argument("--run_id")
+parser.add_argument("--runs_on")
+parser.add_argument("--config")
+
+# parser.add_argument("--url")
+args = parser.parse_args()
+
+# duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
+nightly_build = args.nightly_build
+architecture = args.architecture # linux-amd64
+run_id = args.run_id
+runs_on = args.runs_on # linux-latest
+# url = args.url
+config = args.config # ext/config/out_of_tree_extensions.cmake
+
+
 def list_extensions(config) :
     with open(config, "r") as file:
         content = file.read()
@@ -121,28 +143,6 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
 
 def main():
-
-    parser = argparse.ArgumentParser()
-    # parser.add_argument("file_name")
-    # parser.add_argument("duckdb_path")
-    parser.add_argument("--nightly_build")
-    parser.add_argument("--architecture")
-    parser.add_argument("--run_id")
-    parser.add_argument("--runs_on")
-    parser.add_argument("--config")
-
-    # parser.add_argument("--url")
-    args = parser.parse_args()
-
-    # duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
-    nightly_build = args.nightly_build
-    architecture = args.architecture # linux-amd64
-    run_id = args.run_id
-    runs_on = args.runs_on # linux-latest
-    # url = args.url
-    config = args.config # ext/config/out_of_tree_extensions.cmake
-
-    list_extensions(config)
     if nightly_build == 'Python':
         verify_python()
     else:
