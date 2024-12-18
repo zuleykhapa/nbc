@@ -15,6 +15,7 @@ on:
       run_url:
         description: "Stores run URL."
         value: ${{ jobs.check-build.outputs.run_url }}
+
       run_conclusion: 
         description: "If nightly-build's conclusion."
         value: ${{ jobs.check-build.outputs.run_conclusion }}
