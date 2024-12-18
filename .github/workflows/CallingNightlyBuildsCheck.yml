@@ -14,13 +14,13 @@ env:
   GH_REPO: ${{ github.repository }}
 
 jobs:
-  set-curr-date:
+  get-curr-date:
     name: Set Current Date
     runs-on: ubuntu-latest
     outputs:
-      curr_date: ${{ steps.set-curr-date.outputs.date }}
+      curr_date: ${{ steps.get-curr-date.outputs.date }}
     steps:
-      - id: set-curr-date 
+      - id: get-curr-date 
         run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
   linux:
     name: Check Linux Release build status
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
-      - set-curr-date
+      - get-curr-date
       - linux-report
       - osx-report
       - windows-report
@@ -171,11 +171,11 @@ jobs:
       - name: Report an issue
         if: success()
         run: |
-          cat report/report*/* > ${{ needs.set-curr-date.outputs.curr_date }}_nightly_builds_status.md
+          cat report/report*/* > ${{ needs.get-curr-date.outputs.curr_date }}_nightly_builds_status.md
           ls -lah
       #     gh issue create --repo ${{ env.GH_REPO }} --title "Nightly Builds Status" --body-file $curr_date_nightly_builds_status.md
 
       - uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: ${{ needs.set-curr-date.outputs.curr_date }}_nightly_builds_status.md
+          path: ${{ needs.get-curr-date.outputs.curr_date }}_nightly_builds_status.md
