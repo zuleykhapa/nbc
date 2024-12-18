@@ -100,21 +100,21 @@ def test_extensions(tested_binary, file_name):
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",
                 "/bin/bash", "-c", 
-                f"/duckdb -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
+                f"/duckdb --csv --noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
             ]
         else:
             select_installed = [
                 tested_binary,
                 "-csv",
                 "-noheader",
-                "-c",
+                "-c", "--csv", "--noheader"
                 f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
             ]
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
 
-        is_installed = result.stdout.strip()
-        print(is_installed)
-        if is_installed == 'false':
+        # is_installed = result.stdout.strip()
+        print(result)
+        if result == 'false':
             for act in action:
                 print(f"{ act }ing { ext }...")
                 if architecture.count("aarch64"):
