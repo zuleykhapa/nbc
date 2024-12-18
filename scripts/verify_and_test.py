@@ -112,9 +112,9 @@ def test_extensions(tested_binary, file_name):
             ]
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
 
-        # is_installed = result.stdout.strip()
-        print(result)
-        if result == 'false':
+        is_installed = result.stdout.strip()
+        print(is_installed)
+        if is_installed == 'false':
             for act in action:
                 print(f"{ act }ing { ext }...")
                 if architecture.count("aarch64"):
