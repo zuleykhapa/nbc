@@ -70,8 +70,8 @@ jobs:
             cat run_status_*/run_status*/* >> report_${{ inputs.platform }}.md
           fi
           # this adds the extensions part to the report
-          if [ -f issue_ext_${{ inputs.nightly-build }}_*.txt ]; then
-            cat rissue_ext_${{ inputs.nightly-build }}_*.txt >> report_${{ inputs.platform }}.md
+          if [ -f res_${{ inputs.platform }}_*.txt ]; then
+            cat res_${{ inputs.platform }}_*.txt >> report_${{ inputs.platform }}.md
           fi
       - name: Upload result file
         uses: actions/upload-artifact@v4

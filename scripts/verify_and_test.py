@@ -110,9 +110,8 @@ def test_extensions(tested_binary, file_name):
                         f"{ act } '{ ext }';"
                     ]
                 try:
-                    subprocess.run(install_ext, check=True, text=True, capture_output=True)
-
-                    print(act, ext, ": ", is_installed)
+                    result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
+                    print(result.stdout)
                 except subprocess.CalledProcessError as e:
                     with open(file_name, 'a') as f:
                         if counter == 0:
