@@ -114,5 +114,5 @@ jobs:
           path: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.md
           if-no-files-found: ignore
       
-      - uses: owenthereal/action-upterm@v1
+      # - uses: owenthereal/action-upterm@v1
       
