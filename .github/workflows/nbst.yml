@@ -82,11 +82,11 @@ jobs:
             run_id=${{ inputs.run_id }}
           fi
 
-          echo "Downloading duckdb-binaries-$name artifact..."
           # if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-
+          
           echo $run_id
           if [[ ${{ inputs.nightly-build }} != 'Python' ]]; then
+            echo "Downloading duckdb-binaries-$name artifact..."
             if gh run download $run_id --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
               echo "Artifact duckdb-binaries-$name is successfuly downloaded."
               unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
