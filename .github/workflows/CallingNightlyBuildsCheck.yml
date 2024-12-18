@@ -136,6 +136,7 @@ jobs:
       nightly-build: Python
       architecture: python-amd64
       runs-on: ${{ matrix.runs_on }}
+      run_id: ${{ needs.python.outputs.run_id }}
     strategy:
       matrix:
         runs_on: [ ubuntu-latest, macos-latest, windows-2019 ]
