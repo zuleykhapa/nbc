@@ -51,9 +51,11 @@ def verify_python():
     install_command = "pip install duckdb"
     version_commad = "duckdb --version"
 
-    # for version in python_versions:
+    for version in python_versions:
+        print(version)
         
-
+def teest_python_extensions():
+    return
 
 def verify_version(tested_binary, file_name):
     gh_headSha_command = [
@@ -139,19 +141,22 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
 
 def main():
-    path_pattern = os.path.join("duckdb_path", "duckdb*")
-    matches = glob.glob(path_pattern)
-    if matches:
-        tested_binary = os.path.abspath(matches[0])
-        print(f"Found binary: { tested_binary }")
+    if  nightly_build == 'Python':
+        verify_python()
     else:
-        raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-    file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
-    print(f"VERIFY BUILD SHA")
-    if verify_version(tested_binary, file_name):
-        print(f"TEST EXTENSIONS")
-        test_extensions(tested_binary, file_name)
-    print(f"FINISH")
+        path_pattern = os.path.join("duckdb_path", "duckdb*")
+        matches = glob.glob(path_pattern)
+        if matches:
+            tested_binary = os.path.abspath(matches[0])
+            print(f"Found binary: { tested_binary }")
+        else:
+            raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
+        file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
+        print(f"VERIFY BUILD SHA")
+        if verify_version(tested_binary, file_name):
+            print(f"TEST EXTENSIONS")
+            test_extensions(tested_binary, file_name)
+        print(f"FINISH")
 
 if __name__ == "__main__":
     main()
