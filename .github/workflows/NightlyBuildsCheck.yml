@@ -85,7 +85,7 @@ jobs:
           gh api repos/${{ env.GH_REPO }}/actions/runs/${{ steps.check-build.outputs.run_id}}/artifacts > ${{ inputs.nightly-build }}_artifacts.json
           
           echo "Generating run status report..."
-          # scripts/count_consecutive_failures.py creates a file named run_status_<nightly-build>.md with the run status report
+          # scripts/count_consecutive_failures.py creates a file named build_report_<nightly-build>.md with the run status report
           # containing information about available build artifacts
           python scripts/count_consecutive_failures.py ${{ inputs.nightly-build }}.json \
             --jobs ${{ inputs.nightly-build }}_run.json --artifacts ${{ inputs.nightly-build }}_artifacts.json \
@@ -94,5 +94,5 @@ jobs:
       - name: Upload Run Status file
         uses: actions/upload-artifact@v4
         with:
-          name: run_status_${{ inputs.nightly-build }}
-          path: run_status_${{ inputs.nightly-build }}.md
+          name: build_report_${{ inputs.nightly-build }}
+          path: build_report_${{ inputs.nightly-build }}.md

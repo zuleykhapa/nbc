@@ -32,8 +32,8 @@ jobs:
       - name: Download build reports
         uses: actions/download-artifact@v4
         with:
-          pattern: run_status_${{ inputs.nightly-build }}*
-          path: run_status_${{ inputs.nightly-build }}
+          pattern: build_report_${{ inputs.nightly-build }}*
+          path: build_report_${{ inputs.nightly-build }}
       - name: Download extensions test results
         if: always()
         uses: actions/download-artifact@v4
@@ -48,37 +48,38 @@ jobs:
           #   echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
           #   cat ext_failures_${{ inputs.nightly-build }}/issue_ext_Py*/*.csv >> result.csv
 
-            # scripts/prepare_report.py creates failed_extensions${{ inputs.platform }}.md file
+            # scripts/prepare_report.py creates failed_extensions_${{ inputs.platform }}.md file
           #   python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }} --url ${{ inputs.run_url }}
           #   rm -r ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/
           # fi
-          ls ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/ | wc -l
           
           if [ $(ls ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
-            # echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
             cat ext_failures_${{ inputs.nightly-build }}/issue_ext_${{ inputs.nightly-build }}*/*.txt >> result.csv
 
             cat result.csv
 
-            # scripts/prepare_report.py creates failed_extensions${{ inputs.platform }}.md file
+            # scripts/prepare_report.py creates failed_extensions_${{ inputs.platform }}.md file
             python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }}
-            ls -lah
+
+            ls -lahR
           fi
       - name: Create result file
         shell: bash
         if: always()
         run: |
-          # run_status_*/ is an artifact of the Check Nightly Build Status workflow
-          if [[ $(ls run_status_*/run_status*/ | wc -l) -gt 0 || -f failed_extensions${{ inputs.platform }}.md ]]; then
+
+          ls -lah
+          # build_report_*/ is an artifact of the Check Nightly Build Status workflow
+          if [[ $(ls build_report_*/build_report*/ | wc -l) -gt 0 || -f failed_extensions_${{ inputs.platform }}.md ]]; then
             echo "" > report_${{ inputs.platform }}.md
             echo "## ${{ inputs.nightly-build }}" >> report_${{ inputs.platform }}.md
-            cat run_status_*/run_status*/* >> report_${{ inputs.platform }}.md
+            cat build_report_*/build_report*/* >> report_${{ inputs.platform }}.md
 
             cat report_${{ inputs.platform }}.md
           fi
           # this adds the extensions part to the report
-          if [ -f failed_extensions${{ inputs.platform }}_*.txt ]; then
-            cat failed_extensions${{ inputs.platform }}_*.txt >> report_${{ inputs.platform }}.md
+          if [ -f failed_extensions_${{ inputs.platform }}_*.txt ]; then
+            cat failed_extensions_${{ inputs.platform }}_*.txt >> report_${{ inputs.platform }}.md
 
             cat report_${{ inputs.platform }}.md
           fi

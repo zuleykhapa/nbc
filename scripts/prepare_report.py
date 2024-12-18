@@ -16,7 +16,7 @@ platform = args.platform
 
 # def prepare_report(input_csv, platform, url):
 def prepare_report():
-    with open("failed_extensions{}.md".format(platform), 'w') as f:
+    with open("failed_extensions_{}.md".format(platform), 'w') as f:
         f.write(f"\n\n#### Extensions failed to INSTALL\n")
         f.write(duckdb.query(f"""
                     SELECT architecture, version, extension
