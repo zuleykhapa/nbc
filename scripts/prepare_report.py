@@ -14,7 +14,7 @@ if not args:
 input_csv = args.input_csv
 platform = args.platform
 def prepare_report():
-    if nightly_build == 'Python':
+    if platform == 'Python':
         select_list = 'architecture, version, extension'
     else:
         select_list = 'architecture, extension'
