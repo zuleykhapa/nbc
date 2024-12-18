@@ -142,8 +142,8 @@ def main():
     # url = args.url
     config = args.config # ext/config/out_of_tree_extensions.cmake
 
-    if list_extensions(config)
-    nightly_build == 'Python':
+    list_extensions(config)
+    if nightly_build == 'Python':
         verify_python()
     else:
         path_pattern = os.path.join("duckdb_path", "duckdb*")
