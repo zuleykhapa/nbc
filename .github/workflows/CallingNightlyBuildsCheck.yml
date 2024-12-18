@@ -134,6 +134,7 @@ jobs:
     uses: ./.github/workflows/nbst.yml
     with:
       nightly-build: Python
+      architecture: python-amd64
       runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
