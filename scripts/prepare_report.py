@@ -13,12 +13,15 @@ if not args:
 
 input_csv = args.input_csv
 platform = args.platform
-
 def prepare_report():
+    if nightly_build == 'Python':
+        select_list = 'architecture, version, extension'
+    else:
+        select_list = 'architecture, extension'
     with open("failed_extensions_{}.md".format(platform), 'w') as f:
         f.write(f"\n\n#### Extensions failed to INSTALL\n")
         f.write(duckdb.query(f"""
-                    SELECT architecture, version, extension
+                    SELECT { select_list }
                     FROM read_csv("{ input_csv }")
                     WHERE failed_statement = 'INSTALL' 
                     ORDER BY nightly_build, architecture, runs_on, version, extension, failed_statement
@@ -26,7 +29,7 @@ def prepare_report():
         )
         f.write(f"\n\n#### Extensions failed to LOAD\n")
         f.write(duckdb.query(f"""
-                    SELECT architecture, version, extension
+                    SELECT { select_list }
                     FROM read_csv("{ input_csv }")
                     WHERE failed_statement = 'LOAD' 
                     ORDER BY nightly_build, architecture, runs_on, version, extension, failed_statement
