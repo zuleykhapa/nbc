@@ -52,6 +52,8 @@ jobs:
           #   python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }} --url ${{ inputs.run_url }}
           #   rm -r ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/
           # fi
+          s ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/ | wc -l
+          
           if [ $(ls ext_failures_${{ inputs.nightly-build }}*/issue_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
             echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
             cat ext_failures_${{ inputs.nightly-build }}/issue_ext_${{ inputs.nightly-build }}*/*.txt >> result.csv
