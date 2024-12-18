@@ -78,9 +78,10 @@ jobs:
             cat report_${{ inputs.platform }}.md
           fi
           # this adds the extensions part to the report
-          if [ -f failed_extensions_${{ inputs.platform }}_*.txt ]; then
-            cat failed_extensions_${{ inputs.platform }}_*.txt >> report_${{ inputs.platform }}.md
+          if [ -f failed_extensions_${{ inputs.platform }}_*.md ]; then
+            cat failed_extensions_${{ inputs.platform }}_*.md >> report_${{ inputs.platform }}.md
 
+            echo "Adding failed extensions to the report..."
             cat report_${{ inputs.platform }}.md
           fi
       - name: Upload result file
