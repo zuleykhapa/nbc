@@ -61,9 +61,9 @@ def verify_version(tested_binary, repo, file_name):
         print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
         with open(file_name, 'w') as f:
             f.write(f"- The version of { nightly_build } build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        return 1
+        return False
     print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
-    return 0
+    return True
 
 def test_extensions(tested_binary, file_name):
     action=["INSTALL", "LOAD"]
@@ -142,7 +142,7 @@ def main():
     repo = "duckdb/duckdb"
     file_name = "issue_ext_{}_{}.txt".format(nightly_build, architecture)
     print(f"VERIFY BUILD SHA")
-    if verify_version(tested_binary, repo, file_name) == 0:
+    if verify_version(tested_binary, repo, file_name):
         print(f"TEST EXTENSIONS")
         test_extensions(tested_binary, file_name)
     print(f"FINISH")
