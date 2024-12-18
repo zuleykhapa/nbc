@@ -90,6 +90,7 @@ jobs:
             if gh run download $run_id --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
               echo "Artifact duckdb-binaries-$name is successfuly downloaded."
               unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
+            fi
           else
             # for Python save the run information to get all python builds versions on verify_and_test.py
             gh run view --repo duckdb/duckdb $run_id -v > python_run_info.txt
@@ -100,6 +101,7 @@ jobs:
             --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
             --run_id $run_id --runs_on ${{ inputs.runs-on }} \
             --config ext/.github/config/out_of_tree_extensions.cmake
+
             # --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
           
       # - uses: owenthereal/action-upterm@v1

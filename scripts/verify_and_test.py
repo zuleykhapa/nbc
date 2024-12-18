@@ -86,7 +86,7 @@ def test_extensions(tested_binary, file_name):
     action=["INSTALL", "LOAD"]
     extensions=list_extensions(config)
     print(extensions)
-    counter = 0
+    counter = 0 # to add a header to issue_ext_nightly_build_architecture.txt only once
 
     for ext in extensions:
         if architecture.count("aarch64"):
