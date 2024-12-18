@@ -100,7 +100,7 @@ def test_extensions(tested_binary, file_name):
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",
                 "/bin/bash", "-c", 
-                f"/duckdb -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='\$ext';\""
+                f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
             ]
         else:
             select_installed = [
@@ -113,6 +113,7 @@ def test_extensions(tested_binary, file_name):
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
 
         is_installed = result.stdout.strip()
+        print(is_installed)
         if is_installed == 'false':
             for act in action:
                 print(f"{ act }ing { ext }...")
@@ -122,7 +123,7 @@ def test_extensions(tested_binary, file_name):
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
-                        "/bin/bash", "-c", f"/duckdb -c \"\$act '\$ext';\""
+                        "/bin/bash", "-c", f"/duckdb -c \"{ act } '{ ext }';\""
                     ]
                 else:
                     install_ext = [
@@ -133,6 +134,12 @@ def test_extensions(tested_binary, file_name):
                 try:
                     result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
                     print(result.stdout)
+                    if result.stdout.strip() == 'false':
+                        if counter == 0:
+                            f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
+                            counter += 1
+                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ act }\n")
+
                 except subprocess.CalledProcessError as e:
                     with open(file_name, 'a') as f:
                         if counter == 0:
