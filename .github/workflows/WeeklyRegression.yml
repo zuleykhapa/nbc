@@ -79,9 +79,7 @@ jobs:
       - name: Install 
         shell: bash
         run:  |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install duckdb pandas tabulate
+          python -m pip install --break-system-packages duckdb pandas tabulate
 
       - name: umount mount-point (helps with debugging)
         shell: bash
