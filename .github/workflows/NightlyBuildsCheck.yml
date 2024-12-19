@@ -52,7 +52,6 @@ jobs:
         run: |
           echo "Listing ${{ inputs.nightly-build }} runs..."
           gh run list --repo ${{ env.GH_REPO }} --event repository_dispatch --workflow ${{ inputs.nightly-build }} --json status,conclusion,url,name,createdAt,databaseId,headSha > ${{ inputs.nightly-build }}.json 
-          url=$(python -c "import duckdb; print()")
           url=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key url)
           echo "run_url=$url" >> $GITHUB_OUTPUT
           echo "Got run URL: $url"

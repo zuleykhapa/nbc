@@ -108,51 +108,41 @@ def create_build_report():
             if artifacts_count > 0:
                 f.write(duckdb.query(f"""
                     SELECT
-                        t1.job_name,
-                        t1.conclusion,
-                        t2.name
+                        t1.job_name AS "Build (Architecture)",
+                        t1.conclusion AS "Conclusion",
+                        t2.name AS "Artifact",
+                        t2.updated_at AS "Uploaded at"
                     FROM (
                         SELECT
-                            *
+                            job_name,
+                            steps.conclusion conclusion,
+                            steps.startedAt startedAt
                         FROM (
                             SELECT
-                                job_name,
-                                steps.conclusion,
-                                steps.startedAt 
+                                unnest(steps) steps,
+                                job_name 
                             FROM (
                                 SELECT
-                                    * 
-                                FROM (
-                                    SELECT
-                                        unnest(steps) steps,
-                                        job_name 
-                                    FROM (
-                                        SELECT
-                                            unnest(jobs)['steps'] steps,
-                                            unnest(jobs)['name'] job_name 
-                                        FROM steps
-                                        )
-                                    )
-                                WHERE steps['name'] LIKE '%upload%'
+                                    unnest(jobs)['steps'] steps,
+                                    unnest(jobs)['name'] job_name 
+                                FROM steps
+                                )
                             )
-                        )
+                        WHERE steps['name'] LIKE '%upload%'
                         ORDER BY 
                             conclusion DESC,
                             startedAt
-                    ) t1 
+                        ) t1
                     POSITIONAL JOIN (
                         SELECT
-                            * 
+                            art.name,
+                            art.expires_at expires_at,
+                            art.updated_at updated_at
                         FROM (
                             SELECT
-                                art.name,
-                                art.expires_at  
-                            FROM (
-                                SELECT
-                                    unnest(artifacts) art
-                                FROM artifacts
-                                )
-                            ) 
+                                unnest(artifacts) art
+                            FROM artifacts
+                            )
                         ORDER BY expires_at
                         ) as t2;
                     """).to_df().to_markdown(index=False)
