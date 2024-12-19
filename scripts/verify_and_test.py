@@ -123,7 +123,8 @@ def test_extensions(tested_binary, file_name):
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
-                        "/bin/bash", "-c", f"/duckdb -c \"{ act } '{ ext }';\""
+                        "/bin/bash", "-c",
+                        f"/duckdb -c \"{ act } '{ ext }';\""
                     ]
                 else:
                     install_ext = [

@@ -64,12 +64,6 @@ jobs:
         id: verify-build
         shell: bash
         run: |
-          if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
-            name=${{ inputs.architecture }}
-          else 
-            name=${{ inputs.platform }}
-          fi
-          
           echo ${{ inputs.run_id }}
           # why it downloads this workflow binaries???? 12307320983
           if [[ '${{ inputs.nightly-build }}' == 'LinuxRelease' ]]; then
@@ -85,7 +79,12 @@ jobs:
           # if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
           
           echo $run_id
-          if [[ ${{ inputs.nightly-build }} != 'Python' ]]; then
+          if [[ '${{ inputs.nightly-build }}' != 'Python' ]]; then
+            if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
+              name=${{ inputs.architecture }}
+            else 
+              name=${{ inputs.platform }}
+            fi
             echo "Downloading duckdb-binaries-$name artifact..."
             if gh run download $run_id --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
               echo "Artifact duckdb-binaries-$name is successfuly downloaded."
