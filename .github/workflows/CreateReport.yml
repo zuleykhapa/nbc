@@ -63,8 +63,7 @@ jobs:
         run: |
           # build_report_*/ is an artifact of the Check Nightly Build Status workflow
           if [[ $(ls build_report_*/build_report*/ | wc -l) -gt 0 || -f failed_extensions_${{ inputs.platform }}.md ]]; then
-            echo "" > report_${{ inputs.platform }}.md
-            echo "## ${{ inputs.nightly-build }}" >> report_${{ inputs.platform }}.md
+            echo "## ${{ inputs.nightly-build }}" > report_${{ inputs.platform }}.md
             cat build_report_*/build_report*/* >> report_${{ inputs.platform }}.md
           fi
           # this adds the extensions part to the report
