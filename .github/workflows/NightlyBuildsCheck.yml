@@ -38,19 +38,21 @@ jobs:
       - name: Install DuckDB for Python
         shell: bash
         run: |
+          sudo apt-get update && sudo apt-get install -y jq
           python -m pip install --upgrade pip
           pip install duckdb --pre --upgrade
           pip install duckdb pandas tabulate
       
       - name: Create ${{ inputs.nightly-build }} run status report
+        id: check-build
         shell: bash
         run: |
           output_data=$(python scripts/create_build_report.py ${{ inputs.nightly-build }})
           
           echo $output_data
           failures_count = $(echo $output_data | -jq -r '.failures_count')
-          
-          if [ failures_count == 0 ]; then
+
+          if [ $failures_count == 0 ]; then
             echo "run_conclusion='success'" >> $GITHUB_OUTPUT
           else
             echo "run_conclusion='failure'" >> $GITHUB_OUTPUT
