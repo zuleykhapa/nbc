@@ -204,8 +204,7 @@ def main():
     output_data = create_build_report(nightly_build, gh_run_list_file, jobs_file, artifacts_file)
     con.close()
     output_data["run_id"] = run_id
-    print(output_data)
-    return output_data
+    print(json.dumps(output_data))
     
 if __name__ == "__main__":
     main()
