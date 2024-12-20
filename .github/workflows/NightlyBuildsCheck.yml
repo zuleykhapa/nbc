@@ -52,7 +52,7 @@ jobs:
           echo $output_data
           failures_count = $(echo $output_data | jq -r '.failures_count')
 
-          if [ $failures_count == 0 ]; then
+          if [ $failures_count -eq 0 ]; then
             echo "run_conclusion='success'" >> $GITHUB_OUTPUT
           else
             echo "run_conclusion='failure'" >> $GITHUB_OUTPUT
