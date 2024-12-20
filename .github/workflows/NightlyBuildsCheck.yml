@@ -50,7 +50,7 @@ jobs:
           output_data=$(python scripts/create_build_report.py ${{ inputs.nightly-build }})
           
           echo $output_data
-          failures_count = $(echo $output_data | jq -r '.failures_count')
+          failures_count=$(echo $output_data | jq -r '.failures_count')
 
           if [ $failures_count -eq 0 ]; then
             echo "run_conclusion='success'" >> $GITHUB_OUTPUT
