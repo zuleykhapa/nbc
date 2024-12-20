@@ -6,10 +6,24 @@ import subprocess
 import json
 
 
+
 GH_REPO = 'duckdb/duckdb'
-nightly_builds = ["Android"]
-# nightly_builds = ["Android", "Julia", "LinuxRelease", "OSX", "Pyodide", "Python", "R", "Swift", "SwiftRelease", "Wasm", "Windows"]
-workflow_table = []
+# nightly_builds = ["Android"]
+nightly_builds = ["Android", "Julia", "LinuxRelease", "OSX", "Pyodide", "Python", "R", "Swift", "SwiftRelease", "Windows"]
+
+def get_value_for_key(key, nightly_build):
+    value = duckdb.sql(f"""
+        SELECT { key } 
+        FROM read_json('{ nightly_build }.json') 
+        WHERE status = 'completed' 
+        ORDER BY createdAt 
+        DESC LIMIT 1;
+        """).fetchone()[0]
+    return value
+    
+def get_tables(command, f_output): # saves command execution results into a file
+    data = open(f_output, "w")
+    return subprocess.run(command, stdout=data)
 
 # count consecutive failures
 def count_consecutive_failures(nightly_build, input_file, url):
@@ -40,7 +54,7 @@ def count_consecutive_failures(nightly_build, input_file, url):
         with open("build_report_{}.md".format(nightly_build), 'a') as f:
             f.write(f"\n\n### { nightly_build } nightly-build has succeeded.\n")            
             f.write(f"Latest run: [ Run Link ]({ url })\n")
-            return
+            return count_consecutive_failures
     # since all runs in the json file have conclusion = 'failure', we count them all 
     # and don't include the link to the last successfull run in a report
     if count_consecutive_failures == -1:
@@ -75,142 +89,123 @@ def count_consecutive_failures(nightly_build, input_file, url):
                     LIMIT { count_consecutive_failures }
             """).to_df().to_markdown(index=False)
         )
+    return count_consecutive_failures
 
-def get_value_for_key(key, nightly_build):
-    value = duckdb.sql(f"""
-        SELECT { key } 
-        FROM read_json('{ nightly_build }.json') 
-        WHERE status = 'completed' 
-        ORDER BY createdAt 
-        DESC LIMIT 1;
-        """).fetchone()[0]
-    return value
-    
-def get_tables(command, f_output): # saves command execution results into a file
-    data = open(f_output, "w")
-    
-    print("🥵", f_output)
-    
-    return subprocess.run(command, stdout=data)
+def create_build_report(nightly_build, input_file, jobs, artifacts):
+    url= duckdb.sql(f"SELECT url FROM '{ input_file }'").fetchone()[0]
 
-# def create_build_report():
-#     url= duckdb.sql(f"""SELECT url FROM '{ input_file }'""").fetchone()[0]
-#     count_consecutive_failures()
+    failures_count = count_consecutive_failures(nightly_build, input_file, url)
 
-#     if nightly_build != 'Python':
-#         duckdb.sql(f"""
-#             CREATE OR REPLACE TABLE steps AS (
-#                 SELECT * FROM read_json('{ jobs }')
-#             )
-#         """)
-#         duckdb.sql(f"""
-#                 CREATE OR REPLACE TABLE artifacts AS (
-#                     SELECT * FROM read_json('{ artifacts }')
-#                 );
-#             """)
-#         with open("build_report_{}.md".format(nightly_build), 'a') as f:
-#             f.write(f"\n#### Workflow Artifacts \n")
-#             # check if the artifatcs table is not empty
-#             artifacts_count = duckdb.sql(f"SELECT list_count(artifacts) FROM artifacts;").fetchone()[0]
-#             if artifacts_count > 0:
-#                 f.write(duckdb.query(f"""
-#                     SELECT
-#                         t1.job_name AS "Build (Architecture)",
-#                         t1.conclusion AS "Conclusion",
-#                         t2.name AS "Artifact",
-#                         t2.updated_at AS "Uploaded at"
-#                     FROM (
-#                         SELECT
-#                             job_name,
-#                             steps.conclusion conclusion,
-#                             steps.startedAt startedAt
-#                         FROM (
-#                             SELECT
-#                                 unnest(steps) steps,
-#                                 job_name 
-#                             FROM (
-#                                 SELECT
-#                                     unnest(jobs)['steps'] steps,
-#                                     unnest(jobs)['name'] job_name 
-#                                 FROM steps
-#                                 )
-#                             )
-#                         WHERE steps['name'] LIKE '%upload%'
-#                         ORDER BY 
-#                             conclusion DESC,
-#                             startedAt
-#                         ) t1
-#                     POSITIONAL JOIN (
-#                         SELECT
-#                             art.name,
-#                             art.expires_at expires_at,
-#                             art.updated_at updated_at
-#                         FROM (
-#                             SELECT
-#                                 unnest(artifacts) art
-#                             FROM artifacts
-#                             )
-#                         ORDER BY expires_at
-#                         ) as t2;
-#                     """).to_df().to_markdown(index=False)
-#                 )
-#             else:
-#                 f.write(duckdb.query(f"""
-#                     SELECT job_name, conclusion 
-#                     FROM (
-#                         SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
-#                         FROM (
-#                             SELECT unnest(jobs) j 
-#                             FROM steps
-#                             )
-#                         ) 
-#                         WHERE steps['name'] LIKE '%upload-artifact%'
-#                     """).to_df().to_markdown(index=False)
-#                 )
-#     else:
-#         with open("build_report_{}.md".format(nightly_build), 'a') as f:
-#             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
+    if nightly_build not in ('Python', 'Julia'):
+        duckdb.sql(f"""
+            CREATE OR REPLACE TABLE steps AS (
+                SELECT * FROM read_json('{ jobs }')
+            )
+        """)
+        duckdb.sql(f"""
+                CREATE OR REPLACE TABLE artifacts AS (
+                    SELECT * FROM read_json('{ artifacts }')
+                );
+            """)
+        with open("build_report_{}.md".format(nightly_build), 'a') as f:
+            f.write(f"\n#### Workflow Artifacts \n")
+            # check if the artifatcs table is not empty
+            artifacts_count = duckdb.sql(f"SELECT list_count(artifacts) FROM artifacts;").fetchone()[0]
+            if artifacts_count > 0:
+                f.write(duckdb.query(f"""
+                    SELECT
+                        t1.job_name AS "Build (Architecture)",
+                        t1.conclusion AS "Conclusion",
+                        t2.name AS "Artifact",
+                        t2.updated_at AS "Uploaded at"
+                    FROM (
+                        SELECT
+                            job_name,
+                            steps.conclusion conclusion,
+                            steps.startedAt startedAt
+                        FROM (
+                            SELECT
+                                unnest(steps) steps,
+                                job_name 
+                            FROM (
+                                SELECT
+                                    unnest(jobs)['steps'] steps,
+                                    unnest(jobs)['name'] job_name 
+                                FROM steps
+                                )
+                            )
+                        WHERE steps['name'] LIKE '%upload%'
+                        ORDER BY 
+                            conclusion DESC,
+                            startedAt
+                        ) t1
+                    POSITIONAL JOIN (
+                        SELECT
+                            art.name,
+                            art.expires_at expires_at,
+                            art.updated_at updated_at
+                        FROM (
+                            SELECT
+                                unnest(artifacts) art
+                            FROM artifacts
+                            )
+                        ORDER BY expires_at
+                        ) as t2;
+                    """).to_df().to_markdown(index=False)
+                )
+            else:
+                f.write(duckdb.query(f"""
+                    SELECT job_name, conclusion 
+                    FROM (
+                        SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
+                        FROM (
+                            SELECT unnest(jobs) j 
+                            FROM steps
+                            )
+                        ) 
+                        WHERE steps['name'] LIKE '%upload-artifact%'
+                    """).to_df().to_markdown(index=False)
+                )
+    else:
+        with open("build_report_{}.md".format(nightly_build), 'a') as f:
+            f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
+    return failures_count
     
 def main():
-    # create_build_report()
-    for nightly_build in nightly_builds:
-        con = duckdb.connect()
-        f_workflow_runs = f"{ nightly_build }.json"
-        runs_command = [
-                "gh", "run", "list",
-                "--repo", GH_REPO,
-                "--event", "repository_dispatch",
-                "--workflow", nightly_build,
-                "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
-            ]
-        runs_table = get_tables(runs_command, f_workflow_runs)
-        print("🦑", runs_table)
-        url = get_value_for_key("url", nightly_build)
-        print("🍀", url)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("nightly_build")
+    args = parser.parse_args()
+    nightly_build = args.nightly_build
 
-        count_consecutive_failures(nightly_build, f_workflow_runs, url)
-        # run_id = get_value_for_key('databaseId', nightly_build)
-        
-        # f_jobs = f"{ nightly_build }_jobs.json"
-        # print("🍀", run_id)
-        # jobs_command = [
-        #         "gh", "run", "view",
-        #         "--repo", GH_REPO,
-        #         run_id,
-        #         "--json", "jobs"
-        #     ]
-        # jobs_table = get_tables(jobs_command, f_jobs)
-        # print("🪸", jobs_table)
-
-        # f_artifacts = f"{ nightly_build }_artifacts.json"
-        # artifacts_command = [
-        #         "gh", "api",
-        #         f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
-        #     ]
-        # artifacts_table = get_tables(artifacts_command, f_artifacts)
-        # print("🦋", artifacts_table)
-    
+    con = duckdb.connect()
+    gh_run_list_file = f"{ nightly_build }.json"
+    runs_command = [
+            "gh", "run", "list",
+            "--repo", GH_REPO,
+            "--event", "repository_dispatch",
+            "--workflow", nightly_build,
+            "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
+        ]
+    get_tables(runs_command, gh_run_list_file)
+    run_id = get_value_for_key('databaseId', nightly_build)
+    jobs_file = f"{ nightly_build }_jobs.json"
+    jobs_command = [
+            "gh", "run", "view",
+            "--repo", GH_REPO,
+            f"{ run_id }",
+            "--json", "jobs"
+        ]
+    get_tables(jobs_command, jobs_file)
+    artifacts_file = f"{ nightly_build }_artifacts.json"
+    artifacts_command = [
+            "gh", "api",
+            f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
+        ]
+    get_tables(artifacts_command, artifacts_file)
+    failures_count = create_build_report(nightly_build, gh_run_list_file, jobs_file, artifacts_file)
     con.close()
+    print(failures_count)
+    return failures_count
     
 if __name__ == "__main__":
     main()
