@@ -45,7 +45,11 @@ jobs:
       - name: Create ${{ inputs.nightly-build }} run status report
         shell: bash
         run: |
-          python scripts/create_build_report.py ${{ inputs.nightly-build }}
+          failures_count=$(python scripts/create_build_report.py ${{ inputs.nightly-build }})
+
+          if [ failures_count == 0 ]; then
+            echo 
+          fi
 
       - name: Upload Run Status file
         uses: actions/upload-artifact@v4

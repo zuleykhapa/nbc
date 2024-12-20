@@ -5,11 +5,7 @@ import tabulate
 import subprocess
 import json
 
-
-
 GH_REPO = 'duckdb/duckdb'
-# nightly_builds = ["Android"]
-nightly_builds = ["Android", "Julia", "LinuxRelease", "OSX", "Pyodide", "Python", "R", "Swift", "SwiftRelease", "Windows"]
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
@@ -169,7 +165,10 @@ def create_build_report(nightly_build, input_file, jobs, artifacts):
     else:
         with open("build_report_{}.md".format(nightly_build), 'a') as f:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
-    return failures_count
+    return { 
+        "failures_count": failures_count,
+        "url": url
+        }
     
 def main():
     parser = argparse.ArgumentParser()
@@ -202,10 +201,10 @@ def main():
             f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
         ]
     get_tables(artifacts_command, artifacts_file)
-    failures_count = create_build_report(nightly_build, gh_run_list_file, jobs_file, artifacts_file)
+    output_data = create_build_report(nightly_build, gh_run_list_file, jobs_file, artifacts_file)
     con.close()
-    print(failures_count)
-    return failures_count
+    output_data["run_id"] = run_id
+    return output_data
     
 if __name__ == "__main__":
     main()
