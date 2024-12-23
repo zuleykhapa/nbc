@@ -21,7 +21,7 @@ jobs:
       run_url: ${{ steps.check-build.outputs.run_url }}
       run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
       run_id: ${{ steps.check-build.outputs.run_id }}
-      runs_on: ${{ steps.check-build.outputs.runs_on }}
+      platform: ${{ steps.check-build.outputs.platform }}
       architectures: ${{ steps.check-build.outputs.architectures }}
     steps:
       - name: Checkout the repo with the script
@@ -57,12 +57,13 @@ jobs:
           echo "runs_on=$(echo $output_data | jq -r '.runs_on')" >> $GITHUB_OUTPUT
           echo "architectures=$(echo $output_data | jq -r '.architectures')" >> $GITHUB_OUTPUT
           echo "nightly-build=$(echo $output_data | jq -r '.nightly-build')" >> $GITHUB_OUTPUT
+          echo "nightly-build=$(echo $output_data | jq -r '.nightly-build')" >> $GITHUB_OUTPUT
 
       - name: Upload Run Status file
         uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: *REPORT*.md
+          path: .*REPORT*.md
 
       - name: Upload DuckDB file
         uses: actions/upload-artifact@v4
@@ -71,17 +72,19 @@ jobs:
           path: run_info_tables.duckdb
 
   test:
-    name: Verify and Test Builds ${{ needs.}}
+    name: Verify and Test Builds ${{ needs.get-run-info.outputs.nightly_build }}
     needs: get-run-info
-    runs-on: ${{ fromJSON(matrix.runs_on) }}
+    runs-on: ${{ fromJSON(matrix.platform) }}-latest
     continue-on-error: true
     strategy:
       matrix:
-        runs_on: ${{ needs.get-run-info.outputs.runs_on }}
+        architecture: ${{ needs.get-run-info.outputs.architectures }}
+        nightly_build: ${{ needs.get-run-info.outputs.nightly_build }}
+        platform: ${{ needs.get-run-info.outputs.platform }}
     steps:
         # Verify aarch64 builds in docker container
       - name: Set up QEMU
-        if: ${{ inputs.architecture == 'linux-aarch64' }}
+        if: ${{ matrix.architecture == 'linux-aarch64' }}
         uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/aarch64
@@ -90,7 +93,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install QEMU and duckdb dependencies
-        if: ${{ inputs.architecture == 'linux-aarch64' }}
+        if: ${{ matrix.architecture == 'linux-aarch64' }}
         shell: bash
         run: |
           sudo apt-get update
@@ -112,21 +115,20 @@ jobs:
           sparse-checkout: |
             .github/config
           path: ext
-      - name: Verify and Test ${{ inputs.nightly-build }} version
+      - name: Verify and Test ${{ matrix.nightly_build }} version
         id: verify-build
         shell: bash
         run: |
-          
-          if [[ '${{ inputs.nightly-build }}' != 'Python' ]]; then
-            if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
-              name=${{ inputs.architecture }}
+          if [[ '${{ matrix.nightly_build }}' != 'Python' ]]; then
+            if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
+              name=${{ matrix.architecture }}
             else 
-              name=${{ inputs.platform }}
+              name=${{ matrix.platform}}
             fi
             echo "Downloading duckdb-binaries-$name artifact..."
-            if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+            if gh run download ${{ needs.get-run-info.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
               echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-              unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
+              unzip duckdb_cli-${{ matrix.architecture }}.zip -d duckdb_path
             fi
           else
             # for Python save the run information to get all python builds versions on verify_and_test.py
@@ -135,16 +137,16 @@ jobs:
 
           echo "Verifying version and test extensions..."
           python scripts/verify_and_test.py \
-            --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
-            --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
+            --nightly_build ${{ matrix.nightly_build }} --architecture ${{ matrix.architecture }} \
+            --run_id ${{ needs.get-run-info.outputs.run_id }} --runs_on ${{ needs.get-run-info.outputs.platform }}-latest \
             --config ext/.github/config/out_of_tree_extensions.cmake
           
       # - uses: owenthereal/action-upterm@v1
-      #   if: inputs.architecture == 'linux-aarch64'
+      #   if: matrix.architecture == 'linux-aarch64'
     
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}
-          path: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.md
+          name: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}
+          path: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}.md
           if-no-files-found: ignore

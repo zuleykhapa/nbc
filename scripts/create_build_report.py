@@ -314,7 +314,7 @@ def main():
         if build_info["failures_count"] == 0:
             info = get_info_from_artifact_name(nightly_build, con)
             # print("1️⃣", nightly_build, ": ", info)
-            build_info["runs_on"] = info[0]
+            build_info["platform"] = info[0]
             build_info["architectures"] = info[1] if len(info[1]) > 0 else info[0]
             ###########
             # print("2️⃣", build_info["failures_count"], "🦑")
