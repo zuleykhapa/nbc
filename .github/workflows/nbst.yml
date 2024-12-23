@@ -24,8 +24,6 @@ env:
 jobs:
   check-build:
     runs-on: ${{ inputs.runs-on }}
-    outputs:
-      has_artifact: ${{ steps.verify-build.outputs.has_artifact }}
     steps:
         # Verify aarch64 builds in docker container
       - name: Set up QEMU
@@ -64,21 +62,7 @@ jobs:
         id: verify-build
         shell: bash
         run: |
-          echo ${{ inputs.run_id }}
-          # why it downloads this workflow binaries???? 12307320983
-          if [[ '${{ inputs.nightly-build }}' == 'LinuxRelease' ]]; then
-            run_id=12021416084 
-          elif [[ '${{ inputs.nightly-build }}' == 'OSX' ]]; then
-            run_id=12110544714
-          elif [[ '${{ inputs.nightly-build }}' == 'Python' ]]; then
-            run_id=12307320954
-          else
-            run_id=${{ inputs.run_id }}
-          fi
-
-          # if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
           
-          echo $run_id
           if [[ '${{ inputs.nightly-build }}' != 'Python' ]]; then
             if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
               name=${{ inputs.architecture }}
@@ -86,7 +70,7 @@ jobs:
               name=${{ inputs.platform }}
             fi
             echo "Downloading duckdb-binaries-$name artifact..."
-            if gh run download $run_id --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+            if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
               echo "Artifact duckdb-binaries-$name is successfuly downloaded."
               unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
             fi
@@ -98,10 +82,8 @@ jobs:
           echo "Verifying version and test extensions..."
           python scripts/verify_and_test.py \
             --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
-            --run_id $run_id --runs_on ${{ inputs.runs-on }} \
+            --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
             --config ext/.github/config/out_of_tree_extensions.cmake
-
-            # --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
           
       # - uses: owenthereal/action-upterm@v1
       #   if: inputs.architecture == 'linux-aarch64'

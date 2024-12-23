@@ -1,33 +1,28 @@
 name: Check Nightly Build Status
+
 on:
-  workflow_call:
-    inputs:
-      nightly-build:
-        required: true
-        type: string
-      platform: 
-        required: false
-        type: string
-      runs-on:
-        required: true
-        type: string
-    outputs:
-      run_url:
-        description: "Stores run URL."
-        value: ${{ jobs.check-build.outputs.run_url }}
-      run_conclusion: 
-        description: "If nightly-build's conclusion."
-        value: ${{ jobs.check-build.outputs.run_conclusion }}
-      run_id:
-        description: "Stores run id."
-        value: ${{ jobs.check-build.outputs.run_id }}
-      
+  workflow_dispatch:
+  push:
+
+permissions:
+  contents: read
+  issues: write
+
 env:
   GH_TOKEN: ${{ github.token }}
   GH_REPO: duckdb/duckdb
+  GH_ISSUE_REPO: ${{ github.repository }}
+
 jobs:
-  check-build:
-    runs-on: ${{ inputs.runs-on }}
+  get-run-info:
+    runs-on: ubuntu-latest
+    outputs:
+      nightly_build: ${{ steps.check-build.outputs.nightly_build }}
+      run_url: ${{ steps.check-build.outputs.run_url }}
+      run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
+      run_id: ${{ steps.check-build.outputs.run_id }}
+      runs_on: ${{ steps.check-build.outputs.runs_on }}
+      architectures: ${{ steps.check-build.outputs.architectures }}
     steps:
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
@@ -38,16 +33,16 @@ jobs:
       - name: Install DuckDB for Python
         shell: bash
         run: |
-          sudo apt-get update && sudo apt-get install -y jq
+          # sudo apt-get update && sudo apt-get install -y jq
           python -m pip install --upgrade pip
           pip install duckdb --pre --upgrade
           pip install duckdb pandas tabulate
       
-      - name: Create ${{ inputs.nightly-build }} run status report
+      - name: Create run status report
         id: check-build
         shell: bash
         run: |
-          output_data=$(python scripts/create_build_report.py ${{ inputs.nightly-build }})
+          output_data=$(python scripts/create_build_report.py)
           
           echo $output_data
           failures_count=$(echo $output_data | jq -r '.failures_count')
@@ -59,9 +54,97 @@ jobs:
           fi
           echo "run_id=$(echo $output_data | jq -r '.run_id')" >> $GITHUB_OUTPUT
           echo "run_url=$(echo $output_data | jq -r '.url')" >> $GITHUB_OUTPUT
+          echo "runs_on=$(echo $output_data | jq -r '.runs_on')" >> $GITHUB_OUTPUT
+          echo "architectures=$(echo $output_data | jq -r '.architectures')" >> $GITHUB_OUTPUT
+          echo "nightly-build=$(echo $output_data | jq -r '.nightly-build')" >> $GITHUB_OUTPUT
 
       - name: Upload Run Status file
         uses: actions/upload-artifact@v4
         with:
-          name: build_report_${{ inputs.nightly-build }}
-          path: build_report_${{ inputs.nightly-build }}.md
+          name: REPORT
+          path: *REPORT*.md
+
+      - name: Upload DuckDB file
+        uses: actions/upload-artifact@v4
+        with:
+          name: run_info_tables.duckdb
+          path: run_info_tables.duckdb
+
+  test:
+    name: Verify and Test Builds ${{ needs.}}
+    needs: get-run-info
+    runs-on: ${{ fromJSON(matrix.runs_on) }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        runs_on: ${{ needs.get-run-info.outputs.runs_on }}
+    steps:
+        # Verify aarch64 builds in docker container
+      - name: Set up QEMU
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/aarch64
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install QEMU and duckdb dependencies
+        if: ${{ inputs.architecture == 'linux-aarch64' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc6-arm64-cross qemu-user-static
+          # set up QEMU for Docker
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+
+      
+      - name: Install Python dependencies
+        run: pip install pandas tabulate docker
+      
+      - name: Checkout the repo with the script
+        uses: actions/checkout@v4
+      - name: Checkout repo with extensions config file
+        uses: actions/checkout@v4
+        with:
+          repository: duckdb/duckdb
+          sparse-checkout: |
+            .github/config
+          path: ext
+      - name: Verify and Test ${{ inputs.nightly-build }} version
+        id: verify-build
+        shell: bash
+        run: |
+          
+          if [[ '${{ inputs.nightly-build }}' != 'Python' ]]; then
+            if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
+              name=${{ inputs.architecture }}
+            else 
+              name=${{ inputs.platform }}
+            fi
+            echo "Downloading duckdb-binaries-$name artifact..."
+            if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+              echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+              unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
+            fi
+          else
+            # for Python save the run information to get all python builds versions on verify_and_test.py
+            gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
+          fi
+
+          echo "Verifying version and test extensions..."
+          python scripts/verify_and_test.py \
+            --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
+            --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
+            --config ext/.github/config/out_of_tree_extensions.cmake
+          
+      # - uses: owenthereal/action-upterm@v1
+      #   if: inputs.architecture == 'linux-aarch64'
+    
+      - name: Upload actions for extensions
+        uses: actions/upload-artifact@v4
+        with:
+          name: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}
+          path: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.md
+          if-no-files-found: ignore

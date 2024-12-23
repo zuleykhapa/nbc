@@ -39,8 +39,8 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-def get_python_versions_from_run():
-    with open("python_run_info.md", "r") as file:
+def get_python_versions_from_run(file):
+    with open(file, "r") as file:
         content = file.read()
         pattern = r"cp([0-9]+)-.*"
         matches = sorted(set(re.findall(pattern, content)))
@@ -56,7 +56,7 @@ def verify_python():
     for version in python_versions:
         print(version)
         
-def teest_python_extensions():
+def test_python_extensions():
     return
 
 def verify_version(tested_binary, file_name):
