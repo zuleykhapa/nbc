@@ -7,7 +7,7 @@ REPO_NAME = 'nbc'
 WORKFLOW_FILE = '.github/workflows/Test.yml'
 REF = 'move-to-python'
 
-url = f"https://api.github.com/repos/{ REPO_OWNER }/{ REPO_NAME }/actions/workflows/{ WORKFLOW_FILE }/dispatches"
+url = f"https://api.github.com/repos/{ REPO_OWNER }/{ REPO_NAME }/actions/workflows/{ WORKFLOW_FILE }"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("GH_TOKEN")
