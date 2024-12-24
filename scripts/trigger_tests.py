@@ -26,11 +26,11 @@ headers = {
 
 for input in inputs:
     if input["failures_count"] == 0:
-        nightly_build = info.get("nightly_build")
-        platform = info.get("platform")
-        architectures = info.get("architectures")
-        runs_on = info.get("runs_on")
-        run_id = info.get("run_id")
+        nightly_build = input.get("nightly_build")
+        platform = input.get("platform")
+        architectures = input.get("architectures")
+        runs_on = input.get("runs_on")
+        run_id = input.get("run_id")
 
     payload = {
         "ref": REF,
