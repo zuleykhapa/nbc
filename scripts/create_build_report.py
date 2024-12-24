@@ -264,6 +264,7 @@ def get_info_from_artifact_name(nightly_build, con):
     
 def main():
     output_data = []
+    # build_info = {}
     con = duckdb.connect('run_info_tables.duckdb')
     # list all nightly-build runs on current date
     gh_run_list_file = f"GH_run_list.json"
@@ -314,6 +315,8 @@ def main():
         ###########
         
         if build_info["failures_count"] == 0:
+            # build_info["failures_count"] = result["failures_count"]
+            # build_info["run_url"] = result["url"]
             build_info["run_id"] = run_id
             build_info["nightly_build"] = nightly_build
             info = get_info_from_artifact_name(nightly_build, con)
