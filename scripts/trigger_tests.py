@@ -24,7 +24,9 @@ headers = {
     "Accept": "application/vnd.github.v3_json",
 }
 
+
 for input in inputs:
+    print(input["failures_count"], "0️⃣")
     if input["failures_count"] == 0:
         nightly_build = input.get("nightly_build")
         platform = input.get("platform")
