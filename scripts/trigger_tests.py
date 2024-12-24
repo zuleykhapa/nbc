@@ -20,7 +20,7 @@ with open(loaded_data, "r") as file:
     inputs = json.load(file)
 
 headers = {
-    "Authorisation": f"Bearer { GITHUB_TOKEN }",
+    "Authorisation": f"Bearer { GH_TOKEN }",
     "Accept": "application/vnd.github.v3_json",
 }
 
