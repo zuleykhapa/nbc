@@ -42,7 +42,7 @@ jobs:
         id: check-build
         shell: bash
         run: |
-          output_data=$(python scripts/create_build_report.py)
+          python scripts/create_build_report.py
           
           echo 📌 $output_data
           # failures_count=$(echo $output_data | jq -r '.failures_count')
@@ -60,7 +60,7 @@ jobs:
           #   echo "nightly-build=$(echo $output_data | jq -r '.nightly-build')" >> $GITHUB_OUTPUT
           # fi
 
-          python scripts/trigger_tests.py ${{ env.GH_TOKEN }} --inputs $output_data
+          python scripts/trigger_tests.py ${{ env.GH_TOKEN }} --inputs output_data.json
 
       - name: Upload Run Status file
         uses: actions/upload-artifact@v4
