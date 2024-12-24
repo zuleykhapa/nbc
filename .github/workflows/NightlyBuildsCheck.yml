@@ -3,7 +3,7 @@ name: Check Nightly Build Status
 on:
   repository_dispatch:
   workflow_dispatch:
-  push:
+  # push:
 
 permissions:
   contents: read
