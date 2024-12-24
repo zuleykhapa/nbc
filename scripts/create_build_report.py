@@ -314,7 +314,7 @@ def main():
         ###########
         
         if build_info["failures_count"] == 0:
-            build_info["run_id"] = run_id
+            build_info["run_id"] = f"{ run_id }"
             build_info["nightly_build"] = nightly_build
             info = get_info_from_artifact_name(nightly_build, con)
             build_info["platform"] = info[0]
