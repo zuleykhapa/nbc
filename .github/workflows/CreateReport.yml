@@ -20,68 +20,56 @@ jobs:
   prepare-result:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repo with the script
+      - name: Checkout repo
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
       - name: Install Python dependencies
         run: |
           pip install duckdb pandas tabulate
+
       - name: Download build reports
         uses: actions/download-artifact@v4
         with:
-          pattern: run_status_${{ inputs.nightly-build }}*
-          path: run_status_${{ inputs.nightly-build }}
-      - name: Download build verification results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: issue_verify_version_${{ inputs.platform }}*
-          path: failures_${{ inputs.platform }}
+          pattern: build_report_${{ inputs.nightly-build }}*
+          path: build_report_${{ inputs.nightly-build }}
       - name: Download extensions test results
         if: always()
         uses: actions/download-artifact@v4
         with:
-          pattern: issue_ext_${{ inputs.platform }}*
-          path: ext_failures_${{ inputs.platform }}
+          pattern: list_failed_ext_${{ inputs.nightly-build }}*
+          path: list_failed_ext_${{ inputs.nightly-build }}
+
       - name: Prepare a result table with extensions
         shell: bash
         run: |
-          # ext_failures_*/ are artifacts of the previous job and, for Python, produced by scripts/test_install_load_extensions.py
-          if [ $(ls ext_failures_*/issue_ext_Py*/ | wc -l) -gt 0 ]; then
-            echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
-            cat ext_failures_${{ inputs.platform }}/issue_ext*/*.csv >> result.csv
+          # list_failed_ext_*/ are artifacts of the previous job and, for Python, produced by scripts/test_install_load_extensions.py
+          
+          if [ $(ls list_failed_ext_${{ inputs.nightly-build }}*/list_failed_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
+            cat list_failed_ext_${{ inputs.nightly-build }}/list_failed_ext_${{ inputs.nightly-build }}*/*.md >> result.csv
 
-            # scripts/prepare_report.py creates res_${{ inputs.platform }}.md file
-            python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }} --url ${{ inputs.run_url }}
-            rm -r ext_failures_*/issue_ext_Py*/
+            # scripts/prepare_report.py creates failed_extensions_${{ inputs.platform }}.md file
+            python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }}
           fi
-          if [ $(ls ext_failures_*/issue_ext_*/ | wc -l) -gt 0 ]; then
-            echo "nightly_build,architecture,runs_on,version,extension,failed_statement" > result.csv
-            cat ext_failures_${{ inputs.platform }}/issue_ext*/*.txt >> result.csv
 
-            # scripts/prepare_report.py creates res_${{ inputs.platform }}.md file
-            python scripts/prepare_report.py result.csv --platform ${{ inputs.platform }} --url ${{ inputs.run_url }}
-          fi
       - name: Create result file
         shell: bash
         if: always()
         run: |
-          # run_status_*/ is an artifact of the Check Nightly Build Status workflow
-          if [[ $(ls run_status_*/run_status*/ | wc -l) -gt 0 || -f res_${{ inputs.platform }}.md ]]; then
-            echo "" > report_${{ inputs.platform }}.md
-            echo "## ${{ inputs.nightly-build }}" >> report_${{ inputs.platform }}.md
-            cat run_status_*/run_status*/* >> report_${{ inputs.platform }}.md
-          fi
-          # failures_*/ are artifacts of the Verify Nightly Build Version workflow
-          if [ $(ls failures_*/issue_body*/ | wc -l) -gt 0 ]; then
-            cat failures_${{ inputs.platform }}/issue_body*/* >> report_${{ inputs.platform }}.md
+          # build_report_*/ is an artifact of the Check Nightly Build Status workflow
+          if [[ $(ls build_report_*/build_report*/ | wc -l) -gt 0 || -f failed_extensions_${{ inputs.platform }}.md ]]; then
+            echo "## ${{ inputs.nightly-build }}" > report_${{ inputs.platform }}.md
+            cat build_report_*/build_report*/* >> report_${{ inputs.platform }}.md
           fi
           # this adds the extensions part to the report
-          if [ -f res_${{ inputs.platform }}.md ]; then
-            cat res_${{ inputs.platform }}.md >> report_${{ inputs.platform }}.md
+          if [ -f failed_extensions_${{ inputs.platform }}.md ]; then
+            cat failed_extensions_${{ inputs.platform }}.md >> report_${{ inputs.platform }}.md
           fi
+          
       - name: Upload result file
         uses: actions/upload-artifact@v4
         with:

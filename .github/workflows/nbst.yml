@@ -9,13 +9,13 @@ on:
         required: false
         type: string
       architecture: 
-        required: true
+        required: false
         type: string
       runs-on:
-        required: true
+        required: false
         type: string
       run_id:
-        required: true
+        required: false
         type: string
         
 env:
@@ -24,8 +24,6 @@ env:
 jobs:
   check-build:
     runs-on: ${{ inputs.runs-on }}
-    outputs:
-      has_artifact: ${{ steps.verify-build.outputs.has_artifact }}
     steps:
         # Verify aarch64 builds in docker container
       - name: Set up QEMU
@@ -43,7 +41,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libc6-arm64-cross qemu-user-static
-          pip install duckdb pandas tabulate
+          # set up QEMU for Docker
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+
+      
+      - name: Install Python dependencies
+        run: pip install pandas tabulate docker
       
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
@@ -54,104 +58,41 @@ jobs:
           sparse-checkout: |
             .github/config
           path: ext
-      - name: Verify ${{ inputs.nightly-build }} version
+      - name: Verify and Test ${{ inputs.nightly-build }} version
         id: verify-build
-        shell: bash
-        run: |
-          if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
-            name="${{ inputs.architecture }}"
-          else 
-            name="${{ inputs.platform }}"
-          fi
-
-          echo "Downloading duckdb-binaries-$name artifact..."
-          if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-            echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-            echo "has_artifact=true" >> $GITHUB_OUTPUT
-            unzip duckdb_cli-${{ inputs.architecture }}.zip
-
-            echo "Verifying version..."
-            full_sha=$(gh run view ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} --json headSha -q .headSha)            
-            if [[ ${{ inputs.architecture }} == linux-aarch64 ]]; then
-              tmp_sha=$(docker run --rm --platform linux/aarch64 -v $(pwd):/duckdb -e full_sha=$full_sha ubuntu:22.04 /bin/bash -c 'cd /duckdb; ./duckdb --version')
-            else
-              tmp_sha=$(./duckdb --version)
-            fi
-            short_sha=$(echo $tmp_sha | awk -F' ' "{ print \$2 }")
-            if [[ "$full_sha" != "$short_sha"* ]]; then
-              printf "- The version of \`${{ inputs.nightly-build }}\` build (\`$short_sha\`) doesn't match to the version triggered the build (\`$full_sha\`).\n " > issue_verify_version_${{ inputs.architecture }}.txt
-              cat issue_verify_version_${{ inputs.architecture }}.txt
-              exit 1
-            fi
-          else  
-            echo "Downloading duckdb-binaries-$name artifact is failed."
-            printf "#### No artifacts with name duckdb-binaries-$name provided.\n" > issue_verify_version_${{ inputs.architecture }}.txt
-            cat issue_verify_version_${{ inputs.architecture }}.txt
-            echo "has_artifact=false" >> $GITHUB_OUTPUT
-          fi
-      # probably remove this
-      - name: Upload issue
-        uses: actions/upload-artifact@v4
-        with:
-          name: issue_verify_version_${{ inputs.architecture }}
-          path: issue_verify_version_${{ inputs.architecture }}.txt
-          if-no-files-found: ignore
-
-      
-      - name: Test ${{ inputs.nightly-build }} in an aarch64 Docker container
-        shell: bash
-        if: inputs.architecture == 'linux-aarch64' && steps.verify-build.outputs.has_artifact == 'true'
-        run: |
-          
-          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
-
-          for ext in $matches; do
-            is_installed=$(docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c './duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;"')
-            
-            echo $is_installed
-
-            action=("INSTALL" "LOAD")
-            if [[ $is_installed == 'false' ]]; then
-              for act in $action; do
-                echo "$act'ing $ext extension..."
-                if ! docker run --rm --platform linux/aarch64 -v $(pwd)/duckdb:/duckdb -e ext=$ext ubuntu:22.04 /bin/bash -c "./duckdb -c \"$act $ext;\""; then 
-                  echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$action" >> issue_ext_${{ inputs.architecture }}.txt
-                fi
-              done
-            fi
-          done
-      
-      # - uses: owenthereal/action-upterm@v1
-      #   if: inputs.architecture == 'linux-aarch64'
-
-      - name: Test ${{ inputs.nightly-build }}
         shell: bash
         if: (inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64') && steps.verify-build.outputs.has_artifact == 'true'
         run: |
-          if [[ ${{ inputs.nightly-build }} == Windows ]]; then
-            duckdb=./duckdb.exe
-          else
-            duckdb=./duckdb
-          fi
-          
-          action="INSTALL LOAD"
-          matches=$(python scripts/find_extensions.py ext/.github/config/out_of_tree_extensions.cmake | tr -d '[],')
-          for ext in $matches; do
-            is_installed=$($duckdb -csv -noheader -c "SELECT installed FROM duckdb_extensions() WHERE extension_name=$ext;")
-            if [[ $is_installed == 'false' ]]; then
-              for act in $action; do
-                echo "$act'ing $ext extension..."  
-                if ! $duckdb -c "$act $ext;"; then
-                  echo "Failed to $act $ext extension."
-                  echo "${{ inputs.nightly-build }},${{ inputs.architecture }},${{ inputs.runs-on }},,$ext,$act" >> issue_ext_${{ inputs.architecture }}.txt
-                fi
-              done
+          if [[ '${{ inputs.nightly-build }}' != 'Python' ]]; then
+            if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
+              name=${{ inputs.architecture }}
+            else 
+              name=${{ inputs.platform }}
             fi
-          done
+            echo "Downloading duckdb-binaries-$name artifact..."
+            if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+              echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+              unzip duckdb_cli-${{ inputs.architecture }}.zip -d duckdb_path
+            fi
+          else
+            # for Python save the run information to get all python builds versions on verify_and_test.py
+            gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
+          fi
+
+          echo "Verifying version and test extensions..."
+          python scripts/verify_and_test.py \
+            --nightly_build ${{ inputs.nightly-build }} --architecture ${{ inputs.architecture }} \
+            --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs-on }} \
+            --config ext/.github/config/out_of_tree_extensions.cmake
+          
+      # - uses: owenthereal/action-upterm@v1
+      #   if: inputs.architecture == 'linux-aarch64'
+    
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: issue_ext_${{ inputs.architecture }}
-          path: issue_ext_${{ inputs.architecture }}.txt
+          name: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}
+          path: list_failed_ext_${{ inputs.nightly-build }}_${{ inputs.architecture }}.md
           if-no-files-found: ignore
+      
+      # - uses: owenthereal/action-upterm@v1

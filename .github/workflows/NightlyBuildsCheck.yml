@@ -1,33 +1,29 @@
 name: Check Nightly Build Status
 on:
-  workflow_call:
-    inputs:
-      nightly-build:
-        required: true
-        type: string
-      platform: 
-        required: false
-        type: string
-      runs-on:
-        required: true
-        type: string
-    outputs:
-      run_conclusion: 
-        description: "If nightly-build's conclusion."
-        value: ${{ jobs.check-build.outputs.run_conclusion }}
-      run_id:
-        description: "Stores run id."
-        value: ${{ jobs.check-build.outputs.run_id }}
-      
+  repository_dispatch:
+  workflow_dispatch:
+  # push:
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
 env:
   GH_TOKEN: ${{ github.token }}
   GH_REPO: duckdb/duckdb
+  GH_ISSUE_REPO: ${{ github.repository }}
+
 jobs:
-  check-build:
-    runs-on: ${{ inputs.runs-on }}
-    outputs:
-      run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
-      run_id: ${{ steps.check-build.outputs.run_id }}
+  get-run-info:
+    runs-on: ubuntu-latest
+    # outputs:
+    #   nightly_build: ${{ steps.check-build.outputs.nightly_build }}
+    #   run_url: ${{ steps.check-build.outputs.run_url }}
+    #   run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
+    #   run_id: ${{ steps.check-build.outputs.run_id }}
+    #   platform: ${{ steps.check-build.outputs.platform }}
+    #   architectures: ${{ steps.check-build.outputs.architectures }}
     steps:
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
@@ -37,47 +33,122 @@ jobs:
           python-version: '3.10'
       - name: Install DuckDB for Python
         shell: bash
-        if: 
         run: |
+          # sudo apt-get update && sudo apt-get install -y jq
           python -m pip install --upgrade pip
           pip install duckdb --pre --upgrade
-          pip install duckdb pandas tabulate
-
-      - name: Get ${{ inputs.nightly-build }} run ID and conclusion
-        shell: bash
-        id: check-build
-        run: |
-          echo "Listing ${{ inputs.nightly-build }} runs..."
-          gh run list --repo ${{ env.GH_REPO }} --event repository_dispatch --workflow ${{ inputs.nightly-build }} \
-            --json status,conclusion,url,name,createdAt,databaseId,headSha > ${{ inputs.nightly-build }}.json 
-          
-          echo "Getting the run conclusion..."
-          conclusion=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key conclusion)
-          echo "run_conclusion=$conclusion" >> $GITHUB_OUTPUT
-          echo "Found run_conclusion: $conclusion"
-          
-          echo "Getting the run id..."
-          run_id=$(python scripts/get_value_for_key.py ${{ inputs.nightly-build }}.json --key databaseId)
-          echo "run_id=$run_id" >> $GITHUB_OUTPUT
-          echo "Found run_id: $run_id"
+          pip install duckdb pandas tabulate requests
       
-      - name: Create ${{ inputs.nightly-build }} run status report
+      - name: Create run status report
+        id: check-build
         shell: bash
         run: |
-          echo "Getting the run info..."
-          gh run view --repo ${{ env.GH_REPO }} ${{ steps.check-build.outputs.run_id}} --json jobs > ${{ inputs.nightly-build }}_run.json 
-          echo "Getting the list of run artifacts..."
-          gh api repos/${{ env.GH_REPO }}/actions/runs/${{ steps.check-build.outputs.run_id}}/artifacts > ${{ inputs.nightly-build }}_artifacts.json
+          python scripts/create_build_report.py
           
-          echo "Generating run status report..."
-          # scripts/count_consecutive_failures.py creates a file named run_status_<nightly-build>.md with the run status report
-          # containing information about available build artifacts
-          python scripts/count_consecutive_failures.py ${{ inputs.nightly-build }}.json \
-            --jobs ${{ inputs.nightly-build }}_run.json --artifacts ${{ inputs.nightly-build }}_artifacts.json \
-            --nightly_build ${{ inputs.nightly-build }}
+          echo $output_data
+          # failures_count=$(echo $output_data | jq -r '.failures_count')
 
-      - name: Upload Run Status file
+          # if [ $failures_count -eq 0 ]; then
+          #   echo "Saving RUN_ID to output"
+          #   echo "run_id=$(echo $output_data | jq -r '.run_id')" >> $GITHUB_OUTPUT
+          #   echo "Saving RUN_URL to output"
+          #   echo "run_url=$(echo $output_data | jq -r '.url')" >> $GITHUB_OUTPUT
+          #   echo "Saving PLATFORM to output"
+          #   echo "platform=$(echo $output_data | jq -r '.platform')" >> $GITHUB_OUTPUT
+          #   echo "Saving ARCHITECTURE to output"
+          #   echo "architectures=$(echo $output_data | jq -r '.architectures')" >> $GITHUB_OUTPUT
+          #   echo "Saving NIGHTLY_BUILD to output"
+          #   echo "nightly-build=$(echo $output_data | jq -r '.nightly-build')" >> $GITHUB_OUTPUT
+          # fi
+
+          python scripts/trigger_tests.py ${{ env.GH_TOKEN }} --inputs output_data.json
+
+
+      - name: Upload DuckDB file
         uses: actions/upload-artifact@v4
         with:
-          name: run_status_${{ inputs.nightly-build }}
-          path: run_status_${{ inputs.nightly-build }}.md
+          name: run_info_tables.duckdb
+          path: run_info_tables.duckdb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: REPORT
+          path: .*_nightly_builds_status.md
+  # test:
+  #   name: Verify and Test Builds ${{ needs.get-run-info.outputs.nightly_build }}
+  #   needs: get-run-info
+  #   runs-on: ${{ fromJSON(matrix.platform) }}-latest
+  #   continue-on-error: true
+  #   strategy:
+  #     matrix:
+  #       architecture: ${{ needs.get-run-info.outputs.architectures }}
+  #       nightly_build: ${{ needs.get-run-info.outputs.nightly_build }}
+  #       platform: ${{ needs.get-run-info.outputs.platform }}
+  #   steps:
+  #       # Verify aarch64 builds in docker container
+  #     - name: Set up QEMU
+  #       if: ${{ matrix.architecture == 'linux-aarch64' }}
+  #       uses: docker/setup-qemu-action@v3
+  #       with:
+  #         platforms: linux/aarch64
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.10'
+  #     - name: Install QEMU and duckdb dependencies
+  #       if: ${{ matrix.architecture == 'linux-aarch64' }}
+  #       shell: bash
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y libc6-arm64-cross qemu-user-static
+  #         # set up QEMU for Docker
+  #         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  #         docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+
+      
+  #     - name: Install Python dependencies
+  #       run: pip install pandas tabulate docker
+      
+  #     - name: Checkout the repo with the script
+  #       uses: actions/checkout@v4
+  #     - name: Checkout repo with extensions config file
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: duckdb/duckdb
+  #         sparse-checkout: |
+  #           .github/config
+  #         path: ext
+  #     - name: Verify and Test ${{ matrix.nightly_build }} version
+  #       id: verify-build
+  #       shell: bash
+  #       run: |
+  #         if [[ '${{ matrix.nightly_build }}' != 'Python' ]]; then
+  #           if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
+  #             name=${{ matrix.architecture }}
+  #           else 
+  #             name=${{ matrix.platform}}
+  #           fi
+  #           echo "Downloading duckdb-binaries-$name artifact..."
+  #           if gh run download ${{ needs.get-run-info.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+  #             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+  #             unzip duckdb_cli-${{ matrix.architecture }}.zip -d duckdb_path
+  #           fi
+  #         else
+  #           # for Python save the run information to get all python builds versions on verify_and_test.py
+  #           gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
+  #         fi
+
+  #         echo "Verifying version and test extensions..."
+  #         python scripts/verify_and_test.py \
+  #           --nightly_build ${{ matrix.nightly_build }} --architecture ${{ matrix.architecture }} \
+  #           --run_id ${{ needs.get-run-info.outputs.run_id }} --runs_on ${{ needs.get-run-info.outputs.platform }}-latest \
+  #           --config ext/.github/config/out_of_tree_extensions.cmake
+          
+      # - uses: owenthereal/action-upterm@v1
+      #   if: matrix.architecture == 'linux-aarch64'
+    
+      # - name: Upload actions for extensions
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}
+      #     path: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}.md
+      #     if-no-files-found: ignore

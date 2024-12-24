@@ -1,0 +1,101 @@
+name: Verify Nightly Builds (Reusable)
+on:
+  workflow_call:
+    inputs:
+      nightly_build:
+        required: true
+        type: string
+      platform: 
+        required: false
+        type: string
+      architectures: 
+        required: false
+        type: string
+      runs_on:
+        required: true
+        type: string
+      run_id:
+        required: false
+        type: string
+      
+env:
+  GH_TOKEN: ${{ github.token }}
+jobs:
+    test:
+        name: Verify and Test Builds ${{ inputs.nightly_build }}
+        runs-on: ${{ fromJSON(matrix.platform) }}-latest
+        continue-on-error: true
+        strategy:
+            matrix:
+                architecture: ${{ inputs.architectures }}
+                nightly_build: ${{ inputs.nightly_build }}
+                platform: ${{ inputs.platform }}
+        steps:
+            # Verify aarch64 builds in docker container
+          - name: Set up QEMU
+            if: ${{ matrix.architecture == 'linux-aarch64' }}
+            uses: docker/setup-qemu-action@v3
+            with:
+                platforms: linux/aarch64
+          - name: Set up Python
+            uses: actions/setup-python@v5
+            with:
+                python-version: '3.10'
+          - name: Install QEMU and duckdb dependencies
+            if: ${{ matrix.architecture == 'linux-aarch64' }}
+            shell: bash
+            run: |
+                sudo apt-get update
+                sudo apt-get install -y libc6-arm64-cross qemu-user-static
+                # set up QEMU for Docker
+                docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+                docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+
+                
+          - name: Install Python dependencies
+            run: pip install pandas tabulate docker
+                
+          - name: Checkout the repo with the script
+            uses: actions/checkout@v4
+          - name: Checkout repo with extensions config file
+            uses: actions/checkout@v4
+            with:
+                repository: duckdb/duckdb
+                sparse-checkout: |
+                    .github/config
+                    path: ext
+          - name: Verify and Test ${{ matrix.nightly_build }} version
+            id: verify-build
+            shell: bash
+            run: |
+                if [[ '${{ matrix.nightly_build }}' != 'Python' ]]; then
+                    if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
+                        name=${{ matrix.architecture }}
+                    else 
+                        name=${{ matrix.platform}}
+                    fi
+                    echo "Downloading duckdb-binaries-$name artifact..."
+                    if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+                        echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+                        unzip duckdb_cli-${{ matrix.architecture }}.zip -d duckdb_path
+                    fi
+                else
+                    # for Python save the run information to get all python builds versions on verify_and_test.py
+                    gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
+                fi
+
+                echo "Verifying version and test extensions..."
+                python scripts/verify_and_test.py \
+                    --nightly_build ${{ matrix.nightly_build }} --architecture ${{ matrix.architecture }} \
+                    --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.platform }}-latest \
+                    --config ext/.github/config/out_of_tree_extensions.cmake
+                    
+                # - uses: owenthereal/action-upterm@v1
+                #   if: matrix.architecture == 'linux-aarch64'
+
+          - name: Upload actions for extensions
+            uses: actions/upload-artifact@v4
+            with:
+                name: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}
+                path: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}.md
+                if-no-files-found: ignore
