@@ -1,6 +1,13 @@
-name: Verify Nightly Builds (Reusable)
+name: Verify and Test
 on:
   workflow_call:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
     inputs:
       nightly_build:
         required: true
