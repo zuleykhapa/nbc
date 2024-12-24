@@ -26,7 +26,6 @@ headers = {
 
 
 for input in inputs:
-    print(input["failures_count"], "0️⃣")
     if input["failures_count"] == 0:
         nightly_build = input.get("nightly_build")
         platform = input.get("platform")
@@ -44,7 +43,7 @@ for input in inputs:
                 "run_id": run_id,
             },
         }
-
+        print(url)
         response = requests.post(url, headers=headers, json=payload)
 
         if response.status_code == 204:
