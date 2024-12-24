@@ -5,7 +5,7 @@ import json
 REPO_OWNER = 'zuleykhapa'
 REPO_NAME = 'nbc'
 WORKFLOW_FILE = 'Test.yml'
-REF = 'move-to-python'
+REF = 'main'
 
 url = f"https://api.github.com/repos/{ REPO_OWNER }/{ REPO_NAME }/actions/workflows/{ WORKFLOW_FILE }/dispatches"
 
