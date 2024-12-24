@@ -34,21 +34,21 @@ for input in inputs:
         runs_on = input.get("runs_on")
         run_id = input.get("run_id")
 
-    payload = {
-        "ref": REF,
-        "inputs": {
-            "nightly_build": nightly_build,
-            "platform": platform,
-            "architectures": ",".join(architectures) if isinstance(architectures, list) else architectures,
-            "runs_on": runs_on,
-            "run_id": run_id,
-        },
-    }
+        payload = {
+            "ref": REF,
+            "inputs": {
+                "nightly_build": nightly_build,
+                "platform": platform,
+                "architectures": ",".join(architectures) if isinstance(architectures, list) else architectures,
+                "runs_on": runs_on,
+                "run_id": run_id,
+            },
+        }
 
-    response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload)
 
-    if response.status_code == 204:
-        print("Workflow triggered successfully!")
-    else:
-        print(f"Failed to trigger workflow: { response.status_code }")
-        print(response.json())
+        if response.status_code == 204:
+            print("Workflow triggered successfully!")
+        else:
+            print(f"Failed to trigger workflow: { response.status_code }")
+            print(response.json())
