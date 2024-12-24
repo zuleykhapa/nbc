@@ -281,7 +281,6 @@ def main():
     fetch_data(gh_run_list_command, gh_run_list_file)
     result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
     nightly_builds = [row[0] for row in result]
-    print("✅", nightly_builds)
     # create complete report
     for nightly_build in nightly_builds:
         gh_run_list_file = f"{ nightly_build }.json"
