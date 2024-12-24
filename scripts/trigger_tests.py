@@ -1,5 +1,6 @@
 import requests
 import argparse
+import json
 
 REPO_OWNER = 'zuleykhapa'
 REPO_NAME = 'nbc'
@@ -13,7 +14,10 @@ parser.add_argument("GH_TOKEN")
 parser.add_argument("--inputs")
 args = parser.parse_args()
 GH_TOKEN = args.GH_TOKEN
-inputs = args.inputs
+loaded_data = args.inputs
+
+with open(loaded_data, "r") as file:
+    inputs = json.load(file)
 
 headers = {
     "Authorisation": f"Bearer { GITHUB_TOKEN }",
