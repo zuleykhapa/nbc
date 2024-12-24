@@ -240,21 +240,25 @@ def verify_version(nightly_build, tested_binary, file_name, run_id, architecture
     return True
 
 def get_info_from_artifact_name(nightly_build, con):
-    result = con.execute(f"SELECT Artifact FROM artifacts_per_jobs_{ nightly_build }").fetchall()
-    items = [row[0] for row in result if row[0] is not None]
-    # artifact names are usually look like this duckdb-binaries-linux-aarch64
-    # looking up the platform name (linux) and the architecture (linux-aarch64)
-    pattern = r"duckdb-binaries-(\w+)(?:[-_](\w+))?"
-    platform = None
-    architectures = []
-    if items:
-        for item in items:
-            match = re.match(pattern, item)
-            if match:
-                platform = match.group(1)
-                arch_suffix = match.group(2)
-                if arch_suffix:
-                    architectures.append(f"{ platform }-{ arch_suffix }")
+    if nightly_build in ('Python', 'Julia'):
+        platform = str(nightly_build).lower()
+        architectures = ['x86_64', 'aarch64'] if nightly_build == 'Python' else 'x64'
+    else:    
+        result = con.execute(f"SELECT Artifact FROM artifacts_per_jobs_{ nightly_build }").fetchall()
+        items = [row[0] for row in result if row[0] is not None]
+        # artifact names are usually look like this duckdb-binaries-linux-aarch64
+        # looking up the platform name (linux) and the architecture (linux-aarch64)
+        pattern = r"duckdb-binaries-(\w+)(?:[-_](\w+))?"
+        platform = None
+        architectures = []
+        if items:
+            for item in items:
+                match = re.match(pattern, item)
+                if match:
+                    platform = match.group(1)
+                    arch_suffix = match.group(2)
+                    if arch_suffix:
+                        architectures.append(f"{ platform }-{ arch_suffix }")
     return platform, architectures
 
     
@@ -276,7 +280,7 @@ def main():
     fetch_data(gh_run_list_command, gh_run_list_file)
     result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
     nightly_builds = [row[0] for row in result]
-    print(nightly_builds)
+    print("✅", nightly_builds)
     # create complete report
     for nightly_build in nightly_builds:
         gh_run_list_file = f"{ nightly_build }.json"
@@ -307,14 +311,14 @@ def main():
         build_info = create_build_report(nightly_build, con)
         ###########
         # create_build_report(nightly_build, gh_run_list_file, jobs_file, artifacts_file)
-        build_info["run_id"] = run_id
-        build_info["nightly_build"] = nightly_build
         ###########
         
         if build_info["failures_count"] == 0:
+            build_info["run_id"] = run_id
+            build_info["nightly_build"] = nightly_build
             info = get_info_from_artifact_name(nightly_build, con)
-            # print("1️⃣", nightly_build, ": ", info)
             build_info["platform"] = info[0]
+            # print("1️⃣", nightly_build, ": ", info)
             build_info["architectures"] = info[1] if len(info[1]) > 0 else info[0]
             ###########
             # print("2️⃣", build_info["failures_count"], "🦑")
