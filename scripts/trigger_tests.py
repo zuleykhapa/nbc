@@ -4,10 +4,10 @@ import json
 
 REPO_OWNER = 'zuleykhapa'
 REPO_NAME = 'nbc'
-WORKFLOW_FILE = '.github/workflows/Test.yml'
+WORKFLOW_FILE = 'Test.yml'
 REF = 'move-to-python'
 
-url = f"https://api.github.com/repos/{ REPO_OWNER }/{ REPO_NAME }/actions/workflows/{ WORKFLOW_FILE }"
+url = f"https://api.github.com/repos/{ REPO_OWNER }/{ REPO_NAME }/actions/workflows/{ WORKFLOW_FILE }/dispatches"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("GH_TOKEN")
@@ -20,7 +20,7 @@ with open(loaded_data, "r") as file:
     inputs = json.load(file)
 
 headers = {
-    "Authorisation": f"Bearer { GH_TOKEN }",
+    "Authorization": f"Bearer { GH_TOKEN }",
     "Accept": "application/vnd.github.v3_json",
 }
 
@@ -43,7 +43,8 @@ for input in inputs:
                 "run_id": run_id,
             },
         }
-        print(url)
+
+        print(f"Triggering workflow for {platform}...")
         response = requests.post(url, headers=headers, json=payload)
 
         if response.status_code == 204:
