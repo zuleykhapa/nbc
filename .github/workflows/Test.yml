@@ -19,7 +19,7 @@ on:
         required: false
         type: string
       runs_on:
-        required: true
+        required: false
         type: string
       run_id:
         required: false
@@ -30,13 +30,14 @@ env:
 jobs:
     test:
         name: Verify and Test Builds ${{ inputs.nightly_build }}
-        runs-on: ${{ fromJSON(matrix.platform) }}-latest
+        runs-on: ${{ matrix.runs_on }}
         continue-on-error: true
         strategy:
             matrix:
                 architecture: ${{ inputs.architectures }}
                 nightly_build: ${{ inputs.nightly_build }}
                 platform: ${{ inputs.platform }}
+                runs_on: ${{ inputs.runs_on }}
         steps:
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
