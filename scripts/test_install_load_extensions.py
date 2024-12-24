@@ -25,7 +25,6 @@ with open("ext/.github/config/out_of_tree_extensions.cmake", "r") as file:
     content = file.read()
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     extensions = re.findall(pattern, content)
-
 with open("list_failed_ext_{}_{}.csv".format(nightly_build, version), 'w') as f:
     for extension in extensions:
         try:

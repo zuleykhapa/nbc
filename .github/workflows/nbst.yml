@@ -61,8 +61,8 @@ jobs:
       - name: Verify and Test ${{ inputs.nightly-build }} version
         id: verify-build
         shell: bash
+        if: (inputs.architecture == 'linux-amd64' || inputs.nightly-build == 'OSX' || inputs.architecture == 'windows-amd64') && steps.verify-build.outputs.has_artifact == 'true'
         run: |
-          
           if [[ '${{ inputs.nightly-build }}' != 'Python' ]]; then
             if [[ '${{ inputs.architecture }}' == 'linux-aarch64' ]]; then
               name=${{ inputs.architecture }}
@@ -96,4 +96,3 @@ jobs:
           if-no-files-found: ignore
       
       # - uses: owenthereal/action-upterm@v1
-      

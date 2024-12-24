@@ -37,7 +37,6 @@ jobs:
         with:
           pattern: build_report_${{ inputs.nightly-build }}*
           path: build_report_${{ inputs.nightly-build }}
-
       - name: Download extensions test results
         if: always()
         uses: actions/download-artifact@v4
