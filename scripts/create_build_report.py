@@ -183,7 +183,7 @@ def create_build_report(nightly_build, con):
         with open(REPORT_FILE, 'a') as f:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
     return { 
-        "failures_count": f"{ failures_count }",
+        "failures_count": failures_count,
         "url": url
         }
 
@@ -313,8 +313,8 @@ def main():
         # create_build_report(nightly_build, gh_run_list_file, jobs_file, artifacts_file)
         ###########
         
-        if build_info["failures_count"] == "0":
-            build_info["run_id"] = f"{ run_id }"
+        if build_info["failures_count"] == 0:
+            build_info["run_id"] = run_id
             build_info["nightly_build"] = nightly_build
             info = get_info_from_artifact_name(nightly_build, con)
             build_info["platform"] = info[0]
