@@ -349,8 +349,6 @@ def main():
     # print(json.dumps(output_data, indent=4))
     with open("output_data.json", "w") as file:
         json.dump(output_data, file, indent=4)
-
-    print("Data successfully written to 'output_data.json'")
     
 if __name__ == "__main__":
     main()
