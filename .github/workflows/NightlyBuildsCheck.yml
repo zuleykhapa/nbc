@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: write
 
 env:
   GH_TOKEN: ${{ github.token }}
