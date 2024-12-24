@@ -41,7 +41,7 @@ for input in inputs:
 
     response = requests.post(url, headers=headers, json=payload)
 
-    if response.status_code = 204:
+    if response.status_code == 204:
         print("Workflow triggered successfully!")
     else:
         print(f"Failed to trigger workflow: { response.status_code }")
