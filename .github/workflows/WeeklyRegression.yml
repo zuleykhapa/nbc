@@ -258,7 +258,7 @@ jobs:
             > input_${{ matrix.nightly_build }}.json
           
           # count consecutive failures and create a nightlies_status_${{ matrix.nightly_build }}.md file
-          python helper/scripts/count_consecutive_failures.py input_${{ matrix.nightly_build }}.json --nightly_build ${{ matrix.nightly_build }}
+          python helper/scripts/count_consecutive_failures_WR.py input_${{ matrix.nightly_build }}.json --nightly_build ${{ matrix.nightly_build }}
     
   # run-regression-tests:
   #   name: Run Regression Tests
