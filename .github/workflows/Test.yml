@@ -28,10 +28,10 @@ jobs:
         continue-on-error: true
         strategy:
             matrix:
-                architecture: ${{ fromJson(inputs.architectures) }}
-                nightly_build: ${{ fromJson(inputs.nightly_build) }}
-                platform: ${{ fromJson(inputs.platform) }}
-                runs_on: ${{ fromJson(inputs.runs_on) }}
+                architecture: ${{ inputs.architectures }}
+                nightly_build: ${{ inputs.nightly_build }}
+                platform: ${{ inputs.platform }}
+                runs_on: ${{ inputs.runs_on }}
         steps:
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
