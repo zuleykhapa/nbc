@@ -21,6 +21,7 @@ on:
       
 env:
   GH_TOKEN: ${{ github.token }}
+  GH_REPO: zuleykhapa/nbc
 jobs:
     test:
         name: Verify and Test Builds ${{ inputs.nightly_build }}
@@ -34,6 +35,8 @@ jobs:
         steps:
           - name: Checkout the repo with the script
             uses: actions/checkout@v4
+            with:
+                repository: ${{ env.GH_REPO }}
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
             if: ${{ matrix.architecture == 'linux-aarch64' }}
