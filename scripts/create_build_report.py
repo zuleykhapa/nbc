@@ -360,8 +360,8 @@ def main():
                 "Authorization": f"Bearer { GH_TOKEN }",
                 "Accept": "application/vnd.github.v3_json",
             }
-            platform = build_info.get("platform")
-            architectures = build_info.get("architectures")
+            platform = str(build_info.get("platform"))
+            architectures = str(build_info.get("architectures"))
             architectures = (
                 json.dumps(architectures) if isinstance(architectures, list) else architectures
             )
