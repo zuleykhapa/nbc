@@ -24,7 +24,7 @@ env:
   GH_REPO: zuleykhapa/nbc
 jobs:
     test:
-        name: Verify and Test Builds ${{ inputs.nightly_build }}
+        name: Verify and Test Builds ${{ inputs.nightly_build }} for architectire ${{ matrix. architecture }}
         runs-on: ${{ matrix.runs_on }}
         continue-on-error: true
         strategy:
