@@ -32,6 +32,8 @@ jobs:
                 # platform: ${{ inputs.platform }}
                 runs_on: ${{ fromJson(inputs.runs_on) }}
         steps:
+          - name: Checkout the repo with the script
+            uses: actions/checkout@v4
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
             if: ${{ matrix.architecture == 'linux-aarch64' }}
