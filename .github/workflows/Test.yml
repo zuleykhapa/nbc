@@ -67,6 +67,11 @@ jobs:
                 sparse-checkout: |
                     .github/config
                     path: ext
+  
+          - name: List files in the directory
+            run: |
+                ls -R
+                  
           - name: Verify and Test ${{ inputs.nightly_build }} version
             id: verify-build
             shell: bash
