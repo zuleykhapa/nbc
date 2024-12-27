@@ -40,7 +40,7 @@ jobs:
                 repository: ${{ env.GH_REPO }}
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
-            if: ${{ matrix.architecture == 'linux-aarch64' }}
+            if: ${{ matrix.architecture == 'linux-aarch64' }} || ${{ matrix.architecture == 'windows-arm64' }}
             uses: docker/setup-qemu-action@v3
             with:
                 platforms: linux/aarch64
