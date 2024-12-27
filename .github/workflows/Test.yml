@@ -80,7 +80,7 @@ jobs:
             id: verify-build
             shell: bash
             run: |
-                echo "Running tests for ${{ matrix.architecture }} on ${{ matrix.architecture }}"
+                echo "Running tests for ${{ matrix.architecture }} on ${{ matrix.runs_on }}"
                 if [[ '${{ inputs.nightly_build }}' != 'Python' ]]; then
                     # if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
                     #     name=${{ matrix.architecture }}
