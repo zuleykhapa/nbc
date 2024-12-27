@@ -95,7 +95,7 @@ jobs:
                 echo "Verifying version and test extensions..."
                 python scripts/verify_and_test.py \
                     --nightly_build ${{ matrix.nightly_build }} --architecture ${{ matrix.architecture }} \
-                    --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.platform }}-latest \
+                    --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs_on }} \
                     --config ext/.github/config/out_of_tree_extensions.cmake
                     
                 # - uses: owenthereal/action-upterm@v1
