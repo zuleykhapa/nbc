@@ -73,10 +73,6 @@ jobs:
       AWS_PROFILE: user1
 
     steps:
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
       - name: Install
         shell: bash
         run: |
@@ -239,6 +235,10 @@ jobs:
         nightly_build: [ 'Python', 'LinuxRelease', 'Android', 'Julia', 'Main', 'OSX', 'R', 'Swift', 'SwiftRelease', 'Windows' ]
         # branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
     steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
       - name: Install pandas
         shell: bash
         run: pip install duckdb pandas tabulate
