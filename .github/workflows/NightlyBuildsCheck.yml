@@ -43,7 +43,7 @@ jobs:
           pip install duckdb --pre --upgrade
           pip install duckdb pandas tabulate requests
       
-      - name: Create run status report
+      - name: Get all runs statuses
         id: check-build
         shell: bash
         run: |
