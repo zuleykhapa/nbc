@@ -36,7 +36,7 @@ jobs:
         steps:
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
-            if: ${{ matrix.architecture == 'linux-aarch64' || matrix.architecture == 'windows-arm64' }}
+            if: ${{ matrix.architecture == 'linux-aarch64' }}
             uses: docker/setup-qemu-action@v3
             with:
                 platforms: linux/aarch64
@@ -80,7 +80,7 @@ jobs:
             id: verify-build
             shell: bash
             run: |
-                echo "Running tests for ${{ matrix.architecture }} on ${{ matrix.platform }}"
+                echo "Running tests for ${{ matrix.architecture }} on ${{ matrix.architecture }}"
                 if [[ '${{ inputs.nightly_build }}' != 'Python' ]]; then
                     # if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
                     #     name=${{ matrix.architecture }}
@@ -91,6 +91,7 @@ jobs:
                     echo "Downloading duckdb-binaries-$name artifact..."
                     if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_ARTIFACT_REPO }} -n duckdb-binaries-$name; then
                         echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+                        ls -R
                         unzip duckdb_cli-${{ matrix.architecture }}.zip -d duckdb_path
                     fi
                 else
