@@ -7,16 +7,16 @@ on:
         required: true
         type: string
       platform: 
-        required: false
+        required: true
         type: string
       architectures: 
-        required: false
+        required: true
         type: string
       runs_on:
-        required: false
+        required: true
         type: string
       run_id:
-        required: false
+        required: true
         type: string
       
 env:
