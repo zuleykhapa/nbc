@@ -13,6 +13,10 @@ from collections import defaultdict
 GH_REPO = 'duckdb/duckdb'
 CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
+parser = argparse.ArgumentParser()
+parser.add_argument("GH_TOKEN")
+args = parser.parse_args()
+GH_TOKEN = args.GH_TOKEN
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""

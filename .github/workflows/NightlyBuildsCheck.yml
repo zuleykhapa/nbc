@@ -43,15 +43,15 @@ jobs:
           pip install duckdb --pre --upgrade
           pip install duckdb pandas tabulate requests
       
-      # - name: Get all runs statuses
-      #   id: check-build
-      #   shell: bash
-      #   run: |
-      #     python scripts/create_build_report.py
+      - name: Get all runs statuses
+        id: check-build
+        shell: bash
+        run: |
+          python scripts/create_build_report.py ${{ env.GH_TOKEN }}
           
-      #     cat "output_data.json"
+          cat "output_data.json"
 
-      #     python scripts/trigger_tests.py ${{ env.GH_TOKEN }} --inputs output_data.json
+          # python scripts/trigger_tests.py ${{ env.GH_TOKEN }} --inputs output_data.json
 
 
       - name: Upload DuckDB file
