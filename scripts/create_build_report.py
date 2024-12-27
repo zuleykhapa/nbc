@@ -343,11 +343,42 @@ def main():
             #                 print(f"{ nightly_build }: TEST EXTENSIONS")    
             #                 # test_extensions(tested_binary, REPORT_FILE)
             # print(f"{ nightly_build }: FINISH")
-        
+
+            # trigger workflow run
+            import requests
+            REPO_OWNER = 'zuleykhapa'
+            REPO_NAME = 'nbc'
+            WORKFLOW_FILE = 'Test.yml'
+            # it's possible to trigger workflow runs like this only on 'main'
+            REF = 'main'
+            url = f"https://api.github.com/repos/{ REPO_OWNER }/{ REPO_NAME }/actions/workflows/{ WORKFLOW_FILE }/dispatches"
+            headers = {
+                "Authorization": f"Bearer { GH_TOKEN }",
+                "Accept": "application/vnd.github.v3_json",
+            }
+            payload = {
+                "ref": REF,
+                "inputs": {
+                    "nightly_build": nightly_build,
+                    "platform": platform,
+                    "architectures": architectures,
+                    "runs_on": runs_on,
+                    "run_id": run_id,
+                },
+            }
+            print(f"Triggering workflow for {platform}...")
+            response = requests.post(url, headers=headers, json=payload)
+
+            if response.status_code == 204:
+                print("Workflow triggered successfully!")
+            else:
+                print(f"Failed to trigger workflow: { response.status_code }")
+                print(response.json())
+            
         output_data.append(build_info)
 
     con.close()
-    
+
     # write outputs into a file which will be passed into a script triggering the test runs
     # print(json.dumps(output_data, indent=4))
     with open("output_data.json", "w") as file:
