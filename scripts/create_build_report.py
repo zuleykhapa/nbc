@@ -325,8 +325,8 @@ def main():
             info = get_info_from_artifact_name(nightly_build, con)
             build_info["platform"] = info[0]
             # print("1️⃣", nightly_build, ": ", info)
-            build_info["architectures"] = info[1] if len(info[1]) > 0 else info[0]
-            build_info["runs_on"] = f"{ info[0] }-latest" if info[0] != 'osx' else 'macos-latest'
+            build_info["architectures"] = info[1] if len(info[1]) > 0 else [ info[0] ]
+            build_info["runs_on"] = f"{ info[0] }-latest" if info[0] != 'osx' else "macos-latest"
             ###########
             # print("2️⃣", build_info["failures_count"], "🦑")
             # if nightly_build == 'Python':
