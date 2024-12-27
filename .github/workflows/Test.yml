@@ -22,6 +22,7 @@ on:
 env:
   GH_TOKEN: ${{ github.token }}
   GH_REPO: zuleykhapa/nbc
+  GH_ARTIFACT_REPO: duckdb/duckdb
 jobs:
     test:
         name: Verify and Test Builds ${{ inputs.nightly_build }} for architectire ${{ matrix. architecture }}
@@ -88,7 +89,7 @@ jobs:
                     # fi
                     name=${{ matrix.architecture }}
                     echo "Downloading duckdb-binaries-$name artifact..."
-                    if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+                    if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_ARTIFACT_REPO }} -n duckdb-binaries-$name; then
                         echo "Artifact duckdb-binaries-$name is successfuly downloaded."
                         unzip duckdb_cli-${{ matrix.architecture }}.zip -d duckdb_path
                     fi
