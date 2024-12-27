@@ -93,8 +93,11 @@ jobs:
                     echo "Downloading duckdb-binaries-$name artifact..."
                     if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_ARTIFACT_REPO }} -n duckdb-binaries-$name; then
                         echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-
-                        unzip duckdb_cli-*.zip -d duckdb_path
+                        if [[ '${{ inputs.nightly_build }}' == 'OSX' ]]; then
+                            unzip duckdb_cli-*.zip -d duckdb_path
+                        else
+                            unzip duckdb_cli-$name.zip -d duckdb_path
+                        fi
                         
                         ls duckdb_path
                     fi
