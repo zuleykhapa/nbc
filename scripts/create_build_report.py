@@ -361,12 +361,12 @@ def main():
                 "Accept": "application/vnd.github.v3_json",
             }
             platform = str(build_info.get("platform"))
-            architectures = str(build_info.get("architectures"))
+            architectures = build_info.get("architectures")
             architectures = (
                 json.dumps(architectures) if isinstance(architectures, list) else architectures
             )
             run_id = str(run_id)
-            runs_on = build_info.get("runs_on")
+            runs_on = str(build_info.get("runs_on"))
             payload = {
                 "ref": REF,
                 "inputs": {
