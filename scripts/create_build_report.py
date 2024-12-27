@@ -326,8 +326,17 @@ def main():
             build_info["platform"] = info[0]
             # print("1️⃣", nightly_build, ": ", info)
             build_info["architectures"] = info[1] if len(info[1]) > 0 else [ info[0] ]
+            platform = str(build_info.get("platform"))
             # TODO: for Python there are more than one runners
-            build_info["runs_on"] = [ f"{ info[0] }-latest" ] if info[0] != 'osx' else [ "macos-latest" ]
+            match platform:
+                case 'osx':
+                    build_info["runs_on"] = [ "macos-latest" ]
+                case 'windows':
+                    build_info["runs_on"] = [ "windows-2019" ]
+                case _:
+                    build_info["runs_on"] = [ f"{ info[0] }-latest" ]
+            runs_on = build_info.get("runs_on")
+            # build_info["runs_on"] = [ f"{ info[0] }-latest" ] if info[0] not in ('osx', 'windows') elif info[0] == 'windows' [ "macos-latest" ]
             ###########
             # print("2️⃣", build_info["failures_count"], "🦑")
             # if nightly_build == 'Python':
@@ -361,7 +370,6 @@ def main():
                 "Authorization": f"Bearer { GH_TOKEN }",
                 "Accept": "application/vnd.github.v3_json",
             }
-            platform = str(build_info.get("platform"))
             architectures = build_info.get("architectures")
             architectures = (
                 json.dumps(architectures) if isinstance(architectures, list) else architectures
