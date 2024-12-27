@@ -360,13 +360,16 @@ def main():
                 "Authorization": f"Bearer { GH_TOKEN }",
                 "Accept": "application/vnd.github.v3_json",
             }
+            platform = build_info["platform"]
+            architectures = build_info["architectures"]
+            runs_on = build_info["runs_on"]
             payload = {
                 "ref": REF,
                 "inputs": {
                     "nightly_build": nightly_build,
-                    "platform": build_info["platform"],
-                    "architectures": build_info["architectures"],
-                    "runs_on": build_info["runs_on"],
+                    "platform": platform,
+                    "architectures": architectures,
+                    "runs_on": runs_on,
                     "run_id": run_id,
                 },
             }
