@@ -347,6 +347,8 @@ def main():
         output_data.append(build_info)
 
     con.close()
+    
+    # write outputs into a file which will be passed into a script triggering the test runs
     # print(json.dumps(output_data, indent=4))
     with open("output_data.json", "w") as file:
         json.dump(output_data, file, indent=4)

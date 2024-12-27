@@ -5,6 +5,7 @@ import json
 REPO_OWNER = 'zuleykhapa'
 REPO_NAME = 'nbc'
 WORKFLOW_FILE = 'Test.yml'
+# it's possible to trigger workflow runs like this only on 'main'
 REF = 'main'
 
 url = f"https://api.github.com/repos/{ REPO_OWNER }/{ REPO_NAME }/actions/workflows/{ WORKFLOW_FILE }/dispatches"
@@ -33,12 +34,13 @@ for input in inputs:
         runs_on = input.get("runs_on")
         run_id = input.get("run_id")
 
+        # "architectures": ",".join(architectures) if isinstance(architectures, list) else architectures,
         payload = {
             "ref": REF,
             "inputs": {
                 "nightly_build": nightly_build,
                 "platform": platform,
-                "architectures": ",".join(architectures) if isinstance(architectures, list) else architectures,
+                "architectures": architectures,
                 "runs_on": runs_on,
                 "run_id": run_id,
             },
