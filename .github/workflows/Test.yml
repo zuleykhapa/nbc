@@ -29,7 +29,7 @@ jobs:
         strategy:
             matrix:
                 architecture: ${{ fromJson(inputs.architectures) }}
-                platform: ${{ inputs.platform }}
+                # platform: ${{ inputs.platform }}
                 runs_on: ${{ inputs.runs_on }}
         steps:
             # Verify aarch64 builds in docker container
