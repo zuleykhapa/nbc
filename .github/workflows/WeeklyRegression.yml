@@ -81,7 +81,6 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update -y -qq && sudo apt-get install -y -qq g++ ninja-build cmake make python-is-python3 libssl-dev pip gh jq python3-requests 
-          pip install duckdb pandas tabulate
 
       - name: umount mount-point (helps with debugging)
         shell: bash
@@ -240,6 +239,9 @@ jobs:
         nightly_build: [ 'Python', 'LinuxRelease', 'Android', 'Julia', 'Main', 'OSX', 'R', 'Swift', 'SwiftRelease', 'Windows' ]
         # branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
     steps:
+      - name: Install pandas
+        shell: bash
+        run: pip install duckdb pandas tabulate
       - name: Checkout a repo with the "count_consecutive_failures" script
         uses: actions/checkout@v4
         with:
