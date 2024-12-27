@@ -29,8 +29,8 @@ jobs:
         strategy:
             matrix:
                 architecture: ${{ fromJson(inputs.architectures) }}
-                platform: ${{ inputs.platform }}
-                runs_on: ${{ inputs.runs_on }}
+                platform: ${{ fromJson(inputs.platform) }}
+                runs_on: ${{ fromJson(inputs.runs_on) }}
         steps:
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
