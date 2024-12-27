@@ -364,9 +364,9 @@ def main():
                 "ref": REF,
                 "inputs": {
                     "nightly_build": nightly_build,
-                    "platform": platform,
-                    "architectures": architectures,
-                    "runs_on": runs_on,
+                    "platform": build_info["platform"],
+                    "architectures": build_info["architectures"],
+                    "runs_on": build_info["runs_on"],
                     "run_id": run_id,
                 },
             }
