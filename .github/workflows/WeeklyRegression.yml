@@ -250,7 +250,7 @@ jobs:
         # working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
         continue-on-error: true
         run: |
-          ls helper
+          ls -R helper
           # list last runs for specified workflow 
           # the gh run list must be piped to jq, because otherwise it doesn't work on this machine 
           gh run list --repo duckdb/duckdb --workflow ${{ matrix.nightly_build }} \
