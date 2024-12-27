@@ -87,12 +87,9 @@ jobs:
                     # else 
                     #     name=${{ matrix.platform}}
                     # fi
-                    if [[ '${{ inputs.nightly_build }}' == 'OSX' ]]; then
-                        name=${{ matrix.architecture }}-universal
-                    else
-                        name=${{ matrix.architecture }}
-                    fi
-
+                    
+                    name=${{ matrix.architecture }}
+                    
                     echo "Downloading duckdb-binaries-$name artifact..."
                     if gh run download ${{ inputs.run_id }} --repo ${{ env.GH_ARTIFACT_REPO }} -n duckdb-binaries-$name; then
                         echo "Artifact duckdb-binaries-$name is successfuly downloaded."
