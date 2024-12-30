@@ -230,9 +230,8 @@ jobs:
       - configure-mount-and-download-benchmark-data
       # - build-and-setup
     runs-on: self-hosted
-    strategy:
-      matrix:
-        nightly_build: [ 'Python', 'LinuxRelease', 'Android', 'Julia', 'Main', 'OSX', 'R', 'Swift', 'SwiftRelease', 'Windows' ]
+    # strategy:
+    #   matrix:
         # branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
     steps:
       - name: Set up Python
@@ -251,15 +250,8 @@ jobs:
         continue-on-error: true
         run: |
           ls -R helper
-          # list last runs for specified workflow 
-          # the gh run list must be piped to jq, because otherwise it doesn't work on this machine 
-          gh run list --repo duckdb/duckdb --workflow ${{ matrix.nightly_build }} \
-            --json event,status,conclusion,name,createdAt,url \
-            --limit 200 --jq '.[] | select(.event=="repository_dispatch")'\
-            > input_${{ matrix.nightly_build }}.json
-          
-          # count consecutive failures and create a nightlies_status_${{ matrix.nightly_build }}.md file
-          python helper/scripts/count_consecutive_failures_WR.py input_${{ matrix.nightly_build }}.json --nightly_build ${{ matrix.nightly_build }}
+          # count consecutive failures and create a nightly_builds_status.md file
+          python helper/scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
     
   # run-regression-tests:
   #   name: Run Regression Tests
@@ -352,10 +344,10 @@ jobs:
   #           fi
   #         done
   #     - name: Add nightly-build failures
-  #       if: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}/nightlies_status_${{ matrix.branch }}.md
+  #       if: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md
   #       run: |
   #           printf "#### [ ${{ matrix.branch }} ] [ Nightly-Build ]\n\n" >> nightly_build_${{ matrix.branch }}.txt
-  #           echo $(cat `pwd`/duckdb-curr-${{ matrix.branch }}/nightlies_status_${{ matrix.branch }}.md) >> nightly_build_${{ matrix.branch }}.txt
+  #           echo $(cat `pwd`/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md) >> nightly_build_${{ matrix.branch }}.txt
 
   # file-issue:
   #   name: File Issue
