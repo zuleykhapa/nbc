@@ -47,6 +47,7 @@ jobs:
         id: check-build
         shell: bash
         run: |
+          gh --version
           python scripts/create_build_report.py ${{ env.GH_TOKEN }}
           
           cat "output_data.json"
