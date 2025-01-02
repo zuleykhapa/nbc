@@ -372,7 +372,7 @@ jobs:
       - check-nightly-builds
       # - run-regression-tests
       # - collect-issues
-    if: always()
+    # if: always()
     runs-on: self-hosted
     defaults:
       run:
