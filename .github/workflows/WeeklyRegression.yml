@@ -407,7 +407,7 @@ jobs:
         run: |
           if [ -f report.txt ]; then
             # create issue
-            gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
+            gh issue create --repo zuleykhapa/nbc --title "Weekly Regression Test Failure" --body-file report.txt
           fi
 
   shutdown:
