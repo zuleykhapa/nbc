@@ -235,9 +235,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          
       - name: Install pandas
         shell: bash
         run: pip install duckdb pandas tabulate
+
       - name: Set up gh cli
         shell: bash
         run: |

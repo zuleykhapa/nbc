@@ -8,7 +8,6 @@ import datetime
 import os
 import glob
 import re
-from collections import defaultdict
 
 GH_REPO = 'duckdb/duckdb'
 REPORT_FILE = f"nightly_builds_status.md"
@@ -37,7 +36,6 @@ def fetch_data(command, f_output): # saves command execution results into a file
     except subprocess.CalledProcessError as e:
         print(f"Command failed with error: {e.stderr}")
 
-# count consecutive failures
 def count_consecutive_failures(nightly_build, input_file, url, con):
     input_file = f"{ nightly_build }.json"
     con.execute(f"""
