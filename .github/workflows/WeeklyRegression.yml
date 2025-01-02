@@ -399,13 +399,14 @@ jobs:
       - name: Add Nightly-Build Failures to Report
         run: |
           if grep -q "nightly-build" nightly_build*.md; then
-            echo "Nightly-build failures detected, GitHub issue will be filed."
+            echo "Adding nightly-build report to GitHub issue."
             cat nightly_build*.md >> report.txt
           fi
+          cat report.txt
       - uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: report.txt
+          path: ${{ env.mounted_directory_name }}/report.txt
       # - name: Create Issue
       #   if: success()
       #   run: |
