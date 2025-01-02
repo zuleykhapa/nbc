@@ -251,7 +251,7 @@ jobs:
           sudo cp ./$gh_binary/bin/gh /usr/bin/
           gh --version
 
-        - name: Checkout a repo with the "count_consecutive_failures" script
+      - name: Checkout a repo with the "count_consecutive_failures" script
         uses: actions/checkout@v4
         with:
           repository: zuleykhapa/nbc
