@@ -246,7 +246,6 @@ def create_build_report(nightly_build, con, build_info):
         "url": url
         }
     
-
 def get_python_versions_from_run(run_info_file):
     with open(run_info_file, "r") as file:
         content = file.read()
@@ -299,7 +298,7 @@ def verify_version(nightly_build, tested_binary, file_name, run_id, architecture
     print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
     return True
 
-def get_info_from_artifact_name(nightly_build, con):
+def get_info_from_artifact_name(nightly_build, con, build_info):
     if nightly_build in has_no_artifacts:
         platform = str(nightly_build).lower()
         architectures = ['x86_64', 'aarch64'] if nightly_build == 'Python' else 'x64'
@@ -319,7 +318,8 @@ def get_info_from_artifact_name(nightly_build, con):
                     arch_suffix = match.group(2)
                     if arch_suffix:
                         architectures.append(f"{ platform }-{ arch_suffix }")
-    return platform, architectures
+    build_info["architectures"] = architectures
+    build_info["platform"] = platform
 
     
 def main():
@@ -341,10 +341,7 @@ def main():
         
         if build_info["failures_count"] == 0:
             build_info["nightly_build"] = nightly_build
-            info = get_info_from_artifact_name(nightly_build, con)
-            build_info["platform"] = info[0]
-            # print("1️⃣", nightly_build, ": ", info)
-            build_info["architectures"] = info[1] if len(info[1]) > 0 else [ info[0] ]
+            get_info_from_artifact_name(nightly_build, con, build_info)
             platform = str(build_info.get("platform"))
             # TODO: for Python there are more than one runners
             match platform:
@@ -365,22 +362,22 @@ def main():
             # it's possible to trigger workflow runs like this only on 'main'
             REF = 'main'
             try:
-                print(f"Triggering workflow for {nightly_build} {platform}...")
+                print(f"Triggering workflow for { nightly_build } { platform }...")
                 trigger_command = [
                     "gh", "workflow", "dispatch",
                     "--repo", REPO,
                     WORKFLOW_FILE,
                     "--ref", REF,
-                    "-f", f"nightly_build={nightly_build}",
-                    "-f", f"platform={platform}",
-                    "-f", f"architectures={architectures}",
-                    "-f", f"runs_on={runs_on}",
-                    "-f", f"run_id={run_id}"
+                    "-f", f"nightly_build={ nightly_build }",
+                    "-f", f"platform={ platform }",
+                    "-f", f"architectures={ build_info.get("architectures") },
+                    "-f", f"runs_on={ runs_on }",
+                    "-f", f"run_id={ run_id }"
                 ]
                 subprocess.run(trigger_command, check=True)
-                print(f"Workflow for {nightly_build} {platform} triggered successfully.")
+                print(f"Workflow for { nightly_build } { platform } triggered successfully.")
             except subprocess.CalledProcessError as e:
-                print(f"Failed to trigger workflow for {nightly_build} {platform}: {e}")
+                print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
 
             
         # TODO: create_test_report(nightly_build, con)
