@@ -265,7 +265,7 @@ jobs:
         run: |
           # count consecutive failures and create a nightly_builds_status.md file
           python scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
-    
+
   # run-regression-tests:
   #   name: Run Regression Tests
   #   if: always()

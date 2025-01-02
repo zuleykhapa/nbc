@@ -202,7 +202,10 @@ def create_build_report(nightly_build, con):
             """).fetchone()[0]
 
             f.write(f"## { nightly_build }\n")            
-            f.write(f"### { nightly_build } nightly-build has not succeeded the previous **{ failures_count }** times.\n")
+            if failures_count == total_count:
+                f.write(f"### { nightly_build } nightly-build has not succeeded more than **{ failures_count }** times.\n")
+            else:
+                f.write(f"### { nightly_build } nightly-build has not succeeded the previous **{ failures_count }** times.\n")
             if failures_count < total_count:
                 tmp_url = con.execute(f"""
                     SELECT
