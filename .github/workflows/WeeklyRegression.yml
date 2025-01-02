@@ -224,15 +224,12 @@ jobs:
 
   check-nightly-builds:
     name: Check Nightly Build failures
-    # if: always()
+    if: always()
     needs:
       # - define-matrix
       - configure-mount-and-download-benchmark-data
       # - build-and-setup
     runs-on: self-hosted
-    # strategy:
-    #   matrix:
-        # branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
     steps:
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -249,23 +246,23 @@ jobs:
           wget https://github.com/cli/cli/releases/download/v2.63.2/$gh_binary.tar.gz
           tar -xvzf $gh_binary.tar.gz
           sudo cp ./$gh_binary/bin/gh /usr/bin/
-          rm -Rf *.tar.gz
+          rm -Rf $gh_binary.tar.gz
           gh --version
 
       - name: Checkout a repo with the "count_consecutive_failures" script
         uses: actions/checkout@v4
         with:
-          repository: zuleykhapa/nbc
+          repository: ${{ env.gh_issue_repo }}
           sparse-checkout: |
             scripts/
           path: ${{ env.mounted_directory_name }}
-      - name: Create run status report for ${{ matrix.nightly_build }} nightly-builds
+
+      - name: Create run status report for nightly-builds on 'main'
         working-directory: ${{ env.mounted_directory_name }}
-        # working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
         continue-on-error: true
         run: |
           # count consecutive failures and create a nightly_builds_status.md file
-          python scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
+          python scripts/count_consecutive_failures.py ${{ env.GH_TOKEN }}
     
   # run-regression-tests:
   #   name: Run Regression Tests
