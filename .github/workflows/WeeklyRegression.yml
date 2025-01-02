@@ -78,16 +78,6 @@ jobs:
         run: |
           sudo apt-get update -y -qq && sudo apt-get install -y -qq g++ ninja-build cmake make python-is-python3 libssl-dev pip jq python3-requests 
 
-      - name: Set up gh cli
-        shell: bash
-        run: |
-          sudo apt remove gh
-          gh_binary="gh_2.63.2_linux_amd64"
-          wget https://github.com/cli/cli/releases/download/v2.63.2/$gh_binary.tar.gz
-          tar -xvzf $gh_binary.tar.gz
-          sudo cp ./$gh_binary/bin/gh /usr/bin/
-          gh --version
-
       - name: umount mount-point (helps with debugging)
         shell: bash
         run: |
@@ -251,17 +241,27 @@ jobs:
       - name: Install pandas
         shell: bash
         run: pip install duckdb pandas tabulate
+      - name: Set up gh cli
+        shell: bash
+        run: |
+          sudo apt remove gh
+          gh_binary="gh_2.63.2_linux_amd64"
+          wget https://github.com/cli/cli/releases/download/v2.63.2/$gh_binary.tar.gz
+          tar -xvzf $gh_binary.tar.gz
+          sudo cp ./$gh_binary/bin/gh /usr/bin/
+          gh --version
       - name: Checkout a repo with the "count_consecutive_failures" script
         uses: actions/checkout@v4
         with:
           path: helper
       - name: Create run status report for ${{ matrix.nightly_build }} nightly-builds
+        working-directory: ${{ env.mounted_directory_name }}
         # working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
         continue-on-error: true
         run: |
-          ls -R helper
           # count consecutive failures and create a nightly_builds_status.md file
           python helper/scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
+          cat nightly_builds_status.md
     
   # run-regression-tests:
   #   name: Run Regression Tests
