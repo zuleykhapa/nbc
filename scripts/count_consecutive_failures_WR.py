@@ -76,29 +76,29 @@ def list_all_runs(con):
 
 def prepare_data(nightly_build, con):
     gh_run_list_file = f"{ nightly_build }.json"
-        runs_command = [
-                "gh", "run", "list",
-                "--repo", GH_REPO,
-                "--event", "repository_dispatch",
-                "--workflow", f"{ nightly_build }",
-                "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
-            ]
-        fetch_data(runs_command, gh_run_list_file)
-        run_id = get_value_for_key('databaseId', nightly_build)
-        jobs_file = f"{ nightly_build }_jobs.json"
-        jobs_command = [
-                "gh", "run", "view",
-                "--repo", GH_REPO,
-                f"{ run_id }",
-                "--json", "jobs"
-            ]
-        fetch_data(jobs_command, jobs_file)
-        artifacts_file = f"{ nightly_build }_artifacts.json"
-        artifacts_command = [
-                "gh", "api",
-                f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
-            ]
-        fetch_data(artifacts_command, artifacts_file)
+    runs_command = [
+            "gh", "run", "list",
+            "--repo", GH_REPO,
+            "--event", "repository_dispatch",
+            "--workflow", f"{ nightly_build }",
+            "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
+        ]
+    fetch_data(runs_command, gh_run_list_file)
+    run_id = get_value_for_key('databaseId', nightly_build)
+    jobs_file = f"{ nightly_build }_jobs.json"
+    jobs_command = [
+            "gh", "run", "view",
+            "--repo", GH_REPO,
+            f"{ run_id }",
+            "--json", "jobs"
+        ]
+    fetch_data(jobs_command, jobs_file)
+    artifacts_file = f"{ nightly_build }_artifacts.json"
+    artifacts_command = [
+            "gh", "api",
+            f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
+        ]
+    fetch_data(artifacts_command, artifacts_file)
 
 def create_tables_for_report(nightly_build, con):
     input_file = f"{ nightly_build }.json"
@@ -249,6 +249,6 @@ def main():
         create_tables_for_report(nightly_build, con)
         create_build_report(nightly_build, con)
     con.close()
-    
+
 if __name__ == "__main__":
     main()
