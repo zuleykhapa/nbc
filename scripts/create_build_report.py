@@ -174,7 +174,7 @@ def create_tables_for_report(nightly_build, con):
                     )
                 """)
 
-def create_build_report(nightly_build, con):
+def create_build_report(nightly_build, con, build_info):
     input_file = f"{ nightly_build }.json"
     url= con.execute(f"SELECT url FROM '{ input_file }'").fetchone()[0]
     failures_count = count_consecutive_failures(nightly_build, input_file, url, con)
