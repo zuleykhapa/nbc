@@ -10,7 +10,7 @@ concurrency:
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  gh_issue_repo: duckdblabs/duckdb-internal
+  gh_issue_repo: zuleykhapa/nbc
   mounted_directory_name: mount-point
 
 jobs:
