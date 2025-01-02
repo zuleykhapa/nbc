@@ -72,7 +72,7 @@ def list_all_runs(con):
     result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
     return result
 
-def prepare_data(nightly_build, con):
+def prepare_data(nightly_build, con, build_info):
     gh_run_list_file = f"{ nightly_build }.json"
     runs_command = [
             "gh", "run", "list",
@@ -331,7 +331,7 @@ def main():
     nightly_builds = [row[0] for row in result]
     # create complete report
     for nightly_build in nightly_builds:
-        prepare_data(nightly_build, con)
+        prepare_data(nightly_build, con, build_info)
         create_tables_for_report(nightly_build, con)
         
         build_info = create_build_report(nightly_build, con, build_info)
