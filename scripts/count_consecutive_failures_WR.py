@@ -55,6 +55,51 @@ def count_consecutive_failures(nightly_build, input_file, url, con):
     count_consecutive_failures = latest_success_rowid[0] if latest_success_rowid else -1 # when -1 then all runs in the json file have conclusion 'failure'
     return count_consecutive_failures
 
+def list_all_runs(con):
+    gh_run_list_file = f"GH_run_list.json"
+    gh_run_list_command = [
+        "gh", "run", "list",
+        "--repo", GH_REPO,
+        "--event", "repository_dispatch",
+        "--created", CURR_DATE,
+        "-L", "50",
+        "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
+        """--jq", '.[] | select(.name == "Android" or .name == "Julia" 
+            or .name == "LinuxRelease" or .name == "OSX" or .name == "Pyodide" 
+            or .name == "Python" or .name == "R" or .name == "Swift" 
+            or .name == "SwiftRelease" or .name == "DuckDB-Wasm extensions" or .name == "Windows")'
+        """
+    ]
+    fetch_data(gh_run_list_command, gh_run_list_file)
+    result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
+    return result
+
+def prepare_data(nightly_build, con):
+    gh_run_list_file = f"{ nightly_build }.json"
+        runs_command = [
+                "gh", "run", "list",
+                "--repo", GH_REPO,
+                "--event", "repository_dispatch",
+                "--workflow", f"{ nightly_build }",
+                "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
+            ]
+        fetch_data(runs_command, gh_run_list_file)
+        run_id = get_value_for_key('databaseId', nightly_build)
+        jobs_file = f"{ nightly_build }_jobs.json"
+        jobs_command = [
+                "gh", "run", "view",
+                "--repo", GH_REPO,
+                f"{ run_id }",
+                "--json", "jobs"
+            ]
+        fetch_data(jobs_command, jobs_file)
+        artifacts_file = f"{ nightly_build }_artifacts.json"
+        artifacts_command = [
+                "gh", "api",
+                f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
+            ]
+        fetch_data(artifacts_command, artifacts_file)
+
 def create_tables_for_report(nightly_build, con):
     input_file = f"{ nightly_build }.json"
 
@@ -196,50 +241,14 @@ def create_build_report(nightly_build, con):
     
 def main():
     con = duckdb.connect('run_info_tables.duckdb')
-    # list all nightly-build runs on current date
-    gh_run_list_file = f"GH_run_list.json"
-    gh_run_list_command = [
-        "gh", "run", "list",
-        "--repo", GH_REPO,
-        "--event", "repository_dispatch",
-        "--created", CURR_DATE,
-        "-L", "50",
-        "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
-        "--jq", '.[] | select(.name == "Android" or .name == "Julia" or .name == "LinuxRelease" or .name == "OSX" or .name == "Pyodide" or .name == "Python" or .name == "R" or .name == "Swift" or .name == "SwiftRelease" or .name == "DuckDB-Wasm extensions" or .name == "Windows")'
-    ]
-    fetch_data(gh_run_list_command, gh_run_list_file)
-    result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
+    result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
     # create complete report
     for nightly_build in nightly_builds:
-        gh_run_list_file = f"{ nightly_build }.json"
-        runs_command = [
-                "gh", "run", "list",
-                "--repo", GH_REPO,
-                "--event", "repository_dispatch",
-                "--workflow", f"{ nightly_build }",
-                "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
-            ]
-        fetch_data(runs_command, gh_run_list_file)
-        run_id = get_value_for_key('databaseId', nightly_build)
-        jobs_file = f"{ nightly_build }_jobs.json"
-        jobs_command = [
-                "gh", "run", "view",
-                "--repo", GH_REPO,
-                f"{ run_id }",
-                "--json", "jobs"
-            ]
-        fetch_data(jobs_command, jobs_file)
-        artifacts_file = f"{ nightly_build }_artifacts.json"
-        artifacts_command = [
-                "gh", "api",
-                f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
-            ]
-        fetch_data(artifacts_command, artifacts_file)
-
+        prepare_data(nightly_build, con)
         create_tables_for_report(nightly_build, con)
         create_build_report(nightly_build, con)
     con.close()
-
+    
 if __name__ == "__main__":
     main()
