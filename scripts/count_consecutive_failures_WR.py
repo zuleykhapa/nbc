@@ -82,6 +82,7 @@ def create_tables_for_report(nightly_build, con):
                     FROM (
                         SELECT
                             job_name,
+                            steps.name step_name, 
                             steps.conclusion conclusion,
                             steps.startedAt startedAt
                         FROM (
@@ -204,7 +205,8 @@ def main():
         "--created", CURR_DATE,
         "-L", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
-        "--jq", '.[] | select(.name == "Android" or .name == "Julia" or .name == "LinuxRelease" or .name == "OSX" or .name == "Pyodide" or .name == "Python" or .name == "R" or .name == "Swift" or .name == "SwiftRelease" or .name == "DuckDB-Wasm extensions" or .name == "Windows")'
+        "--jq", '.[] | select(.name == "R")'
+        # "--jq", '.[] | select(.name == "Android" or .name == "Julia" or .name == "LinuxRelease" or .name == "OSX" or .name == "Pyodide" or .name == "Python" or .name == "R" or .name == "Swift" or .name == "SwiftRelease" or .name == "DuckDB-Wasm extensions" or .name == "Windows")'
     ]
     fetch_data(gh_run_list_command, gh_run_list_file)
     result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()

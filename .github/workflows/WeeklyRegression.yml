@@ -249,6 +249,7 @@ jobs:
           wget https://github.com/cli/cli/releases/download/v2.63.2/$gh_binary.tar.gz
           tar -xvzf $gh_binary.tar.gz
           sudo cp ./$gh_binary/bin/gh /usr/bin/
+          rm -Rf *.tar.gz
           gh --version
 
       - name: Checkout a repo with the "count_consecutive_failures" script
@@ -265,7 +266,6 @@ jobs:
         run: |
           # count consecutive failures and create a nightly_builds_status.md file
           python scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
-          cat nightly_builds_status.md
     
   # run-regression-tests:
   #   name: Run Regression Tests
@@ -363,23 +363,23 @@ jobs:
   #           printf "#### [ ${{ matrix.branch }} ] [ Nightly-Build ]\n\n" >> nightly_build_${{ matrix.branch }}.txt
   #           echo $(cat `pwd`/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md) >> nightly_build_${{ matrix.branch }}.txt
 
-  # file-issue:
-  #   name: File Issue
-  #   needs: 
-  #     - start-runner
-  #     - define-matrix
-  #     - configure-mount-and-download-benchmark-data
-  #     - build-and-setup
-  #     - check-nightly-builds
-  #     - run-regression-tests
-  #     - collect-issues
-  #   if: always()
-  #   runs-on: self-hosted
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: ${{ env.mounted_directory_name }}
-  #   steps:
+  file-issue:
+    name: File Issue
+    needs: 
+      - start-runner
+      # - define-matrix
+      - configure-mount-and-download-benchmark-data
+      # - build-and-setup
+      - check-nightly-builds
+      # - run-regression-tests
+      # - collect-issues
+    if: always()
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
+    steps:
   #     - name: File issue on preparation steps
   #       if: |
   #           contains(github.ref_name, 'main') && 
@@ -396,19 +396,19 @@ jobs:
   #           cat issue_body*.txt >> report.txt
   #         fi
 
-  #     - name: Add Nightly-Build Failures to Report
-  #       run: |
-  #         if grep -q "nightly-build" nightly_build*.txt; then
-  #           echo "Nightly-build failures detected, GitHub issue will be filed."
-  #           cat nightly_build*.txt >> report.txt
-  #         fi
-  #     - name: Create Issue
-  #       if: success()
-  #       run: |
-  #         if [ -f report.txt ]; then
-  #           # create issue
-  #           gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
-  #         fi
+      - name: Add Nightly-Build Failures to Report
+        run: |
+          if grep -q "nightly-build" nightly_build*.md; then
+            echo "Nightly-build failures detected, GitHub issue will be filed."
+            cat nightly_build*.md >> report.txt
+          fi
+      - name: Create Issue
+        if: success()
+        run: |
+          if [ -f report.txt ]; then
+            # create issue
+            gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
+          fi
 
   shutdown:
     name: shut down
