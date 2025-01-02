@@ -97,6 +97,7 @@ def prepare_data(nightly_build, con):
             f"repos/{ GH_REPO }/actions/runs/{ run_id }/artifacts"
         ]
     fetch_data(artifacts_command, artifacts_file)
+    build_info["run_id"] = run_id
 
 def create_tables_for_report(nightly_build, con):
     input_file = f"{ nightly_build }.json"
@@ -339,9 +340,6 @@ def main():
         ###########
         
         if build_info["failures_count"] == 0:
-            # build_info["failures_count"] = result["failures_count"]
-            # build_info["run_url"] = result["url"]
-            build_info["run_id"] = f"{ run_id }"
             build_info["nightly_build"] = nightly_build
             info = get_info_from_artifact_name(nightly_build, con)
             build_info["platform"] = info[0]
@@ -385,8 +383,8 @@ def main():
                 print(f"Failed to trigger workflow for {nightly_build} {platform}: {e}")
 
             
-        
-        create_build_report(nightly_build, con)
+        # TODO: create_test_report(nightly_build, con)
+        # create_build_report(nightly_build, con)
         
         output_data.append(build_info)
 
