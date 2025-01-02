@@ -324,7 +324,7 @@ def get_info_from_artifact_name(nightly_build, con):
     
 def main():
     output_data = []
-    # build_info = {}
+    build_info = {}
     con = duckdb.connect('run_info_tables.duckdb')
     # list all nightly-build runs on current date
     result = list_all_runs(con)
@@ -334,7 +334,7 @@ def main():
         prepare_data(nightly_build, con)
         create_tables_for_report(nightly_build, con)
         
-        build_info = create_build_report(nightly_build, con)
+        build_info = create_build_report(nightly_build, con, build_info)
         ###########
         # create_tables_for_report(nightly_build, gh_run_list_file, jobs_file, artifacts_file)
         ###########
