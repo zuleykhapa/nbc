@@ -78,6 +78,16 @@ jobs:
         run: |
           sudo apt-get update -y -qq && sudo apt-get install -y -qq g++ ninja-build cmake make python-is-python3 libssl-dev pip jq python3-requests 
 
+      - name: Set up gh cli
+        shell: bash
+        run: |
+          sudo apt remove gh
+          gh_binary="gh_2.63.2_linux_amd64"
+          wget https://github.com/cli/cli/releases/download/v2.63.2/$gh_binary.tar.gz
+          tar -xvzf $gh_binary.tar.gz
+          sudo cp ./$gh_binary/bin/gh /usr/bin/
+          gh --version
+
       - name: umount mount-point (helps with debugging)
         shell: bash
         run: |
