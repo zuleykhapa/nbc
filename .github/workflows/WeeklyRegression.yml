@@ -257,14 +257,14 @@ jobs:
           repository: zuleykhapa/nbc
           sparse-checkout: |
             scripts/
-          path: helper
+          path: ${{ env.mounted_directory_name }}
       - name: Create run status report for ${{ matrix.nightly_build }} nightly-builds
         working-directory: ${{ env.mounted_directory_name }}
         # working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
         continue-on-error: true
         run: |
           # count consecutive failures and create a nightly_builds_status.md file
-          python helper/scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
+          python scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
           cat nightly_builds_status.md
     
   # run-regression-tests:
