@@ -402,13 +402,17 @@ jobs:
             echo "Nightly-build failures detected, GitHub issue will be filed."
             cat nightly_build*.md >> report.txt
           fi
-      - name: Create Issue
-        if: success()
-        run: |
-          if [ -f report.txt ]; then
-            # create issue
-            gh issue create --repo hmeriann/test_ --title "Weekly Regression Test Failure" --body-file report.txt
-          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: REPORT
+          path: report.txt
+      # - name: Create Issue
+      #   if: success()
+      #   run: |
+      #     if [ -f report.txt ]; then
+      #       # create issue
+      #       gh issue create --repo hmeriann/test_ --title "Weekly Regression Test Failure" --body-file report.txt
+      #     fi
 
   shutdown:
     name: shut down
