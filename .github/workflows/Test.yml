@@ -18,6 +18,9 @@ on:
       run_id:
         required: true
         type: string
+      calling_run_id:
+        required: true
+        type: string
       
 env:
   GH_TOKEN: ${{ github.token }}
@@ -25,15 +28,18 @@ env:
   GH_ARTIFACT_REPO: duckdb/duckdb
 jobs:
     test:
-        name: Verify and Test Builds ${{ inputs.nightly_build }} for architectire ${{ matrix. architecture }}
+        name: Verify and Test Builds ${{ inputs.nightly_build }} for architecture ${{ matrix.architecture }}, runs-on ${{ inputs.runs_on }}
         runs-on: ${{ matrix.runs_on }}
         continue-on-error: true
         strategy:
             matrix:
                 architecture: ${{ fromJson(inputs.architectures) }}
-                # platform: ${{ inputs.platform }}
+                platform: ${{ inputs.platform }}
                 runs_on: ${{ fromJson(inputs.runs_on) }}
         steps:
+          - run: |
+              echo runs-on: ${{ matrix.runs_on }}
+              echo architecture ${{ matrix }}
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
             if: ${{ matrix.architecture == 'linux-aarch64' }}
@@ -100,24 +106,25 @@ jobs:
                         fi
                         
                         ls duckdb_path
+                        echo "Verifying version and test extensions..."
+                        python scripts/scripts/verify_and_test.py \
+                            --nightly_build ${{ inputs.nightly_build }} --architecture ${{ matrix.architecture }} \
+                            --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs_on }} \
+                            --config ext/.github/config/out_of_tree_extensions.cmake
                     fi
                 else
                     # for Python save the run information to get all python builds versions on verify_and_test.py
                     gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
                 fi
 
-                echo "Verifying version and test extensions..."
-                python scripts/scripts/verify_and_test.py \
-                    --nightly_build ${{ inputs.nightly_build }} --architecture ${{ matrix.architecture }} \
-                    --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs_on }} \
-                    --config ext/.github/config/out_of_tree_extensions.cmake
+                
                     
                 # - uses: owenthereal/action-upterm@v1
                 #   if: matrix.architecture == 'linux-aarch64'
 
-          - name: Upload actions for extensions
+          - name: Upload artifacts to workflow run with ID ${{ inputs.calling_run_id }}
             uses: actions/upload-artifact@v4
             with:
-                name: ${{ inputs.run_id }}_list_failed_ext_${{ inputs.nightly_build }}_${{ matrix.architecture }}
+                name: ${{ inputs.calling_run_id }}_list_failed_ext_${{ inputs.nightly_build }}_${{ matrix.architecture }}
                 path: list_failed_ext_${{ inputs.nightly_build }}_${{ matrix.architecture }}.md
                 if-no-files-found: ignore
