@@ -68,7 +68,7 @@ def verify_version(tested_binary, file_name):
         "-q", ".headSha"
     ]
     full_sha = subprocess.run(gh_headSha_command, check=True, text=True, capture_output=True).stdout.strip()
-    if architecture in ("aarch64", "arm64"):
+    if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
             "docker", "run", "--rm", "--platform", "linux/aarch64",
             "-v", f"{ tested_binary }:/duckdb",
@@ -93,7 +93,7 @@ def test_extensions(tested_binary, file_name):
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.md only once
 
     for ext in extensions:
-        if architecture in ("aarch64", "arm64"):
+        if architecture.count("aarch64") or architecture.count("arm64"):
             select_installed = [
                 "docker", "run", "--rm", "--platform", "linux/aarch64",
                 "-v", f"{ tested_binary }:/duckdb",
