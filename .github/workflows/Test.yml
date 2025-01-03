@@ -34,12 +34,11 @@ jobs:
         strategy:
             matrix:
                 architecture: ${{ fromJson(inputs.architectures) }}
-                platform: ${{ inputs.platform }}
                 runs_on: ${{ fromJson(inputs.runs_on) }}
         steps:
           - run: |
               echo runs-on: ${{ matrix.runs_on }}
-              echo architecture ${{ matrix }}
+              echo architecture ${{ matrix.architecture }}
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
             if: ${{ matrix.architecture == 'linux-aarch64' }}
@@ -91,7 +90,7 @@ jobs:
                     # if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
                     #     name=${{ matrix.architecture }}
                     # else 
-                    #     name=${{ matrix.platform}}
+                    #     name=${{ inputs.platform}}
                     # fi
                     
                     name=${{ matrix.architecture }}
