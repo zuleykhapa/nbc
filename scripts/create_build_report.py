@@ -389,9 +389,9 @@ def main():
                         "--ref", REF,
                         "-f", f"nightly_build={ nightly_build }",
                         "-f", f"platform={ platform }",
-                        "-f", f"architectures={ build_info.get("architectures") }",
+                        "-f", f"architectures={ build_info.get('architectures') }",
                         "-f", f"runs_on={ runs_on }",
-                        "-f", f"run_id={ build_info.get("nightly_build_run_id") }",
+                        "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
                         "-f", f"calling_run_id={ curr_run_id }"
                     ]
                     subprocess.run(trigger_command, check=True)
