@@ -315,6 +315,7 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
         pattern = r"duckdb-binaries-(\w+)(?:[-_](\w+))?"
         platform = None
         architectures = []
+        print("⚠️", items)
         if items:
             for item in items:
                 match = re.match(pattern, item)
