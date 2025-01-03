@@ -31,11 +31,15 @@ jobs:
         name: Verify and Test Builds ${{ inputs.nightly_build }} for architecture ${{ matrix.architecture }}, runs-on ${{ inputs.runs_on }}
         runs-on: ${{ matrix.runs_on }}
         continue-on-error: true
+        outputs:
+            CURR_DATE: ${{ steps.curr-date.outputs.date }}
         strategy:
             matrix:
                 architecture: ${{ fromJson(inputs.architectures) }}
                 runs_on: ${{ fromJson(inputs.runs_on) }}
         steps:
+          - id: curr-date
+            run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
           - run: |
               echo runs-on: ${{ matrix.runs_on }}
               echo architecture ${{ matrix.architecture }}
@@ -59,7 +63,6 @@ jobs:
                 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
                 docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
 
-                
           - name: Install Python dependencies
             run: pip install pandas tabulate docker
                 
@@ -69,6 +72,7 @@ jobs:
                 repository: ${{ env.GH_REPO }}
                 sparse-checkout: scripts
                 path: scripts
+
           - name: Checkout repo with extensions config file
             uses: actions/checkout@v4
             with:
@@ -115,7 +119,7 @@ jobs:
                     # for Python save the run information to get all python builds versions on verify_and_test.py
                     gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
                 fi
-                curr_date=$(date +%Y-%m-%d)
+                
 
                 
                     
@@ -126,5 +130,5 @@ jobs:
             uses: actions/upload-artifact@v4
             with:
                 name: ${{ inputs.calling_run_id }}_list_failed_ext_${{ inputs.nightly_build }}_${{ matrix.architecture }}
-                path: ${ curr_date }_REPORT_FILE.md
+                path: ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
                 if-no-files-found: ignore
