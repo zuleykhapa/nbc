@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 # duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
 nightly_build = args.nightly_build
-architecture = args.platform # linux
+platform = args.platform # linux
 architecture = args.architecture # linux-amd64
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
