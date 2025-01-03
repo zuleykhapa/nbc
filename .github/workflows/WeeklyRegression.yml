@@ -240,16 +240,20 @@ jobs:
         shell: bash
         run: pip install duckdb pandas tabulate
 
-      - name: Set up gh cli
-        shell: bash
-        run: |
-          sudo apt remove gh
-          gh_binary="gh_2.63.2_linux_amd64"
-          wget https://github.com/cli/cli/releases/download/v2.63.2/$gh_binary.tar.gz
-          tar -xvzf $gh_binary.tar.gz
-          sudo cp ./$gh_binary/bin/gh /usr/bin/
-          rm -Rf $gh_binary.tar.gz
-          gh --version
+      # - name: Set up gh cli
+      #   shell: bash
+      #   run: |
+      #     sudo apt remove gh
+      #     gh_binary="gh_2.63.2_linux_amd64"
+      #     wget https://github.com/cli/cli/releases/download/v2.63.2/$gh_binary.tar.gz
+      #     tar -xvzf $gh_binary.tar.gz
+      #     sudo cp ./$gh_binary/bin/gh /usr/bin/
+      #     rm -Rf $gh_binary.tar.gz
+      #     gh --version
+      - name: Install GH CLI
+        uses: dev-hanz-ops/install-gh-cli-action@v0.2.0
+        # with:
+        #   gh-cli-version: 2.63.1 # optional, see action.yml for current default
 
       - name: Checkout a repo with the "count_consecutive_failures" script
         uses: actions/checkout@v4
@@ -263,6 +267,7 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         continue-on-error: true
         run: |
+          gh --version
           # count consecutive failures and create a nightly_builds_status.md file
           python scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
 
