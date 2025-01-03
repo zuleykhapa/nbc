@@ -115,6 +115,7 @@ jobs:
                     # for Python save the run information to get all python builds versions on verify_and_test.py
                     gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
                 fi
+                curr_date=$(date +%Y-%m-%d)
 
                 
                     
@@ -125,5 +126,5 @@ jobs:
             uses: actions/upload-artifact@v4
             with:
                 name: ${{ inputs.calling_run_id }}_list_failed_ext_${{ inputs.nightly_build }}_${{ matrix.architecture }}
-                path: list_failed_ext_${{ inputs.nightly_build }}_${{ matrix.architecture }}.md
+                path: ${ curr_date }_REPORT_FILE.md
                 if-no-files-found: ignore
