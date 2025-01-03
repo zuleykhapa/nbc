@@ -45,7 +45,7 @@ jobs:
               echo architecture ${{ matrix.architecture }}
             # Verify aarch64 builds in docker container
           - name: Set up QEMU
-            if: ${{ matrix.architecture == 'linux-aarch64' }}
+            if: ${{ matrix.architecture == 'linux-aarch64' || matrix.architecture == 'windows-arm64' }}
             uses: docker/setup-qemu-action@v3
             with:
                 platforms: linux/aarch64
@@ -54,7 +54,7 @@ jobs:
             with:
                 python-version: '3.10'
           - name: Install QEMU and duckdb dependencies
-            if: ${{ matrix.architecture == 'linux-aarch64' }}
+            if: ${{ matrix.architecture == 'linux-aarch64' || matrix.architecture == 'windows-arm64' }}
             shell: bash
             run: |
                 sudo apt-get update
