@@ -26,7 +26,7 @@ args = parser.parse_args()
 # duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
 nightly_build = args.nightly_build
 platform = args.platform # linux
-architecture = args.architecture # linux-amd64
+architecture = args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 # url = args.url
@@ -73,7 +73,7 @@ def verify_version(tested_binary, file_name):
     if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
             "docker", "run", "--rm",
-            "--platform", f"{ platform }/{ architecture }",
+            "--platform", f"{ architecture }",
             "-v", f"{ tested_binary }:/duckdb",
             "ubuntu:22.04",
             "/bin/bash", "-c", f"/duckdb --version"
@@ -99,7 +99,7 @@ def test_extensions(tested_binary, file_name):
         if architecture.count("aarch64") or architecture.count("arm64"):
             select_installed = [
                 "docker", "run", "--rm",
-                "--platform", f"{ platform }/{ architecture }",
+                "--platform", f"{ architecture }",
                 "-v", f"{ tested_binary }:/duckdb",
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",
@@ -124,7 +124,7 @@ def test_extensions(tested_binary, file_name):
                 if architecture.count("aarch64"):
                     install_ext = [
                         "docker", "run", "--rm",
-                        "--platform", f"{ platform }/{ architecture }",
+                        "--platform", f"{ architecture }",
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
