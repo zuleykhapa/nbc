@@ -111,9 +111,9 @@ jobs:
                         ls duckdb_path
                         echo "Verifying version and test extensions..."
                         python scripts/scripts/verify_and_test.py \
-                            --nightly_build ${{ inputs.nightly_build }} --architecture ${{ matrix.architecture }} \
-                            --run_id ${{ inputs.run_id }} --runs_on ${{ inputs.runs_on }} \
-                            --config ext/.github/config/out_of_tree_extensions.cmake
+                            --nightly_build ${{ inputs.nightly_build }} --platform ${{ inputs.platform }} \
+                            --architecture ${{ matrix.architecture }} --run_id ${{ inputs.run_id }} \
+                            --runs_on ${{ inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
                     fi
                 else
                     # for Python save the run information to get all python builds versions on verify_and_test.py
@@ -121,7 +121,7 @@ jobs:
                 fi
                 
                 ls
-                
+
 
                 
                     

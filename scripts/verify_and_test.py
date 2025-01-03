@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
 # parser.add_argument("duckdb_path")
 parser.add_argument("--nightly_build")
+parser.add_argument("--platform")
 parser.add_argument("--architecture")
 parser.add_argument("--run_id")
 parser.add_argument("--runs_on")
@@ -24,6 +25,7 @@ args = parser.parse_args()
 
 # duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
 nightly_build = args.nightly_build
+architecture = args.platform # linux
 architecture = args.architecture # linux-amd64
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
@@ -70,7 +72,8 @@ def verify_version(tested_binary, file_name):
     full_sha = subprocess.run(gh_headSha_command, check=True, text=True, capture_output=True).stdout.strip()
     if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
-            "docker", "run", "--rm", "--platform", "linux/aarch64",
+            "docker", "run", "--rm",
+            "--platform", f"{ platform }/{ architecture }",
             "-v", f"{ tested_binary }:/duckdb",
             "ubuntu:22.04",
             "/bin/bash", "-c", f"/duckdb --version"
@@ -95,7 +98,8 @@ def test_extensions(tested_binary, file_name):
     for ext in extensions:
         if architecture.count("aarch64") or architecture.count("arm64"):
             select_installed = [
-                "docker", "run", "--rm", "--platform", "linux/aarch64",
+                "docker", "run", "--rm",
+                "--platform", f"{ platform }/{ architecture }",
                 "-v", f"{ tested_binary }:/duckdb",
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",
@@ -119,7 +123,8 @@ def test_extensions(tested_binary, file_name):
                 print(f"{ act }ing { ext }...")
                 if architecture.count("aarch64"):
                     install_ext = [
-                        "docker", "run", "--rm", "--platform", "linux/aarch64",
+                        "docker", "run", "--rm",
+                        "--platform", f"{ platform }/{ architecture }",
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
