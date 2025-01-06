@@ -63,7 +63,7 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("LinuxRelease", "OSX", "Windows")) '
+            '.[] | select(.name == ("LinuxRelease", "OSX", "Windows", "Python")) '
         )
         # "--jq", (
         #     '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
@@ -249,63 +249,26 @@ def create_build_report(nightly_build, con, build_info):
         "failures_count": failures_count,
         "url": url
         }
-    
-def get_python_versions_from_run(run_info_file):
-    with open(run_info_file, "r") as file:
-        content = file.read()
-        pattern = r"cp([0-9]+)-.*"
-        matches = sorted(set(re.findall(pattern, content)))
-        # puts a '.' after the first character: '310' => '3.10'
-        result = [word[0] + '.' + word[1:] if len(word) > 1 else word + '.' for word in matches]
-        return result
 
-def verify_python_build(run_id):
-    run_info_file = "python_run_info.md"
-    run_info_command = [
-        "gh", "run", "view",
-        "--repo", GH_REPO,
-        run_id,
-        "-v"
-        ]
-    fetch_data(run_info_command, run_info_file)
-    python_versions = get_python_versions_from_run(run_info_file)
-    install_command = "pip install duckdb"
-    version_commad = "duckdb --version"
-    for version in python_versions:
-        print(version)
+def get_binaries_count(nightly_build, con):
+    binaries_count = [0]
+    if nightly_build not in has_no_artifacts:
+        binaries_count = con.execute(f"""
+            SELECT count(artifacts['name'])
+            FROM (
+                SELECT unnest(artifacts) AS artifacts
+                FROM artifacts_{ nightly_build }
+            )
+            WHERE artifacts['name'] LIKE '%binaries%'
+        """).fetchone()
+    return binaries_count[0] if binaries_count else 0
 
-def verify_version(nightly_build, tested_binary, file_name, run_id, architecture):
-    # print("3️⃣", nightly_build, tested_binary, architecture)
-    gh_headSha_command = [
-        "gh", "run", "view",
-        f"{ nightly_build_run_id }",
-        "--repo", GH_REPO,
-        "--json", "headSha",
-        "-q", ".headSha"
-    ]
-    full_sha = subprocess.run(gh_headSha_command, check=True, text=True, capture_output=True).stdout.strip()
-    if architecture.count("aarch64") | architecture.count("arm64"):
-        pragma_version = [
-            "docker", "run", "--rm", "--platform", "linux/aarch64",
-            "-v", f"{ tested_binary }:/duckdb",
-            "ubuntu:22.04",
-            "/bin/bash", "-c", f"/duckdb --version"
-        ]
-    else:
-        pragma_version = [ tested_binary, "--version" ]
-    short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
-    if not full_sha.startswith(short_sha):
-        print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        with open(file_name, 'a') as f:
-            f.write(f"- The version of { nightly_build } build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
-        return False
-    print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
-    return True
+
 
 def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
     if nightly_build in has_no_artifacts:
         platform = str(nightly_build).lower()
-        architectures = ['x86_64', 'aarch64'] if nightly_build == 'Python' else 'x64'
+        architectures = ['amd64', 'aarch64'] if nightly_build == 'Python' else 'x64'
     else:    
         result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
         items = [row[0] for row in result if row[0] is not None]
@@ -322,9 +285,8 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
                     arch_suffix = match.group(2)
                     if arch_suffix:
                         architectures.append(f"{ platform }-{ arch_suffix }")
-    build_info["architectures"] = architectures
+    build_info["architectures"] = ['osx'] if nightly_build == 'OSX' else architectures
     build_info["platform"] = platform
-    build_info["testable_builds_count"] = len(architectures)
 
 def get_current_run_id(build_info, REPO):
     curr_id_file = "curr_id.json"
@@ -354,23 +316,23 @@ def main():
         create_tables_for_report(nightly_build, con, build_info)
         create_build_report(nightly_build, con, build_info)
         
+        print("🦑", nightly_build, ":", build_info.get("failures_count"))
+
         if build_info.get("failures_count") is None:
-            build_info["nightly_build"] = nightly_build
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
-            if build_info.get("testable_builds_count") > 0:
+            # if get_binaries_count(nightly_build, con) > 0 or nightly_build == 'Python':
+            if nightly_build == 'Python':
                 platform = str(build_info.get("platform"))
-                # for Python there are more than one runners
                 match platform:
                     case 'osx':
-                        build_info["runs_on"] = [ "macos-latest" ]
+                        runs_on = [ "macos-latest" ]
                     case 'windows':
-                        build_info["runs_on"] = [ "windows-2019" ]
+                        runs_on = [ "windows-2019" ]
                     case 'python':
-                        build_info["runs-on"] = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
+                        runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
                     case _:
-                        build_info["runs_on"] = [ f"{ platform }-latest" ]
-                runs_on = build_info.get("runs_on")
-                # build_info["runs_on"] = [ f"{ info[0] }-latest" ] if info[0] not in ('osx', 'windows') elif info[0] == 'windows' [ "macos-latest" ]
+                        runs_on = [ f"{ platform }-latest" ]
+
                 ###################
                 # VERIFY AND TEST #
                 ###################
@@ -380,24 +342,32 @@ def main():
                 # it's possible to trigger workflow runs like this only on 'main'
                 REF = 'main'
                 curr_run_id = get_current_run_id(build_info, REPO)
-                try:
-                    print(f"Triggering workflow for { nightly_build } { platform }...")
-                    trigger_command = [
-                        "gh", "workflow", "run",
-                        "--repo", REPO,
-                        WORKFLOW_FILE,
-                        "--ref", REF,
-                        "-f", f"nightly_build={ nightly_build }",
-                        "-f", f"platform={ platform }",
-                        "-f", f"architectures={ build_info.get('architectures') }",
-                        "-f", f"runs_on={ runs_on }",
-                        "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
-                        "-f", f"calling_run_id={ curr_run_id }"
-                    ]
-                    subprocess.run(trigger_command, check=True)
-                    print(f"Workflow for { nightly_build } { platform } triggered successfully.")
-                except subprocess.CalledProcessError as e:
-                    print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
+                print(nightly_build)
+                print(platform)
+                print(build_info.get("architectures"))
+                print(runs_on)
+                print(build_info.get("nightly_build_run_id"))
+                print(build_info.get(curr_run_id))
+
+                # try:
+                #     print(f"Triggering workflow for { nightly_build } { platform }...")
+                #     trigger_command = [
+                #         "gh", "workflow", "run",
+                #         "--repo", REPO,
+                #         WORKFLOW_FILE,
+                #         "--ref", REF,
+                #         "-f", f"nightly_build={ nightly_build }",
+                #         "-f", f"platform={ platform }",
+                #         "-f", f"architectures={ build_info.get('architectures') }",
+                #         "-f", f"runs_on={ runs_on }",
+                #         "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
+                #         "-f", f"calling_run_id={ curr_run_id }"
+                #     ]
+                #     subprocess.run(trigger_command, check=True)
+                #     print(f"Workflow for { nightly_build } { platform } triggered successfully.")
+                # except subprocess.CalledProcessError as e:
+                #     print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
+        
 
             
         # TODO: create_test_report(nightly_build, con)

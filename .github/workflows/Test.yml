@@ -121,14 +121,14 @@ jobs:
                     fi
                 else
                     # for Python save the run information to get all python builds versions on verify_and_test.py
-                    gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
+                    python scripts/scripts/verify_and_test.py \
+                            --nightly_build ${{ inputs.nightly_build }} --platform ${{ inputs.platform }} \
+                            --architecture ${{ matrix.architecture }} --run_id ${{ inputs.run_id }} \
+                            --runs_on ${{ inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
                 fi
                 
                 ls
 
-
-                
-                    
                 # - uses: owenthereal/action-upterm@v1
                 #   if: matrix.architecture == 'linux-aarch64'
 

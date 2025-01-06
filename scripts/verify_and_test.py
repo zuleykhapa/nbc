@@ -57,7 +57,22 @@ def verify_python():
 
     for version in python_versions:
         print(version)
-        
+
+def verify_python_build(run_id):
+    run_info_file = "python_run_info.md"
+    run_info_command = [
+        "gh", "run", "view",
+        "--repo", GH_REPO,
+        run_id,
+        "-v"
+        ]
+    fetch_data(run_info_command, run_info_file)
+    python_versions = get_python_versions_from_run(run_info_file)
+    install_command = "pip install duckdb"
+    version_commad = "duckdb --version"
+    for version in python_versions:
+        print(version)
+
 def test_python_extensions():
     return
 
