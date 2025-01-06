@@ -28,7 +28,7 @@ env:
   GH_ARTIFACT_REPO: duckdb/duckdb
 jobs:
     test:
-        name: Verify and Test Builds ${{ inputs.nightly_build }} for architecture ${{ matrix.architecture }}, runs-on ${{ inputs.runs_on }}
+        name: Verify and Test Builds ${{ inputs.nightly_build }} for architecture ${{ matrix.architecture }}, runs-on ${{ matrix.runs_on }}
         runs-on: ${{ matrix.runs_on }}
         continue-on-error: true
         outputs:
@@ -124,7 +124,7 @@ jobs:
                     python scripts/scripts/verify_and_test.py \
                             --nightly_build ${{ inputs.nightly_build }} --platform ${{ inputs.platform }} \
                             --architecture ${{ matrix.architecture }} --run_id ${{ inputs.run_id }} \
-                            --runs_on ${{ inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+                            --runs_on ${{ matrix.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
                 fi
                 
                 ls
