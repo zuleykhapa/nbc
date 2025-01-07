@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tabulate
 
-
+GH_REPO = 'duckdb/duckdb'
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
 # parser.add_argument("duckdb_path")
@@ -26,7 +26,7 @@ args = parser.parse_args()
 # duckdb_path = args.duckdb_path # duckdb_path/ducldb or duckdb_path/duckdb.exe
 nightly_build = args.nightly_build
 platform = args.platform # linux
-architecture = args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
+architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 # url = args.url
@@ -41,8 +41,22 @@ def list_extensions(config) :
     matches = re.findall(pattern, content)
     return matches
 
-def get_python_versions_from_run(file):
-    with open(file, "r") as file:
+def fetch_data(command, f_output): # saves command execution results into a file
+    data = open(f_output, "w")
+    try:
+        subprocess.run(command, stdout=data, stderr=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed with error: {e.stderr}")
+
+def get_python_versions_from_run():
+    file_name = "python_run_info.md"
+    command = [
+        "gh", "run", "view",
+        "--repo", "duckdb/duckdb",
+        run_id, "-v"
+    ]
+    fetch_data(command, file_name)
+    with open(file_name, "r") as file:
         content = file.read()
         pattern = r"cp([0-9]+)-.*"
         matches = sorted(set(re.findall(pattern, content)))
@@ -50,33 +64,7 @@ def get_python_versions_from_run(file):
         result = [word[0] + '.' + word[1:] if len(word) > 1 else word + '.' for word in matches]
         return result
 
-def verify_python():
-    python_versions = get_python_versions_from_run()
-    install_command = "pip install duckdb"
-    version_commad = "duckdb --version"
-
-    for version in python_versions:
-        print(version)
-
-def verify_python_build(run_id):
-    run_info_file = "python_run_info.md"
-    run_info_command = [
-        "gh", "run", "view",
-        "--repo", GH_REPO,
-        run_id,
-        "-v"
-        ]
-    fetch_data(run_info_command, run_info_file)
-    python_versions = get_python_versions_from_run(run_info_file)
-    install_command = "pip install duckdb"
-    version_commad = "duckdb --version"
-    for version in python_versions:
-        print(version)
-
-def test_python_extensions():
-    return
-
-def verify_version(tested_binary, file_name):
+def get_full_sha(run_id):
     gh_headSha_command = [
         "gh", "run", "view",
         run_id,
@@ -85,10 +73,61 @@ def verify_version(tested_binary, file_name):
         "-q", ".headSha"
     ]
     full_sha = subprocess.run(gh_headSha_command, check=True, text=True, capture_output=True).stdout.strip()
+    return full_sha
+
+def verify_python():
+    python_versions = get_python_versions_from_run()
+    verify_python_build("3.10")
+    # for version in python_versions:
+        # verify_python_build(version)
+
+def verify_python_build(version):
+    run_info_file = "python_run_info.md"
+    run_info_command = [
+        "gh", "run", "view",
+        "--repo", GH_REPO,
+        run_id,
+        "-v"
+        ]
+    fetch_data(run_info_command, run_info_file)
+    python_versions = get_python_versions_from_run()
+
+    print("🍀", version)
+    docker_image = f"python:{ version }"
+    container_name = f"python-test-{ version.replace('.', '-') }"
+    full_sha = get_full_sha(run_id)
+
+    try:
+        print(f"Pulling docker image: { version }...")
+        subprocess.run(["docker", "pull", docker_image], check=True)
+        print(f"Running container: { container_name }")
+        subprocess.run([
+            "docker", "run", "--rm",
+            # "--platform", architecture,
+            "--name", container_name,
+            "-e", f"full_sha={ full_sha }",
+            docker_image, "/bin/bash", "-c",
+            f"""
+                python -m ensurepip --default-pip &&
+                python -m pip install --upgrade pip --user &&
+                pip install -v duckdb --pre --upgrade &&
+                version=$(python -c 'import duckdb; print(duckdb.sql("select source_id from pragma_version()").fetchone()[0])') &&
+                echo $version $full_sha &&
+                python -c 'print($full_sha.startswith($version))'
+            """
+        ], check=True, text=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error on verifying DuckDB version in Docker container: { e }")
+
+def test_python_extensions():
+    return
+
+def verify_version(tested_binary, file_name):
+    full_sha = get_full_sha(run_id)
     if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
             "docker", "run", "--rm",
-            "--platform", f"{ architecture }",
+            "--platform", architecture,
             "-v", f"{ tested_binary }:/duckdb",
             "ubuntu:22.04",
             "/bin/bash", "-c", f"/duckdb --version"
@@ -114,7 +153,7 @@ def test_extensions(tested_binary, file_name):
         if architecture.count("aarch64") or architecture.count("arm64"):
             select_installed = [
                 "docker", "run", "--rm",
-                "--platform", f"{ architecture }",
+                "--platform", architecture,
                 "-v", f"{ tested_binary }:/duckdb",
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",

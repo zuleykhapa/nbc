@@ -348,25 +348,25 @@ def main():
                 print(runs_on)
                 print(build_info.get("nightly_build_run_id"))
                 print(build_info.get(curr_run_id))
-
-                try:
-                    print(f"Triggering workflow for { nightly_build } { platform }...")
-                    trigger_command = [
-                        "gh", "workflow", "run",
-                        "--repo", REPO,
-                        WORKFLOW_FILE,
-                        "--ref", REF,
-                        "-f", f"nightly_build={ nightly_build }",
-                        "-f", f"platform={ platform }",
-                        "-f", f"architectures={ build_info.get('architectures') }",
-                        "-f", f"runs_on={ runs_on }",
-                        "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
-                        "-f", f"calling_run_id={ curr_run_id }"
-                    ]
-                    subprocess.run(trigger_command, check=True)
-                    print(f"Workflow for { nightly_build } { platform } triggered successfully.")
-                except subprocess.CalledProcessError as e:
-                    print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
+                
+                # try:
+                #     print(f"Triggering workflow for { nightly_build } { platform }...")
+                #     trigger_command = [
+                #         "gh", "workflow", "run",
+                #         "--repo", REPO,
+                #         WORKFLOW_FILE,
+                #         "--ref", REF,
+                #         "-f", f"nightly_build={ nightly_build }",
+                #         "-f", f"platform={ platform }",
+                #         "-f", f"architectures={ build_info.get('architectures') }",
+                #         "-f", f"runs_on={ runs_on }",
+                #         "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
+                #         "-f", f"calling_run_id={ curr_run_id }"
+                #     ]
+                #     subprocess.run(trigger_command, check=True)
+                #     print(f"Workflow for { nightly_build } { platform } triggered successfully.")
+                # except subprocess.CalledProcessError as e:
+                #     print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
         
 
             
