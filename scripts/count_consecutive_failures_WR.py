@@ -1,5 +1,4 @@
 import duckdb
-import argparse
 import pandas as pd
 import tabulate
 import subprocess
@@ -13,11 +12,6 @@ GH_REPO = 'duckdb/duckdb'
 REPORT_FILE = f"nightly_builds_status.md"
 CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 has_no_artifacts = ('Python', 'Julia', 'Swift', 'SwiftRelease')
-
-parser = argparse.ArgumentParser()
-parser.add_argument("GH_TOKEN")
-args = parser.parse_args()
-GH_TOKEN = args.GH_TOKEN
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
@@ -63,10 +57,9 @@ def list_all_runs(con):
         "-L", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == "Android" or .name == "Julia" or .name == "LinuxRelease" '
-            'or .name == "OSX" or .name == "Pyodide" or .name == "Python" or .name == "R" or .name == "Swift" '
-            'or .name == "SwiftRelease" or .name == "DuckDB-Wasm extensions" or .name == "Windows") '
-            )
+            '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
+            '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
+        )
     ]
     fetch_data(gh_run_list_command, gh_run_list_file)
     result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
@@ -99,8 +92,6 @@ def prepare_data(nightly_build, con):
     fetch_data(artifacts_command, artifacts_file)
 
 def create_tables_for_report(nightly_build, con):
-    input_file = f"{ nightly_build }.json"
-
     if nightly_build not in has_no_artifacts:
         con.execute(f"""
             CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
@@ -112,15 +103,17 @@ def create_tables_for_report(nightly_build, con):
                     SELECT * FROM read_json('{ nightly_build }_artifacts.json')
                 );
             """)
-        # check if the artifatcs table is not empty
+        # check if the artifacts table is not empty
         artifacts_count = con.execute(f"SELECT list_count(artifacts) FROM 'artifacts_{ nightly_build }';").fetchone()[0]
         if artifacts_count > 0:
+            # Given a job and its steps, we want to find the artifacts uploaded by the job 
+            # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
             con.execute(f"""
                 CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
                     SELECT
                         t1.job_name AS "Build (Architecture)",
                         t1.conclusion AS "Conclusion",
-                        t2.name AS "Artifact",
+                        '[' || t2.name || '](' || t2.artifact_url || ')' AS "Artifact",
                         t2.updated_at AS "Uploaded at"
                     FROM (
                         SELECT
@@ -148,7 +141,8 @@ def create_tables_for_report(nightly_build, con):
                         SELECT
                             art.name,
                             art.expires_at expires_at,
-                            art.updated_at updated_at
+                            art.updated_at updated_at,
+                            art.archive_download_url artifact_url
                         FROM (
                             SELECT
                                 unnest(artifacts) art
@@ -180,7 +174,7 @@ def create_build_report(nightly_build, con):
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:
-            f.write(f"\n## { nightly_build }\n")
+            f.write(f"## { nightly_build }\n")
             f.write(f"### { nightly_build } nightly-build has succeeded.\n")            
             f.write(f"Latest run: [ Run Link ]({ url })\n")
 
@@ -213,7 +207,8 @@ def create_build_report(nightly_build, con):
                     FROM 'gh_run_list_{ nightly_build }'
                     WHERE conclusion = 'success'
                     ORDER BY createdAt DESC
-                """).fetchone()
+                    LIMIT 1
+                """).fetchall()
                 latest_success_url = tmp_url[0] if tmp_url else ''
                 f.write(f"Latest successfull run: [ Run Link ]({ latest_success_url })\n")
 
@@ -226,7 +221,7 @@ def create_build_report(nightly_build, con):
                 FROM 'gh_run_list_{ nightly_build }'
                 WHERE conclusion = 'failure'
                 ORDER BY createdAt DESC
-                LIMIT { failures_count }
+                LIMIT 7
             """).df()
             f.write(failure_details.to_markdown(index=False))
             
@@ -236,7 +231,7 @@ def create_build_report(nightly_build, con):
             artifacts_per_job = con.execute(f"""
                 SELECT * FROM 'artifacts_per_jobs_{ nightly_build }';
                 """).df()
-            f.write(artifacts_per_job.to_markdown(index=False))
+            f.write(artifacts_per_job.to_markdown(index=False) + '\n')
         else:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
     

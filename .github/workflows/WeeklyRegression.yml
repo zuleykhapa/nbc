@@ -239,7 +239,7 @@ jobs:
       - name: Install pandas
         shell: bash
         run: pip install duckdb pandas tabulate
-
+      
       - name: Install GH CLI
         uses: dev-hanz-ops/install-gh-cli-action@v0.2.0
         with:
@@ -257,9 +257,8 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         continue-on-error: true
         run: |
-          gh --version
           # count consecutive failures and create a nightly_builds_status.md file
-          python scripts/count_consecutive_failures_WR.py ${{ env.GH_TOKEN }}
+          python scripts/count_consecutive_failures.py
 
   # run-regression-tests:
   #   name: Run Regression Tests
