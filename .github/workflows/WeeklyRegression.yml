@@ -258,7 +258,7 @@ jobs:
         continue-on-error: true
         run: |
           # count consecutive failures and create a nightly_builds_status.md file
-          python scripts/count_consecutive_failures.py
+          python scripts/count_consecutive_failures_WR.py
 
   # run-regression-tests:
   #   name: Run Regression Tests
