@@ -10,6 +10,7 @@ import sys
 import tabulate
 
 GH_REPO = 'duckdb/duckdb'
+
 parser = argparse.ArgumentParser()
 # parser.add_argument("file_name")
 # parser.add_argument("duckdb_path")
@@ -32,7 +33,6 @@ runs_on = args.runs_on # linux-latest
 # url = args.url
 config = args.config # ext/config/out_of_tree_extensions.cmake
 
-
 def list_extensions(config) :
     with open(config, "r") as file:
         content = file.read()
@@ -40,6 +40,8 @@ def list_extensions(config) :
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     matches = re.findall(pattern, content)
     return matches
+
+extensions = list_extensions(config)
 
 def fetch_data(command, f_output): # saves command execution results into a file
     data = open(f_output, "w")
@@ -75,52 +77,77 @@ def get_full_sha(run_id):
     full_sha = subprocess.run(gh_headSha_command, check=True, text=True, capture_output=True).stdout.strip()
     return full_sha
 
-def verify_python():
+def verify_and_test_python(file_name):
     python_versions = get_python_versions_from_run()
-    verify_python_build("3.10")
     # for version in python_versions:
         # verify_python_build(version)
+    client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
+    full_sha = get_full_sha(run_id)
+    
+    version = "3.10"
+    verify_python_build_and_test_extensions(client, version, full_sha, file_name)
 
-def verify_python_build(version):
-    run_info_file = "python_run_info.md"
-    run_info_command = [
-        "gh", "run", "view",
-        "--repo", GH_REPO,
-        run_id,
-        "-v"
-        ]
-    fetch_data(run_info_command, run_info_file)
-    python_versions = get_python_versions_from_run()
+def create_container(client, container_name, image):
+    container = client.containers.run(
+        image=image,
+        name=container_name,
+        command="sleep infinity",
+        detach=True
+    )
+    print(f"Container '{ container_name }' created.")
+    return container
 
-    print("🍀", version)
+def execute_in_container(container, command):
+    exec_result = container.exec_run(command, stdout=True, stderr=True)
+    print(f"Container '{ container_name }': Command '{ command } execution output:\n{ exec_result .output.decode() }")
+
+def stop_container(container, container_name):
+    container.stop()
+    container.remove()
+    print(f"Container '{ container_name } has stopped.")
+
+def verify_python_build_and_test_extensions(client, version, full_sha, file_name):
     docker_image = f"python:{ version }"
     container_name = f"python-test-{ version.replace('.', '-') }"
-    full_sha = get_full_sha(run_id)
-
+    container = create_container(client, container_name, docker_image)
+    counter = 0
     try:
-        print(f"Pulling docker image: { version }...")
-        subprocess.run(["docker", "pull", docker_image], check=True)
-        print(f"Running container: { container_name }")
-        subprocess.run([
-            "docker", "run", "--rm",
-            # "--platform", architecture,
-            "--name", container_name,
-            "-e", f"full_sha={ full_sha }",
-            docker_image, "/bin/bash", "-c",
-            f"""
-                python -m ensurepip --default-pip &&
-                python -m pip install --upgrade pip --user &&
-                pip install -v duckdb --pre --upgrade &&
-                version=$(python -c 'import duckdb; print(duckdb.sql("select source_id from pragma_version()").fetchone()[0])') &&
-                echo $version $full_sha &&
-                python -c 'print($full_sha.startswith($version))'
-            """
-        ], check=True, text=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error on verifying DuckDB version in Docker container: { e }")
+        container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
+        result = container.exec_run(
+            "python -c \"import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])\"",
+            stdout=True, stderr=True
+        )
+        print(f"Result: { result.output.decode() }")
+        
+        short_sha = result.output.decode().strip()
+        if not full_sha.startswith(short_sha):
+            print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
+        else:
+            # extensions = ["delta"]
+            action=["INSTALL", "LOAD"]
+            for ext in extensions:
+                installed = container.exec_run(f"""
+                    python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
+                    """, stdout=True, stderr=True)
+                print( f"Is { ext } installed: { installed.output.decode() }")
+                if installed.output.decode().strip() == "False":
+                    for act in action:
+                        print(f"{ act }ing { ext }...")
+                        result = container.exec_run(f"""
+                            python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\'').fetchone())"
+                        """,
+                        stdout=True, stderr=True)
+                        # print(result.output.decode())
+                        print(f"STDOUT: {result.output.decode()}")
+                        if result.output.strip():
+                            with open(file_name, 'a') as f:
+                                if counter == 0:
+                                    f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
+                                    counter += 1
+                                f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
 
-def test_python_extensions():
-    return
+    finally:
+        stop_container(container, container_name)
 
 def verify_version(tested_binary, file_name):
     full_sha = get_full_sha(run_id)
@@ -145,7 +172,6 @@ def verify_version(tested_binary, file_name):
 
 def test_extensions(tested_binary, file_name):
     action=["INSTALL", "LOAD"]
-    extensions=list_extensions(config)
     print(extensions)
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.md only once
 
@@ -210,8 +236,9 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
 
 def main():
+    file_name = "list_failed_ext_{}_{}.md".format(nightly_build, architecture)
     if nightly_build == 'Python':
-        verify_python()
+        verify_and_test_python(file_name)
     else:
         path_pattern = os.path.join("duckdb_path", "duckdb*")
         matches = glob.glob(path_pattern)
@@ -220,7 +247,6 @@ def main():
             print(f"Found binary: { tested_binary }")
         else:
             raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-        file_name = "list_failed_ext_{}_{}.md".format(nightly_build, architecture)
         print(f"VERIFY BUILD SHA")
         if verify_version(tested_binary, file_name):
             print(f"TEST EXTENSIONS")
