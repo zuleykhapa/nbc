@@ -30,7 +30,7 @@ def fetch_data(command, f_output): # saves command execution results into a file
     except subprocess.CalledProcessError as e:
         print(f"Command failed with error: {e.stderr}")
 
-def count_consecutive_failures(nightly_build, input_file, url, con):
+def count_consecutive_failures(nightly_build, url, con):
     input_file = f"{ nightly_build }.json"
     con.execute(f"""
         CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
@@ -91,7 +91,7 @@ def prepare_data(nightly_build, con):
         ]
     fetch_data(artifacts_command, artifacts_file)
 
-def create_tables_for_report(nightly_build, con):
+def create_tables_for_report(nightly_build, con, url):
     if nightly_build not in has_no_artifacts:
         con.execute(f"""
             CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
@@ -109,11 +109,12 @@ def create_tables_for_report(nightly_build, con):
             # Given a job and its steps, we want to find the artifacts uploaded by the job 
             # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
             con.execute(f"""
+                SET VARIABLE base_url = "{ url }/artifacts/";
                 CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
                     SELECT
                         t1.job_name AS "Build (Architecture)",
                         t1.conclusion AS "Conclusion",
-                        '[' || t2.name || '](' || t2.artifact_url || ')' AS "Artifact",
+                        '[' || t2.name || '](' || getvariable('base_url') || t2.artifact_id || ')' AS "Artifact",
                         t2.updated_at AS "Uploaded at"
                     FROM (
                         SELECT
@@ -142,7 +143,7 @@ def create_tables_for_report(nightly_build, con):
                             art.name,
                             art.expires_at expires_at,
                             art.updated_at updated_at,
-                            art.archive_download_url artifact_url
+                            art.id artifact_id
                         FROM (
                             SELECT
                                 unnest(artifacts) art
@@ -167,10 +168,8 @@ def create_tables_for_report(nightly_build, con):
                     )
                 """)
 
-def create_build_report(nightly_build, con):
-    input_file = f"{ nightly_build }.json"
-    url= con.execute(f"SELECT url FROM '{ input_file }'").fetchone()[0]
-    failures_count = count_consecutive_failures(nightly_build, input_file, url, con)
+def create_build_report(nightly_build, con, url):
+    failures_count = count_consecutive_failures(nightly_build, url, con)
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:
@@ -208,7 +207,7 @@ def create_build_report(nightly_build, con):
                     WHERE conclusion = 'success'
                     ORDER BY createdAt DESC
                     LIMIT 1
-                """).fetchall()
+                """).fetchone()
                 latest_success_url = tmp_url[0] if tmp_url else ''
                 f.write(f"Latest successfull run: [ Run Link ]({ latest_success_url })\n")
 
@@ -242,8 +241,9 @@ def main():
     # create complete report
     for nightly_build in nightly_builds:
         prepare_data(nightly_build, con)
-        create_tables_for_report(nightly_build, con)
-        create_build_report(nightly_build, con)
+        url = con.execute(f"SELECT url FROM '{ nightly_build }.json'").fetchone()[0]
+        create_tables_for_report(nightly_build, con, url)
+        create_build_report(nightly_build, con, url)
     con.close()
 
 if __name__ == "__main__":
