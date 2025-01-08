@@ -132,6 +132,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
             """
     elif runs_on == 'ubuntu-latest':
         docker_image = f"python:{ version }"
+        architecture = f"linux/{ architecture }"
     else:
         raise ValueError(f"Unsupported OS: { runs_on }")
     # if runs_on == 'ubuntu-latest':
