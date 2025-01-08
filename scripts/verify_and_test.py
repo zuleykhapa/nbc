@@ -121,23 +121,23 @@ def verify_and_test_python(file_name, counter):
     verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter)
 
 def verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter):
-    # if runs_on == 'macos-latest':
-    #     # install proper version of python
-    #     # run tests
-    #     print("macos")
-    # elif runs_on == 'windows-2019':
-    #     docker_image = "mcr.microsoft.com/windows/servercore:ltsc2019"
-    #     command = f"""
-    #             powershell -Command "python --version; if (-not $?) {{ Write-Host 'Install Python'; }} "
-    #         """
-    # elif runs_on == 'ubuntu-latest':
-    #     docker_image = f"python:{ version }"
-    # else:
-    #     raise ValueError(f"Unsupported OS: { runs_on }")
-    if runs_on == 'ubuntu-latest':
+    if runs_on == 'macos-latest':
+        # install proper version of python
+        # run tests
+        print("macos")
+    elif runs_on == 'windows-2019':
+        docker_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
+        command = f"""
+                powershell -Command "python --version; if (-not $?) {{ Write-Host 'Install Python'; }} "
+            """
+    elif runs_on == 'ubuntu-latest':
         docker_image = f"python:{ version }"
     else:
-        return
+        raise ValueError(f"Unsupported OS: { runs_on }")
+    # if runs_on == 'ubuntu-latest':
+    #     docker_image = f"python:{ version }"
+    # else:
+    #     return
 
     container_name = f"python-test-{ runs_on }-{ architecture }-python-{ version.replace('.', '-') }"
     container = create_container(client, container_name, docker_image, architecture, None)
