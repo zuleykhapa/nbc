@@ -12,8 +12,6 @@ import tabulate
 GH_REPO = 'duckdb/duckdb'
 
 parser = argparse.ArgumentParser()
-# parser.add_argument("file_name")
-# parser.add_argument("duckdb_path")
 parser.add_argument("--nightly_build")
 parser.add_argument("--platform")
 parser.add_argument("--architecture")
@@ -30,7 +28,6 @@ platform = args.platform # linux
 architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
-# url = args.url
 config = args.config # ext/config/out_of_tree_extensions.cmake
 
 print("INPUTS:", nightly_build, platform, architecture, run_id, runs_on)
@@ -139,12 +136,11 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
     #     docker_image = f"python:{ version }"
     # else:
     #     return
-
-    container_name = f"python-test-{ runs_on }-{ architecture.replace("/", "-") }-python-{ version.replace('.', '-') }"
+    arch = architecture.replace("/", "-")
+    container_name = f"python-test-{ runs_on }-{ arch }-python-{ version.replace('.', '-') }"
     container = create_container(client, container_name, docker_image, architecture, None)
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
-        print("🪸🪸🪸")
         print("🦑", container.exec_run("uname", stdout=True, stderr=True).output.decode())
         print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
