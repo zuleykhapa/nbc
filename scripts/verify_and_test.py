@@ -83,7 +83,8 @@ def verify_and_test_python(file_name):
     full_sha = get_full_sha(run_id)
     
     for version in python_versions:
-        print("📌", version)
+    # version = "3.13"
+    # print("📌", version)
         verify_python_build_and_test_extensions(client, version, full_sha, file_name)
 
 def create_container(client, container_name, image):
@@ -133,18 +134,17 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
                     for act in action:
                         print(f"{ act }ing { ext }...")
                         result = container.exec_run(f"""
-                            python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\'').fetchone())"
+                            python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\''))"
                         """,
-                        stdout=True, stderr=True)
+                        stdout=True, stderr=True).output.decode().strip()
                         # print(result.output.decode())
-                        print(f"STDOUT: {result.output.decode()}")
-                        if result.output.strip():
+                        print(f"STDOUT: {result}")
+                        if result != "None":
                             with open(file_name, 'a') as f:
                                 if counter == 0:
                                     f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
                                     counter += 1
                                 f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
-
     finally:
         stop_container(container, container_name)
 
