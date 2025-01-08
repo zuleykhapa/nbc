@@ -117,7 +117,7 @@ def verify_and_test_python(file_name, counter):
     
     # for version in python_versions:
     version = "3.13"
-    architecture = "arm64"
+    # architecture = "arm64"
     verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter)
 
 def verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter):
