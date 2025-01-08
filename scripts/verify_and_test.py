@@ -138,6 +138,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
     #     return
     arch = architecture.replace("/", "-")
     container_name = f"python-test-{ runs_on }-{ arch }-python-{ version.replace('.', '-') }"
+    print(container_name)
     container = create_container(client, container_name, docker_image, architecture, None)
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
