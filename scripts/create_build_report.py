@@ -329,7 +329,8 @@ def main():
                     case 'windows':
                         runs_on = [ "windows-2019" ]
                     case 'python':
-                        runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
+                        runs_on = [ "ubuntu-latest" ]
+                        # runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
                     case _:
                         runs_on = [ f"{ platform }-latest" ]
 
