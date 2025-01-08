@@ -358,8 +358,8 @@ def main():
                         "-f", f"architectures={ build_info.get('architectures') }",
                         "-f", f"runs_on={ runs_on }",
                         "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
-                        "-f", f"calling_run_id=12661739527"
-                        # "-f", f"calling_run_id={ curr_run_id }"
+                        "-f", f"calling_run_id={ curr_run_id }"
+                        # "-f", f"calling_run_id=12661739527"
                     ]
                     subprocess.run(trigger_command, check=True)
                     print(f"Workflow for { nightly_build } { platform } triggered successfully.")
