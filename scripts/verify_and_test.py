@@ -43,7 +43,7 @@ def create_container(client, container_name, image, architecture, tested_binary_
     container = client.containers.run(
         image=image,
         name=container_name,
-        command="sleep infinity",
+        command="/bin/bash -c 'sleep infinity'",
         platform=architecture,
         volumes=tested_binary_path if tested_binary_path else None,
         detach=True
@@ -126,7 +126,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
         # run tests
         print("macos")
     elif runs_on == 'windows-2019':
-        docker_image = "mcr.microsoft.com/windows/servercore:ltsc2022"
+        docker_image = "mcr.microsoft.com/windows/servercore:ltsc2022-arm64"
         command = f"""
                 powershell -Command "python --version; if (-not $?) {{ Write-Host 'Install Python'; }} "
             """
