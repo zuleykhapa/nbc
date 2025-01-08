@@ -85,8 +85,8 @@ def prepare_data(nightly_build, con, build_info):
             "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
         ]
     fetch_data(runs_command, gh_run_list_file)
-    # nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
-    nightly_build_run_id ="12540028046"
+    nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
+    # nightly_build_run_id ="12540028046" # latest successful windows
     jobs_file = f"{ nightly_build }_jobs.json"
     jobs_command = [
             "gh", "run", "view",
@@ -330,8 +330,8 @@ def main():
                 case 'windows':
                     runs_on = [ "windows-2019" ]
                 case 'python':
-                    runs_on = [ "ubuntu-latest" ]
-                    # runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
+                    # runs_on = [ "ubuntu-latest" ]
+                    runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
                 case _:
                     runs_on = [ f"{ platform }-latest" ]
 
@@ -362,8 +362,8 @@ def main():
                     "-f", f"platform={ platform }",
                     "-f", f"architectures={ build_info.get('architectures') }",
                     "-f", f"runs_on={ runs_on }",
-                    "-f", f"run_id=12540028046",
-                    # "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
+                    # "-f", f"run_id=12540028046", # latest successfull windows run
+                    "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
                     "-f", f"calling_run_id={ curr_run_id }"
                     # "-f", f"calling_run_id=12661739527"
                 ]

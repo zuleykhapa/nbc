@@ -283,10 +283,10 @@ def main():
         else:
             raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
         print(f"VERIFY BUILD SHA")
-        verify_and_test_python(file_name,counter)
-        # if verify_version(tested_binary, file_name):
-        #     print(f"TEST EXTENSIONS")
-        #     test_extensions(tested_binary, file_name)
+        # verify_and_test_python(file_name,counter)
+        if verify_version(tested_binary, file_name):
+            print(f"TEST EXTENSIONS")
+            test_extensions(tested_binary, file_name)
         print(f"FINISH")
 
 if __name__ == "__main__":
