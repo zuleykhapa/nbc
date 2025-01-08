@@ -63,7 +63,7 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("Windows")) '
+            '.[] | select(.name == ("Python")) '
             # '.[] | select(.name == ("LinuxRelease", "OSX", "Windows", "Python")) '
         )
         # "--jq", (
@@ -317,8 +317,8 @@ def main():
         create_build_report(nightly_build, con, build_info, url)
         
         
-        # if build_info.get("failures_count") == 0:
-        if build_info.get("failures_count") != 0:
+        if build_info.get("failures_count") == 0:
+        # if build_info.get("failures_count") != 0:
             print("🦑", nightly_build, ":", build_info.get("failures_count"))
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
             # if get_binaries_count(nightly_build, con) > 0 or nightly_build == 'Python':
@@ -330,8 +330,8 @@ def main():
                 case 'windows':
                     runs_on = [ "windows-2019" ]
                 case 'python':
-                    # runs_on = [ "ubuntu-latest" ]
-                    runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
+                    runs_on = [ "ubuntu-latest" ]
+                    # runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
                 case _:
                     runs_on = [ f"{ platform }-latest" ]
 
