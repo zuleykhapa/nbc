@@ -135,11 +135,12 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
         docker_image = f"python:{ version }"
     else:
         return
-        
+
     container_name = f"python-test-{ runs_on }-{ architecture }-python-{ version.replace('.', '-') }"
     container = create_container(client, container_name, docker_image, architecture, None)
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
+        print("🪸🪸🪸")
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
         print("🦑", container.exec_run("cat /etc/os-release", stdout=True, stderr=True).output.decode())
         print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
