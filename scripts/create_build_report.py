@@ -63,7 +63,7 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("Python")) '
+            '.[] | select(.name == ("LinuxRelease", "OSX", "Windows")) '
             # '.[] | select(.name == ("LinuxRelease", "OSX", "Windows", "Python")) '
         )
         # "--jq", (
@@ -267,7 +267,7 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
         print("nightly_build", nightly_build)
         platform = str(nightly_build).lower()
         print("platform", platform)
-        architectures = ['amd64', 'arm64'] if nightly_build == 'Python' else 'x64'
+        architectures = ['amd64', 'x86_64'] if nightly_build == 'Python' else ['x64']
     else:    
         result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
         items = [row[0] for row in result if row[0] is not None]

@@ -142,7 +142,8 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
     container = create_container(client, container_name, docker_image, architecture, None)
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
-        print("🦑", container.exec_run("uname", stdout=True, stderr=True).output.decode())
+        print("🦑", container.exec_run("cat /etc/os-release", stdout=True, stderr=True).output.decode())
+        print("🦑", container.exec_run("arch", stdout=True, stderr=True).output.decode())
         print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
         result = container.exec_run(
@@ -158,31 +159,31 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
                 f.write(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
         else:
             print(f"TESTING EXTENSIONS ON python{ version }")
-            # extensions = ["delta"]
-            # action=["INSTALL", "LOAD"]
-            # for ext in extensions:
-            #     installed = container.exec_run(f"""
-            #         python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
-            #         """, stdout=True, stderr=True)
-            #     print( f"Is { ext } already installed: { installed.output.decode() }")
-            #     if installed.output.decode().strip() == "False":
-            #         for act in action:
-            #             print(f"{ act }ing { ext }...")
-            #             result = container.exec_run(f"""
-            #                 python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\''))"
-            #             """,
-            #             stdout=True, stderr=True).output.decode().strip()
-            #             print(f"STDOUT: {result}")
-            #             installed = container.exec_run(f"""
-            #                 python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
-            #                 """, stdout=True, stderr=True)
-            #             print( f"Is { ext } already installed: { installed.output.decode() }")
-            #             if result != "None":
-            #                 with open(file_name, 'a') as f:
-            #                     if counter == 0:
-            #                         f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-            #                         counter += 1
-            #                     f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
+            extensions = ["delta"]
+            action=["INSTALL", "LOAD"]
+            for ext in extensions:
+                installed = container.exec_run(f"""
+                    python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
+                    """, stdout=True, stderr=True)
+                print( f"Is { ext } already installed: { installed.output.decode() }")
+                if installed.output.decode().strip() == "False":
+                    for act in action:
+                        print(f"{ act }ing { ext }...")
+                        result = container.exec_run(f"""
+                            python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\''))"
+                        """,
+                        stdout=True, stderr=True).output.decode().strip()
+                        print(f"STDOUT: {result}")
+                        installed = container.exec_run(f"""
+                            python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
+                            """, stdout=True, stderr=True)
+                        print( f"Is { ext } already installed: { installed.output.decode() }")
+                        if result != "None":
+                            with open(file_name, 'a') as f:
+                                if counter == 0:
+                                    f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
+                                    counter += 1
+                                f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
     finally:
         stop_container(container, container_name)
 
