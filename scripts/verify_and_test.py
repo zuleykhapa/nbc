@@ -33,6 +33,9 @@ runs_on = args.runs_on # linux-latest
 # url = args.url
 config = args.config # ext/config/out_of_tree_extensions.cmake
 
+print("INPUTS:", nightly_build, platform, architecture, run_id, runs_on)
+
+
 ##########
 # DOCKER #
 ##########
