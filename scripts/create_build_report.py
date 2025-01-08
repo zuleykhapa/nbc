@@ -273,7 +273,7 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
         items = [row[0] for row in result if row[0] is not None]
         # artifact names are usually look like this[duckdb-binaries-linux-aarch64](url)  
         # looking up the platform name (linux) and the architecture (linux-aarch64)
-        pattern = r"\[duckdb-binaries-(\w+)(?:[-_](\w+))?\]\(.*\)"
+        pattern = r"\[duckdb-binaries-(\w+)(?:[-_](\w+))?\]\(.*\)" # (\w+)(?:[-_](\w+))? finds the words separated by - or _; \]\(.*\) handles brackets
         platform = None
         architectures = []
         if items:
