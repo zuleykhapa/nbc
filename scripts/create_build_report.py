@@ -36,7 +36,7 @@ def fetch_data(command, f_output): # saves command execution results into a file
     except subprocess.CalledProcessError as e:
         print(f"Command failed with error: {e.stderr}")
 
-def count_consecutive_failures(nightly_build, input_file, url, con):
+def count_consecutive_failures(nightly_build, url, con):
     input_file = f"{ nightly_build }.json"
     con.execute(f"""
         CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
@@ -50,8 +50,8 @@ def count_consecutive_failures(nightly_build, input_file, url, con):
         WHERE conclusion = 'success'
         ORDER BY createdAt DESC
     """).fetchone()
-    count_consecutive_failures = latest_success_rowid[0] if latest_success_rowid else -1 # when -1 then all runs in the json file have conclusion 'failure'
-    return count_consecutive_failures
+    consecutive_failures = latest_success_rowid[0] if latest_success_rowid else -1 # when -1 then all runs in the json file have conclusion 'failure'
+    return consecutive_failures
 
 def list_all_runs(con):
     gh_run_list_file = f"GH_run_list.json"
@@ -101,7 +101,7 @@ def prepare_data(nightly_build, con, build_info):
     fetch_data(artifacts_command, artifacts_file)
     build_info["nightly_build_run_id"] = nightly_build_run_id
 
-def create_tables_for_report(nightly_build, con, build_info):
+def create_tables_for_report(nightly_build, con, build_info, url):
     if nightly_build not in has_no_artifacts:
         con.execute(f"""
             CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
@@ -119,11 +119,12 @@ def create_tables_for_report(nightly_build, con, build_info):
             # Given a job and its steps, we want to find the artifacts uploaded by the job 
             # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
             con.execute(f"""
+                SET VARIABLE base_url = "{ url }/artifacts/";
                 CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
                     SELECT
                         t1.job_name AS "Build (Architecture)",
                         t1.conclusion AS "Conclusion",
-                        t2.name AS "Artifact",
+                        '[' || t2.name || '](' || getvariable('base_url') || t2.artifact_id || ')' AS "Artifact",
                         t2.updated_at AS "Uploaded at"
                     FROM (
                         SELECT
@@ -151,7 +152,8 @@ def create_tables_for_report(nightly_build, con, build_info):
                         SELECT
                             art.name,
                             art.expires_at expires_at,
-                            art.updated_at updated_at
+                            art.updated_at updated_at,
+                            art.id artifact_id
                         FROM (
                             SELECT
                                 unnest(artifacts) art
@@ -176,10 +178,8 @@ def create_tables_for_report(nightly_build, con, build_info):
                     )
                 """)
 
-def create_build_report(nightly_build, con, build_info):
-    input_file = f"{ nightly_build }.json"
-    url= con.execute(f"SELECT url FROM '{ input_file }'").fetchone()[0]
-    failures_count = count_consecutive_failures(nightly_build, input_file, url, con)
+def create_build_report(nightly_build, con, build_info, url):
+    failures_count = count_consecutive_failures(nightly_build, url, con)
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:
@@ -244,11 +244,8 @@ def create_build_report(nightly_build, con, build_info):
             f.write(artifacts_per_job.to_markdown(index=False))
         else:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
-    
-    return { 
-        "failures_count": failures_count,
-        "url": url
-        }
+    build_info["failures_count"] = failures_count
+    build_info["url"] = url
 
 def get_binaries_count(nightly_build, con):
     binaries_count = [0]
@@ -262,8 +259,6 @@ def get_binaries_count(nightly_build, con):
             WHERE artifacts['name'] LIKE '%binaries%'
         """).fetchone()
     return binaries_count[0] if binaries_count else 0
-
-
 
 def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
     if nightly_build in has_no_artifacts:
@@ -313,12 +308,13 @@ def main():
     for nightly_build in nightly_builds:
         build_info = {}
         prepare_data(nightly_build, con, build_info)
-        create_tables_for_report(nightly_build, con, build_info)
-        create_build_report(nightly_build, con, build_info)
+        url = con.execute(f"SELECT url FROM '{ nightly_build }.json'").fetchone()[0]
+        create_tables_for_report(nightly_build, con, build_info, url)
+        create_build_report(nightly_build, con, build_info, url)
         
         print("🦑", nightly_build, ":", build_info.get("failures_count"))
-
-        if build_info.get("failures_count") is None:
+        
+        if build_info.get("failures_count") == 0:
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
             # if get_binaries_count(nightly_build, con) > 0 or nightly_build == 'Python':
             if nightly_build == 'Python':
@@ -362,7 +358,8 @@ def main():
                         "-f", f"architectures={ build_info.get('architectures') }",
                         "-f", f"runs_on={ runs_on }",
                         "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
-                        "-f", f"calling_run_id={ curr_run_id }"
+                        "-f", f"calling_run_id=12661739527"
+                        # "-f", f"calling_run_id={ curr_run_id }"
                     ]
                     subprocess.run(trigger_command, check=True)
                     print(f"Workflow for { nightly_build } { platform } triggered successfully.")

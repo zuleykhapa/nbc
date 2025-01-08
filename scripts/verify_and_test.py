@@ -79,13 +79,12 @@ def get_full_sha(run_id):
 
 def verify_and_test_python(file_name):
     python_versions = get_python_versions_from_run()
-    # for version in python_versions:
-        # verify_python_build(version)
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
     full_sha = get_full_sha(run_id)
     
-    version = "3.10"
-    verify_python_build_and_test_extensions(client, version, full_sha, file_name)
+    for version in python_versions:
+        print("📌", version)
+        verify_python_build_and_test_extensions(client, version, full_sha, file_name)
 
 def create_container(client, container_name, image):
     container = client.containers.run(
