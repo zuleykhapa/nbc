@@ -21,20 +21,17 @@ env:
 jobs:
   get-run-info:
     runs-on: ubuntu-latest
-    # outputs:
-    #   nightly_build: ${{ steps.check-build.outputs.nightly_build }}
-    #   run_url: ${{ steps.check-build.outputs.run_url }}
-    #   run_conclusion: ${{ steps.check-build.outputs.run_conclusion }}
-    #   run_id: ${{ steps.check-build.outputs.run_id }}
-    #   platform: ${{ steps.check-build.outputs.platform }}
-    #   architectures: ${{ steps.check-build.outputs.architectures }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+
       - name: Install DuckDB for Python
         shell: bash
         run: |
@@ -43,103 +40,96 @@ jobs:
           pip install duckdb --pre --upgrade
           pip install duckdb pandas tabulate requests
       
-      - name: Get all runs statuses
-        id: check-build
+      - name: Generate inputs
         shell: bash
         run: |
           gh --version
-          python scripts/create_build_report.py ${{ env.GH_TOKEN }}
-          
-          cat "output_data.json"
-
-          # python scripts/trigger_tests.py ${{ env.GH_TOKEN }} --inputs output_data.json
-
+          python scripts/create_build_report.py ${{ env.GH_TOKEN }} 
+      
+      - name: Set matrix
+        id: set-matrix
+        shell: bash
+        run: |
+          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
 
       - name: Upload DuckDB file
         uses: actions/upload-artifact@v4
         with:
           name: run_info_tables.duckdb
           path: run_info_tables.duckdb
-      # - uses: actions/upload-artifact@v4
+
+  test:
+    name: Verify and Test Builds ${{ matrix.nightly_build }}
+    needs: get-run-info
+    runs-on: ${{ matrix.runs_on }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:${{ fromJson(needs.get-run-info.outputs.matrix) }}
+    steps:
+      - name: Trigger tests
+        uses: ./Tests.yml
+        with:
+          nightly_build: ${{ matrix.nightly_build }}
+          platform: ${{ matrix.platform }}
+          architectures: ${{ matrix.architectures }}
+          runs_on: ${{ matrix.runs_on }}
+          run_id: ${{ matrix.run_id }}
+
+      #   - name: Install QEMU and duckdb dependencies
+      #   if: ${{ matrix.architecture == 'linux-aarch64' }}
+      #   shell: bash
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libc6-arm64-cross qemu-user-static
+      #     # set up QEMU for Docker
+      #     docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      #     docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+
+      # - name: Install Python dependencies
+      #   run: pip install pandas tabulate docker
+      
+      # - name: Checkout the repo with the script
+      #   uses: actions/checkout@v4
+      # - name: Checkout repo with extensions config file
+      #   uses: actions/checkout@v4
       #   with:
-      #     name: REPORT
-      #     path: .*_nightly_builds_status.md
-  # test:
-  #   name: Verify and Test Builds ${{ needs.get-run-info.outputs.nightly_build }}
-  #   needs: get-run-info
-  #   runs-on: ${{ fromJSON(matrix.platform) }}-latest
-  #   continue-on-error: true
-  #   strategy:
-  #     matrix:
-  #       architecture: ${{ needs.get-run-info.outputs.architectures }}
-  #       nightly_build: ${{ needs.get-run-info.outputs.nightly_build }}
-  #       platform: ${{ needs.get-run-info.outputs.platform }}
-  #   steps:
-  #       # Verify aarch64 builds in docker container
-  #     - name: Set up QEMU
-  #       if: ${{ matrix.architecture == 'linux-aarch64' }}
-  #       uses: docker/setup-qemu-action@v3
-  #       with:
-  #         platforms: linux/aarch64
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: '3.10'
-  #     - name: Install QEMU and duckdb dependencies
-  #       if: ${{ matrix.architecture == 'linux-aarch64' }}
-  #       shell: bash
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y libc6-arm64-cross qemu-user-static
-  #         # set up QEMU for Docker
-  #         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  #         docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+      #     repository: duckdb/duckdb
+      #     sparse-checkout: |
+      #       .github/config
+      #     path: ext
+      # - name: Verify and Test ${{ matrix.nightly_build }} version
+      #   id: verify-build
+      #   shell: bash
+      #   run: |
+      #     if [[ '${{ matrix.nightly_build }}' != 'Python' ]]; then
+      #       if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
+      #         name=${{ matrix.architecture }}
+      #       else 
+      #         name=${{ matrix.platform}}
+      #       fi
+      #       echo "Downloading duckdb-binaries-$name artifact..."
+      #       if gh run download ${{ needs.get-run-info.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+      #         echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+      #         unzip duckdb_cli-${{ matrix.architecture }}.zip -d duckdb_path
+      #       fi
+      #     else
+      #       # for Python save the run information to get all python builds versions on verify_and_test.py
+      #       gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
+      #     fi
 
-      
-  #     - name: Install Python dependencies
-  #       run: pip install pandas tabulate docker
-      
-  #     - name: Checkout the repo with the script
-  #       uses: actions/checkout@v4
-  #     - name: Checkout repo with extensions config file
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: duckdb/duckdb
-  #         sparse-checkout: |
-  #           .github/config
-  #         path: ext
-  #     - name: Verify and Test ${{ matrix.nightly_build }} version
-  #       id: verify-build
-  #       shell: bash
-  #       run: |
-  #         if [[ '${{ matrix.nightly_build }}' != 'Python' ]]; then
-  #           if [[ '${{ matrix.architecture }}' == 'linux-aarch64' ]]; then
-  #             name=${{ matrix.architecture }}
-  #           else 
-  #             name=${{ matrix.platform}}
-  #           fi
-  #           echo "Downloading duckdb-binaries-$name artifact..."
-  #           if gh run download ${{ needs.get-run-info.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-  #             echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-  #             unzip duckdb_cli-${{ matrix.architecture }}.zip -d duckdb_path
-  #           fi
-  #         else
-  #           # for Python save the run information to get all python builds versions on verify_and_test.py
-  #           gh run view --repo duckdb/duckdb $run_id -v > python_run_info.md
-  #         fi
-
-  #         echo "Verifying version and test extensions..."
-  #         python scripts/verify_and_test.py \
-  #           --nightly_build ${{ matrix.nightly_build }} --architecture ${{ matrix.architecture }} \
-  #           --run_id ${{ needs.get-run-info.outputs.run_id }} --runs_on ${{ needs.get-run-info.outputs.platform }}-latest \
-  #           --config ext/.github/config/out_of_tree_extensions.cmake
+      #     echo "Verifying version and test extensions..."
+      #     python scripts/verify_and_test.py \
+      #       --nightly_build ${{ matrix.nightly_build }} --architecture ${{ matrix.architecture }} \
+      #       --run_id ${{ needs.get-run-info.outputs.run_id }} --runs_on ${{ needs.get-run-info.outputs.platform }}-latest \
+      #       --config ext/.github/config/out_of_tree_extensions.cmake
           
       # - uses: owenthereal/action-upterm@v1
       #   if: matrix.architecture == 'linux-aarch64'
     
-      # - name: Upload actions for extensions
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}
-      #     path: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}.md
-      #     if-no-files-found: ignore
+      - name: Upload actions for extensions
+        uses: actions/upload-artifact@v4
+        with:
+          name: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}
+          path: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}.md
+          if-no-files-found: ignore
