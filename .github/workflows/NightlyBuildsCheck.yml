@@ -35,7 +35,6 @@ jobs:
       - name: Install DuckDB for Python
         shell: bash
         run: |
-          # sudo apt-get update && sudo apt-get install -y jq
           python -m pip install --upgrade pip
           pip install duckdb --pre --upgrade
           pip install duckdb pandas tabulate requests
@@ -44,7 +43,7 @@ jobs:
         shell: bash
         run: |
           gh --version
-          python scripts/create_build_report.py ${{ env.GH_TOKEN }}
+          python scripts/create_tables.py
 
       - name: Upload DuckDB file
         uses: actions/upload-artifact@v4
@@ -113,8 +112,6 @@ jobs:
         id: verify-build
         shell: bash
         run: |
-            docker --version
-
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
               name=${{ matrix.inputs.architectures }}
@@ -142,10 +139,49 @@ jobs:
                       --architecture ${{ matrix.inputs.architectures }} --run_id ${{ matrix.inputs.run_id }} \
                       --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
             fi
-          
+
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
           name: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}
           path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}.md
           if-no-files-found: ignore
+    
+  report:
+    name: Create complete report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install DuckDB for Python
+        shell: bash
+        run: |
+          # sudo apt-get update && sudo apt-get install -y jq
+          python -m pip install --upgrade pip
+          pip install duckdb --pre --upgrade
+          pip install duckdb pandas tabulate requests
+
+      - name: Download extensions artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: list_failed_*.csv
+          path: failed_ext
+
+      - name: Download duckdb file
+        uses: actions/download-artifact@v4
+        with:
+          name: run_info_tables.duckdb
+          path: failed_ext
+      
+      - name: Generate report
+        shell: bash
+        run: |
+          if [ $(ls list_failed_ext_${{ inputs.nightly-build }}*/list_failed_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
+            cat list_failed_ext_${{ inputs.nightly-build }}/list_failed_ext_${{ inputs.nightly-build }}*/*.md >> result.csv
+          python scripts/create_build_report.py

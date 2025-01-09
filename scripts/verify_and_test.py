@@ -116,7 +116,7 @@ def verify_version(tested_binary, file_name):
 def test_extensions(tested_binary, file_name):
     action=["INSTALL", "LOAD"]
     print(extensions)
-    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.md only once
+    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
         if architecture.count("aarch64") or architecture.count("arm64"):
@@ -179,7 +179,7 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
 
 def main():
-    file_name = "list_failed_ext_{}_{}.md".format(nightly_build, architecture.replace("/", "_"))
+    file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "_"))
     counter = 0 # to write only one header per table
     path_pattern = os.path.join("duckdb_path", "duckdb*")
     matches = glob.glob(path_pattern)
