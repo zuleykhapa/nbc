@@ -132,7 +132,7 @@ def create_build_report(nightly_build, con, build_info, url):
         failed_extensions = con.execute(f"""
             CREATE TABLE ext_{ nightly_build } AS
                 SELECT * FROM read_csv(f'{ file_name_pattern }')
-        """)df()
+        """).df()
         f.write(failed_extensions.to_markdown(index=False))
     
 
