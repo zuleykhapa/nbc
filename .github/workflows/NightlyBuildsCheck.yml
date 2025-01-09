@@ -141,7 +141,9 @@ jobs:
             sparse-checkout: |
                 .github/config
             path: ext
-              
+      
+      - uses: owenthereal/action-upterm@v1
+      
       - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
         id: verify-build
         shell: bash
