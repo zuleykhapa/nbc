@@ -143,7 +143,8 @@ def create_build_report(nightly_build, con, build_info, url):
     build_info["url"] = url
     
 def main():
-    con = duckdb.connect('run_info_tables.duckdb')
+    db_name = 'tables/run_info_tables.duckdb'
+    con = duckdb.connect(db_name)
     # list all nightly-build runs on current date
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]

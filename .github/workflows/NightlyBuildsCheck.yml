@@ -177,7 +177,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: run_info_tables.duckdb
-          path: run_info_tables.duckdb
+          path: tables
       
       - name: Generate report
         shell: bash
