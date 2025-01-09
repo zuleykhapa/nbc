@@ -89,7 +89,7 @@ jobs:
       - name: Download input files
         uses: actions/download-artifact@v4
         with:
-          pattern: inputs*.json
+          name: inputs
       - name: Set inputs from ${{ matrix.names_array }}
         id: set-inputs
         run: |
