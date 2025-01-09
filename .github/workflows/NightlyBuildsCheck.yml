@@ -66,8 +66,7 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     continue-on-error: true
     strategy:
-      matrix:
-        include:${{ fromJson(needs.get-run-info.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
     steps:
       - name: Trigger tests
         uses: ./Tests.yml
