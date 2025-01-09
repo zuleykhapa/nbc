@@ -89,7 +89,7 @@ jobs:
       - name: Set inputs from ${{ matrix.names_array }}
         id: set-inputs
         run: |
-          matrix=$(cat ${{ fromJson(matrix.names_array) }})
+          matrix=$(cat ${{ matrix.names_array }})
           nightly_build=$(echo $matrix | jq -r '.[].nightly_build')
           echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
 
