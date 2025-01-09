@@ -63,7 +63,7 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("LinuxRelease", "OSX", "Windows")) '
+            '.[] | select(.name == ("Windows")) '
             # '.[] | select(.name == ("LinuxRelease", "OSX", "Windows", "Python")) '
         )
         # "--jq", (
@@ -287,23 +287,28 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
     build_info["architectures"] = ['osx'] if nightly_build == 'OSX' else architectures
     build_info["platform"] = platform
 
-def get_current_run_id(build_info, REPO):
-    curr_id_file = "curr_id.json"
-    curr_id_command = [
-        "gh", "run", "list",
-        "--repo", REPO,
-        "--workflow", "Check Nightly Build Status",
-        "--created", CURR_DATE,
-        "--limit", "1",
-        "--json", "databaseId",
-        # "--jq", '.[] | select(.status == "in_progress") '
-    ]
-    fetch_data(curr_id_command, curr_id_file)
-    result = duckdb.sql(f"SELECT databaseId FROM '{ curr_id_file }';").fetchone()[0]
-    return result
+# def get_current_run_id(build_info, REPO):
+#     curr_id_file = "curr_id.json"
+#     curr_id_command = [
+#         "gh", "run", "list",
+#         "--repo", REPO,
+#         "--workflow", "Check Nightly Build Status",
+#         "--created", CURR_DATE,
+#         "--limit", "1",
+#         "--json", "databaseId",
+#         # "--jq", '.[] | select(.status == "in_progress") '
+#     ]
+#     fetch_data(curr_id_command, curr_id_file)
+#     result = duckdb.sql(f"SELECT databaseId FROM '{ curr_id_file }';").fetchone()[0]
+#     return result
     
 def main():
-    output_data = []
+    try:
+        with open("matrix.json", "r") as f:
+            matrix_data = json.load(f)
+    except FileNotFoundError:
+        matrix_data = []
+
     con = duckdb.connect('run_info_tables.duckdb')
     # list all nightly-build runs on current date
     result = list_all_runs(con)
@@ -317,8 +322,8 @@ def main():
         create_build_report(nightly_build, con, build_info, url)
         
         
-        if build_info.get("failures_count") == 0:
-        # if build_info.get("failures_count") != 0:
+        # if build_info.get("failures_count") == 0:
+        if build_info.get("failures_count") != 0:
             print("🦑", nightly_build, ":", build_info.get("failures_count"))
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
             # if get_binaries_count(nightly_build, con) > 0 or nightly_build == 'Python':
@@ -334,57 +339,55 @@ def main():
                     # runs_on = [ "macos-latest", "windows-2019", "ubuntu-latest" ]
                 case _:
                     runs_on = [ f"{ platform }-latest" ]
-
-            ###################
-            # VERIFY AND TEST #
-            ###################
-            # trigger workflow run
-            REPO = 'zuleykhapa/nbc'
-            WORKFLOW_FILE = 'Test.yml'
-            # it's possible to trigger workflow runs like this only on 'main'
-            REF = 'main'
-            curr_run_id = get_current_run_id(build_info, REPO)
-            print(nightly_build)
-            print(platform)
-            print(build_info.get("architectures"))
-            print(runs_on)
-            print("NB:", build_info.get("nightly_build_run_id"))
-            print("curr:", build_info.get(curr_run_id))
-
-            try:
-                print(f"Triggering workflow for { nightly_build } { platform }...")
-                trigger_command = [
-                    "gh", "workflow", "run",
-                    "--repo", REPO,
-                    WORKFLOW_FILE,
-                    "--ref", REF,
-                    "-f", f"nightly_build={ nightly_build }",
-                    "-f", f"platform={ platform }",
-                    "-f", f"architectures={ build_info.get('architectures') }",
-                    "-f", f"runs_on={ runs_on }",
-                    # "-f", f"run_id=12540028046", # latest successfull windows run
-                    "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
-                    "-f", f"calling_run_id={ curr_run_id }"
-                    # "-f", f"calling_run_id=12661739527"
-                ]
-                subprocess.run(trigger_command, check=True)
-                print(f"Workflow for { nightly_build } { platform } triggered successfully.")
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
-        
-
             
-        # TODO: create_test_report(nightly_build, con)
-        # create_build_report(nightly_build, con)
-        
-        output_data.append(build_info)
+            matrix_data.append({
+                "nightly_build": nightly_build,
+                "platform": platform,
+                "architectures": build_info.get('architectures'),
+                "runs_on": runs_on,
+                "run_id": build_info.get('nightly_build_run_id')
+            })
+            print(matrix_data)
+            ###########################
+            # TRIGGER VERIFY AND TEST #
+            ###########################
+            # REPO = 'zuleykhapa/nbc'
+            # WORKFLOW_FILE = 'Test.yml'
+            # # it's possible to trigger workflow runs like this only on 'main'
+            # REF = 'main'
+            # # curr_run_id = get_current_run_id(build_info, REPO)
+            # print(nightly_build)
+            # print(platform)
+            # print(build_info.get("architectures"))
+            # print(runs_on)
+            # print("NB:", build_info.get("nightly_build_run_id"))
 
+            # try:
+            #     print(f"Triggering workflow for { nightly_build } { platform }...")
+            #     trigger_command = [
+            #         "gh", "workflow", "run",
+            #         "--repo", REPO,
+            #         WORKFLOW_FILE,
+            #         "--ref", REF,
+            #         "-f", f"nightly_build={ nightly_build }",
+            #         "-f", f"platform={ platform }",
+            #         "-f", f"architectures={ build_info.get('architectures') }",
+            #         "-f", f"runs_on={ runs_on }",
+            #         # "-f", f"run_id=12540028046", # latest successfull windows run
+            #         "-f", f"run_id={ build_info.get('nightly_build_run_id') }",
+            #         # "-f", f"calling_run_id={ curr_run_id }"
+            #         # "-f", f"calling_run_id=12661739527"
+            #     ]
+            #     subprocess.run(trigger_command, check=True)
+            #     print(f"Workflow for { nightly_build } { platform } triggered successfully.")
+            # except subprocess.CalledProcessError as e:
+            #     print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
     con.close()
 
     # write outputs into a file which will be passed into a script triggering the test runs
-    # print(json.dumps(output_data, indent=4))
-    with open("output_data.json", "w") as file:
-        json.dump(output_data, file, indent=4)
+    # print(json.dumps(matrix_data, indent=4))
+    with open("matrix.json", "w") as f:
+        json.dump(matrix_data, f, indent=4)
     
 if __name__ == "__main__":
     main()
