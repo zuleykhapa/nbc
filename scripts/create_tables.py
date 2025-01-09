@@ -56,12 +56,6 @@ def list_all_runs(con):
 
 def prepare_data(nightly_build, con, build_info):
     gh_run_list_file = f"{ nightly_build }.json"
-    con.execute(f"""
-        CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
-            SELECT *
-            FROM '{ gh_run_list_file }')
-            ORDER BY createdAt DESC
-    """)
     runs_command = [
             "gh", "run", "list",
             "--repo", GH_REPO,
@@ -89,6 +83,12 @@ def prepare_data(nightly_build, con, build_info):
 
 def create_tables_for_report(nightly_build, con, build_info, url):
     if nightly_build not in has_no_artifacts:
+        con.execute(f"""
+            CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
+                SELECT *
+                FROM 'gh_run_list_{ nightly_build }')
+                ORDER BY createdAt DESC
+        """)
         con.execute(f"""
             CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
                 SELECT * FROM read_json('{ nightly_build }_jobs.json')
