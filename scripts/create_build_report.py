@@ -43,14 +43,7 @@ def list_all_runs(con):
     result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
     return result
 
-def count_consecutive_failures(nightly_build, url, con):
-    input_file = f"{ nightly_build }.json"
-    con.execute(f"""
-        CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
-            SELECT *
-            FROM '{ input_file }')
-            ORDER BY createdAt DESC
-    """)
+def count_consecutive_failures(nightly_build, con):
     latest_success_rowid = con.execute(f"""
         SELECT rowid
         FROM 'gh_run_list_{ nightly_build }'
@@ -61,7 +54,7 @@ def count_consecutive_failures(nightly_build, url, con):
     return consecutive_failures
 
 def create_build_report(nightly_build, con, build_info, url):
-    failures_count = count_consecutive_failures(nightly_build, url, con)
+    failures_count = count_consecutive_failures(nightly_build, con)
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:

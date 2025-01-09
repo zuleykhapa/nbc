@@ -32,23 +32,6 @@ def fetch_data(command, f_output): # saves command execution results into a file
     except subprocess.CalledProcessError as e:
         print(f"Command failed with error: {e.stderr}")
 
-def count_consecutive_failures(nightly_build, url, con):
-    input_file = f"{ nightly_build }.json"
-    con.execute(f"""
-        CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
-            SELECT *
-            FROM '{ input_file }')
-            ORDER BY createdAt DESC
-    """)
-    latest_success_rowid = con.execute(f"""
-        SELECT rowid
-        FROM 'gh_run_list_{ nightly_build }'
-        WHERE conclusion = 'success'
-        ORDER BY createdAt DESC
-    """).fetchone()
-    consecutive_failures = latest_success_rowid[0] if latest_success_rowid else -1 # when -1 then all runs in the json file have conclusion 'failure'
-    return consecutive_failures
-
 def list_all_runs(con):
     gh_run_list_file = f"GH_run_list.json"
     gh_run_list_command = [
@@ -73,6 +56,12 @@ def list_all_runs(con):
 
 def prepare_data(nightly_build, con, build_info):
     gh_run_list_file = f"{ nightly_build }.json"
+    con.execute(f"""
+        CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
+            SELECT *
+            FROM '{ gh_run_list_file }')
+            ORDER BY createdAt DESC
+    """)
     runs_command = [
             "gh", "run", "list",
             "--repo", GH_REPO,
