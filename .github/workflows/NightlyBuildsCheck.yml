@@ -147,6 +147,7 @@ jobs:
   report:
     name: Create complete report
     runs-on: ubuntu-latest
+    needs: run-tests
     outputs:
       date: ${{ steps.curr-date.outputs.date }}
     steps:
