@@ -51,6 +51,7 @@ jobs:
         shell: bash
         run: |
           matrix=$(cat matrix.json)
+          matrix=$(echo $matrix | jq -c)
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
       - name: Upload DuckDB file
