@@ -61,7 +61,8 @@ def prepare_data(nightly_build, con, build_info):
             "--repo", GH_REPO,
             "--event", "repository_dispatch",
             "--workflow", f"{ nightly_build }",
-            "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
+            "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
+            "-L", "100" # tmp param
         ]
     fetch_data(runs_command, gh_run_list_file)
     nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
@@ -69,14 +70,21 @@ def prepare_data(nightly_build, con, build_info):
     jobs_command = [
             "gh", "run", "view",
             "--repo", GH_REPO,
-            f"{ nightly_build_run_id }",
+            "12021416084",
             "--json", "jobs"
         ]
+    # jobs_command = [
+    #         "gh", "run", "view",
+    #         "--repo", GH_REPO,
+    #         f"{ nightly_build_run_id }",
+    #         "--json", "jobs"
+    #     ]
     fetch_data(jobs_command, jobs_file)
     artifacts_file = f"{ nightly_build }_artifacts.json"
     artifacts_command = [
             "gh", "api",
-            f"repos/{ GH_REPO }/actions/runs/{ nightly_build_run_id }/artifacts"
+            f"repos/{ GH_REPO }/actions/runs/12021416084/artifacts"
+            # f"repos/{ GH_REPO }/actions/runs/{ nightly_build_run_id }/artifacts"
         ]
     fetch_data(artifacts_command, artifacts_file)
     build_info["nightly_build_run_id"] = nightly_build_run_id
