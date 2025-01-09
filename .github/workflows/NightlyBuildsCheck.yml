@@ -96,7 +96,7 @@ jobs:
           matrix=$(cat ${{ matrix.names_array }})
           
           echo $matrix
-          echo $${{ matrix.names_array.nightly_build }}
+          echo ${{ matrix.names_array.nightly_build }}
           echo $matrix | jq -r '.nightly_build'
 
           nightly_build=$(echo $matrix | jq -r '.nightly_build')
