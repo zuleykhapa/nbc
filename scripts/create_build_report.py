@@ -147,15 +147,14 @@ def main():
     # list all nightly-build runs on current date
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
+    print(con.execute(".tables"))
     # create complete report
     for nightly_build in nightly_builds:
         build_info = {}
         url = con.execute(f"""
-            SELECT url FROM gh_run_list_{ nightly_build } LIMIT 1
+            SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
             """).fetchone()[0]
-        create_build_report(nightly_build, con, build_info, url)
-        
-        
+        create_build_report(nightly_build, con, build_info, url)    
     con.close()
     
 if __name__ == "__main__":
