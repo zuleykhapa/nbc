@@ -59,7 +59,7 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("LinuxRelease", "OSX", "Windows", "Python")) '
+            '.[] | select(.name == ("LinuxRelease", "OSX", "Windows")) '
         )
         # the whole list of builds:
         # "--jq", (
@@ -227,7 +227,8 @@ def main():
             """).fetchone()[0]
         create_tables_for_report(nightly_build, con, build_info, url)
         
-        if build_info.get("failures_count") == 0:
+        # if build_info.get("failures_count") == 0:
+        if build_info.get("failures_count") != 0:
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
             platform = str(build_info.get("platform"))
             match platform:

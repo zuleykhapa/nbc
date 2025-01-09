@@ -134,7 +134,7 @@ def create_build_report(nightly_build, con, build_info, url):
                 SELECT * FROM read_csv(f'{ file_name_pattern }')
         """)df()
         f.write(failed_extensions.to_markdown(index=False))
-        
+    
 
 
 
