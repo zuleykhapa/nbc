@@ -90,8 +90,8 @@ jobs:
           # runs_on=$(echo $matrix | jq -r '.runs_on')
           # echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
 
-  test:
-    name: Test
+  run-tests:
+    name: Verify ${{ matrix.inputs.nightly_build }} build and run test (${{ matrix.inputs.platform }} ${{ matrix.inputs.architectures }})
     needs: get-run-info
     strategy:
       matrix:
@@ -99,93 +99,86 @@ jobs:
 
     runs-on: ${{ matrix.inputs.runs_on }}
     steps:
-      - run: echo ${{ matrix.inputs.nightly_build }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+            python-version: '3.10'
 
-  # run-tests:
-    # name: Verify ${{ needs.set-inputs.outputs.nightly_build }} build and run test (${{ needs.set-inputs.outputs.platform }} ${{ needs.set-inputs.outputs.architectures }})
-    # needs: set-inputs
-    # runs-on: ${{ needs.set-inputs.outputs.runs_on }}
-    # steps:
-    #   - name: Set up Python
-    #     uses: actions/setup-python@v5
-    #     with:
-    #         python-version: '3.10'
-
-    #   - name: Set up QEMU for aarch64 builds
-    #     if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
-    #     uses: docker/setup-qemu-action@v3
-    #     with:
-    #         platforms: linux/aarch64
+      - name: Set up QEMU for aarch64 builds
+        if: ${{ matrix.inputs.architectures == 'linux-aarch64' }}
+        uses: docker/setup-qemu-action@v3
+        with:
+            platforms: linux/aarch64
     
-    #   - name: Install QEMU dependencies
-    #     if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
-    #     shell: bash
-    #     run: |
-    #         sudo apt-get update
-    #         sudo apt-get install -y libc6-arm64-cross qemu-user-static
-    #         # set up QEMU for Docker
-    #         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    #         docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+      - name: Install QEMU dependencies
+        if: ${{ matrix.inputs.architectures == 'linux-aarch64' }}
+        shell: bash
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y libc6-arm64-cross qemu-user-static
+            # set up QEMU for Docker
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
       
-    #   - name: Pull docker image for win-arm64
-    #     if: ${{ needs.set-inputs.outputs.architectures == 'windows-arm64' }}
-    #     run: docker pull mcr.microsoft.com/windows/servercore:ltsc2022-arm64
+      - name: Pull docker image for win-arm64
+        if: ${{ matrix.inputs.architectures == 'windows-arm64' }}
+        run: docker pull mcr.microsoft.com/windows/servercore:ltsc2022-arm64
 
-    #   - name: Install Python dependencies
-    #     run: pip install pandas tabulate docker
+      - name: Install Python dependencies
+        run: pip install pandas tabulate docker
             
-    #   - name: Checkout the repo with the script
-    #     uses: actions/checkout@v4
-    #     with:
-    #         repository: ${{ env.GH_REPO }}
-    #         sparse-checkout: scripts
-    #         path: scripts
+      - name: Checkout the repo with the script
+        uses: actions/checkout@v4
+        with:
+            repository: ${{ env.GH_REPO }}
+            sparse-checkout: scripts
+            path: scripts
 
-    #   - name: Checkout repo with extensions config file
-    #     uses: actions/checkout@v4
-    #     with:
-    #         repository: duckdb/duckdb
-    #         sparse-checkout: |
-    #             .github/config
-    #         path: ext
+      - name: Checkout repo with extensions config file
+        uses: actions/checkout@v4
+        with:
+            repository: duckdb/duckdb
+            sparse-checkout: |
+                .github/config
+            path: ext
               
-    #   - name: Verify and Test ${{ needs.set-inputs.outputs.nightly_build }} version
-    #     id: verify-build
-    #     shell: bash
-    #     run: |
-    #         docker --version
+      - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
+        id: verify-build
+        shell: bash
+        run: |
+            docker --version
             
-    #         echo "Running tests for ${{ needs.set-inputs.outputs.architectures }} on ${{ needs.set-inputs.outputs.runs_on }}"
-    #         if [[ '${{ needs.set-inputs.outputs.nightly_build }}' != 'Python' ]]; then
-    #           name=${{ needs.set-inputs.outputs.architectures }}
+            echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
+            if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
+              name=${{ matrix.inputs.architectures }}
               
-    #           echo "Downloading duckdb-binaries-$name artifact..."
-    #           if gh run download ${{ needs.set-inputs.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-    #               echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-    #               if [[ '${{ needs.set-inputs.outputs.nightly_build }}' == 'OSX' ]]; then
-    #                   unzip duckdb_cli-*.zip -d duckdb_path
-    #               else
-    #                   unzip duckdb_cli-$name.zip -d duckdb_path
-    #               fi
+              echo "Downloading duckdb-binaries-$name artifact..."
+              if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+                  echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+                  if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
+                      unzip duckdb_cli-*.zip -d duckdb_path
+                  else
+                      unzip duckdb_cli-$name.zip -d duckdb_path
+                  fi
                   
-    #               ls duckdb_path
-    #               echo "Verifying version and testing extensions..."
-    #               python scripts/scripts/verify_and_test.py \
-    #                   --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
-    #                   --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
-    #                   --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
-    #           fi
-    #         else
-    #           # for Python save run information to get all python builds versions using verify_and_test.py
-    #           python scripts/scripts/verify_and_test.py \
-    #                   --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
-    #                   --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
-    #                   --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
-    #         fi
+                  ls duckdb_path
+                  echo "Verifying version and testing extensions..."
+                  python scripts/scripts/verify_and_test.py \
+                      --nightly_build ${{ matrix.inputs.nightly_build }} --platform ${{ matrix.inputs.platform }} \
+                      --architecture ${{ matrix.inputs.architectures }} --run_id ${{ matrix.inputs.run_id }} \
+                      --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+              fi
+            else
+              # for Python save run information to get all python builds versions using verify_and_test.py
+              python scripts/scripts/verify_and_test.py \
+                      --nightly_build ${{ matrix.inputs.nightly_build }} --platform ${{ matrix.inputs.platform }} \
+                      --architecture ${{ matrix.inputs.architectures }} --run_id ${{ matrix.inputs.run_id }} \
+                      --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+            fi
           
-    #   - name: Upload actions for extensions
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}
-    #       path: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}.md
-    #       if-no-files-found: ignore
+      - name: Upload actions for extensions
+        uses: actions/upload-artifact@v4
+        with:
+          name: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}
+          path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}.md
+          if-no-files-found: ignore
