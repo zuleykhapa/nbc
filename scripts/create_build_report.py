@@ -303,12 +303,6 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
 #     return result
     
 def main():
-    try:
-        with open("matrix.json", "r") as f:
-            matrix_data = json.load(f)
-    except FileNotFoundError:
-        matrix_data = []
-
     con = duckdb.connect('run_info_tables.duckdb')
     # list all nightly-build runs on current date
     result = list_all_runs(con)
@@ -340,17 +334,23 @@ def main():
                 case _:
                     runs_on = [ f"{ platform }-latest" ]
             
+            
             architectures = build_info.get('architectures')
             for architecture in architectures:
                 for r_on in runs_on:
-                    matrix_data.append({
+                    input_file = f"inputs_{ nightly_build }_{ architecture }_{ r_on }.json"
+                    # write outputs into a file which will be passed into a script triggering the test runs
+                    # print(json.dumps(matrix_data, indent=4))
+                    matrix_data = {
                         "nightly_build": nightly_build,
                         "platform": platform,
                         "architectures": architecture,
                         "runs_on": r_on,
                         "run_id": build_info.get('nightly_build_run_id')
-                    })
-            print(matrix_data)
+                    }
+                    with open(input_file, "w") as f:
+                        json.dump(matrix_data, f, indent=4)
+
             ###########################
             # TRIGGER VERIFY AND TEST #
             ###########################
@@ -386,11 +386,6 @@ def main():
             # except subprocess.CalledProcessError as e:
             #     print(f"Failed to trigger workflow for { nightly_build } { platform }: { e }")
     con.close()
-
-    # write outputs into a file which will be passed into a script triggering the test runs
-    # print(json.dumps(matrix_data, indent=4))
-    with open("matrix.json", "w") as f:
-        json.dump(matrix_data, f, indent=4)
     
 if __name__ == "__main__":
     main()

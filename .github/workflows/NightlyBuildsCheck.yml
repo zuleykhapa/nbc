@@ -22,7 +22,7 @@ jobs:
   get-run-info:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      names_array: ${{ steps.names-array.outputs.names_array }}
     steps:
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
@@ -44,16 +44,21 @@ jobs:
         shell: bash
         run: |
           gh --version
-          python scripts/create_build_report.py ${{ env.GH_TOKEN }} 
+          python scripts/create_build_report.py ${{ env.GH_TOKEN }}
       
-      - name: Set matrix
-        id: set-matrix
+      - name: Set names array matrix
+        id: names-array
         shell: bash
         run: |
-          matrix=$(cat matrix.json)
-          matrix=$(echo $matrix | jq -c)
+          matrix=$(python scripts/create_names_matrix.py)
           echo "🦑 $matrix"
-          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+          echo "names_array=$matrix" >> $GITHUB_OUTPUT
+          
+          # matrix=$(cat matrix.json)
+          # removes whitespace and new lines:
+          # matrix=$(echo $matrix | jq -c)
+          # echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
       - name: Upload DuckDB file
         uses: actions/upload-artifact@v4
@@ -61,22 +66,57 @@ jobs:
           name: run_info_tables.duckdb
           path: run_info_tables.duckdb
 
-  test:
-    name: Verify and Test Builds ${{ matrix.nightly_build }}
+      - name: Upload inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: inputs
+          path: inputs*.json
+
+  set-matrix:
+    name: Set inputs matrix
     needs: get-run-info
-    runs-on: ${{ matrix.runs_on }}
-    continue-on-error: true
+    runs-on: ubuntu-latest
+    outputs:
+      nightly_build: ${{ steps.set-inputs.outputs.nightly_build }}
+      platform: ${{ steps.set-inputs.outputs.platform }}
+      architectures: ${{ steps.set-inputs.outputs.architectures }}
+      runs_on: ${{ steps.set-inputs.outputs.runs_on }}
+      run_id: ${{ steps.set-inputs.outputs.run_id }}
     strategy:
-      matrix: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.get-run-info.outputs.names_array) }}
     steps:
-      - name: Trigger tests
+      - name: Set inputs from ${{ matrix.input_file }}
+        id: set-inputs
+        run: |
+          matrix=$(cat ${{ fromJson(matrix.input_file) }})
+          nightly_build=$(echo $matrix | jq -r '.[].nightly_build')
+          echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
+
+          platform=$(echo $matrix | jq -r '.[].platform')
+          echo "platform=$platform" >> $GITHUB_OUTPUT
+
+          architectures=$(echo $matrix | jq -r '.[].architectures')
+          echo "architectures=$architectures" >> $GITHUB_OUTPUT
+          
+          nightly_build=$(echo $matrix | jq -r '.[].nightly_build')
+          echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
+          
+          runs_on=$(echo $matrix | jq -r '.[].runs_on')
+          echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
+  
+  test:
+    name: Verify and test 
+    needs: set-matrix
+    runs-on: ${{ needs.set-matrix.outputs.runs_on }}
+    steps:
+      - name: Trigger tests for ${{ needs.set-matrix.outputs.nightly_build }} on platform ${{ needs.set-matrix.outputs.platform }} with architecture ${{ needs.set-matrix.outputs.architectures }} 
         uses: ./Tests.yml
         with:
-          nightly_build: ${{ matrix.nightly_build }}
-          platform: ${{ matrix.platform }}
-          architectures: ${{ matrix.architectures }}
-          runs_on: ${{ matrix.runs_on }}
-          run_id: ${{ matrix.run_id }}
+          nightly_build: ${{ needs.set-matrix.outputs.nightly_build }}
+          platform: ${{ needs.set-matrix.outputs.platform }}
+          architectures: ${{ needs.set-matrix.outputs.architectures }}
+          runs_on: ${{ needs.set-matrix.outputs.runs_on }}
+          run_id: ${{ needs.set-matrix.outputs.run_id }}
 
       #   - name: Install QEMU and duckdb dependencies
       #   if: ${{ matrix.architecture == 'linux-aarch64' }}
@@ -132,8 +172,8 @@ jobs:
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}
-          path: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}.md
+          name: list_failed_ext_${{ needs.set-matrix.outputs.nightly_build }}_${{ needs.set-matrix.outputs.architectures }}
+          path: list_failed_ext_${{ needs.set-matrix.outputs.nightly_build }}_${{ needs.set-matrix.outputs.architectures }}.md
           if-no-files-found: ignore
       
     
