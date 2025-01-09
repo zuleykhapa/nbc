@@ -65,7 +65,8 @@ def prepare_data(nightly_build, con, build_info):
             "-L", "100" # tmp param
         ]
     fetch_data(runs_command, gh_run_list_file)
-    nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
+    nightly_build_run_id = get_value_for_key('12021416084', nightly_build)
+    # nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
     jobs_file = f"{ nightly_build }_jobs.json"
     jobs_command = [
             "gh", "run", "view",
