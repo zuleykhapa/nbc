@@ -50,7 +50,8 @@ jobs:
         id: set-matrix
         shell: bash
         run: |
-          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+          matrix=$(cat matrix.json)
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
       - name: Upload DuckDB file
         uses: actions/upload-artifact@v4
@@ -133,3 +134,5 @@ jobs:
           name: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}
           path: list_failed_ext_${{ matrix.nightly_build }}_${{ matrix.architecture }}.md
           if-no-files-found: ignore
+      
+    
