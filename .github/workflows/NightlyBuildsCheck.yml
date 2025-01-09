@@ -72,10 +72,11 @@ jobs:
           name: inputs
           path: inputs*.json
 
-  set-matrix:
-    name: Set inputs matrix and Run tests
+  set-inputs:
+    name: Set inputs
     needs: get-run-info
     runs-on: ubuntu-latest
+    continue-on-error: true
     outputs:
       nightly_build: ${{ steps.set-outputs.outputs.nightly_build }}
       platform: ${{ steps.set-outputs.outputs.platform }}
@@ -115,19 +116,24 @@ jobs:
           runs_on=$(echo $matrix | jq -r '.runs_on')
           echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
 
+  run-tests:
+    name: Verify ${{ needs.set-inputs.outputs.nightly_build }} build and run test (${{ needs.set-inputs.outputs.platform }} ${{ needs.set-inputs.outputs.architectures }})
+    needs: set-inputs
+    runs-on: ${{ needs.set-inputs.outputs.runs_on }}
+    steps:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
             python-version: '3.10'
 
       - name: Set up QEMU for aarch64 builds
-        if: ${{ steps.set-outputs.outputs.architectures == 'linux-aarch64' }}
+        if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
         uses: docker/setup-qemu-action@v3
         with:
             platforms: linux/aarch64
     
       - name: Install QEMU dependencies
-        if: ${{ steps.set-outputs.outputs.architectures == 'linux-aarch64' }}
+        if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
         shell: bash
         run: |
             sudo apt-get update
@@ -137,7 +143,7 @@ jobs:
             docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
       
       - name: Pull docker image for win-arm64
-        if: ${{ steps.set-outputs.outputs.architectures == 'windows-arm64' }}
+        if: ${{ needs.set-inputs.outputs.architectures == 'windows-arm64' }}
         run: docker pull mcr.microsoft.com/windows/servercore:ltsc2022-arm64
 
       - name: Install Python dependencies
@@ -158,26 +164,26 @@ jobs:
                 .github/config
             path: ext
               
-      - name: Verify and Test ${{ steps.set-outputs.outputs.nightly_build }} version
+      - name: Verify and Test ${{ needs.set-inputs.outputs.nightly_build }} version
         id: verify-build
         shell: bash
         run: |
             docker --version
             
-            echo "Running tests for ${{ steps.set-outputs.outputs.architectures }} on ${{ steps.set-outputs.outputs.runs_on }}"
-            if [[ '${{ steps.set-outputs.outputs.nightly_build }}' != 'Python' ]]; then
-                # if [[ '${{ steps.set-outputs.outputs.architectures }}' == 'linux-aarch64' ]]; then
-                #     name=${{ steps.set-outputs.outputs.architectures }}
+            echo "Running tests for ${{ needs.set-inputs.outputs.architectures }} on ${{ needs.set-inputs.outputs.runs_on }}"
+            if [[ '${{ needs.set-inputs.outputs.nightly_build }}' != 'Python' ]]; then
+                # if [[ '${{ needs.set-inputs.outputs.architectures }}' == 'linux-aarch64' ]]; then
+                #     name=${{ needs.set-inputs.outputs.architectures }}
                 # else 
-                #     name=${{ steps.set-outputs.outputs.platform}}
+                #     name=${{ needs.set-inputs.outputs.platform}}
                 # fi
                 
-                name=${{ steps.set-outputs.outputs.architectures }}
+                name=${{ needs.set-inputs.outputs.architectures }}
                 
                 echo "Downloading duckdb-binaries-$name artifact..."
-                if gh run download ${{ steps.set-outputs.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+                if gh run download ${{ needs.set-inputs.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
                     echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-                    if [[ '${{ steps.set-outputs.outputs.nightly_build }}' == 'OSX' ]]; then
+                    if [[ '${{ needs.set-inputs.outputs.nightly_build }}' == 'OSX' ]]; then
                         unzip duckdb_cli-*.zip -d duckdb_path
                     else
                         unzip duckdb_cli-$name.zip -d duckdb_path
@@ -186,21 +192,21 @@ jobs:
                     ls duckdb_path
                     echo "Verifying version and testing extensions..."
                     python scripts/scripts/verify_and_test.py \
-                        --nightly_build ${{ steps.set-outputs.outputs.nightly_build }} --platform ${{ steps.set-outputs.outputs.platform }} \
-                        --architecture ${{ steps.set-outputs.outputs.architectures }} --run_id ${{ steps.set-outputs.outputs.run_id }} \
-                        --runs_on ${{ steps.set-outputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+                        --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
+                        --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
+                        --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
                 fi
             else
                 # for Python save run information to get all python builds versions using verify_and_test.py
                 python scripts/scripts/verify_and_test.py \
-                        --nightly_build ${{ steps.set-outputs.outputs.nightly_build }} --platform ${{ steps.set-outputs.outputs.platform }} \
-                        --architecture ${{ steps.set-outputs.outputs.architectures }} --run_id ${{ steps.set-outputs.outputs.run_id }} \
-                        --runs_on ${{ steps.set-outputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+                        --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
+                        --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
+                        --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
             fi
           
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: list_failed_ext_${{ steps.set-outputs.outputs.nightly_build }}_${{ steps.set-outputs.outputs.architectures }}
-          path: list_failed_ext_${{ steps.set-outputs.outputs.nightly_build }}_${{ steps.set-outputs.outputs.architectures }}.md
+          name: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}
+          path: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}.md
           if-no-files-found: ignore
