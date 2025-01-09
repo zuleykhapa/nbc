@@ -4,12 +4,15 @@ import pandas as pd
 import tabulate
 import subprocess
 import json
+import datetime
 import os
 import glob
 import re
 from collections import defaultdict
 
 GH_REPO = 'duckdb/duckdb'
+CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 has_no_artifacts = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
 def get_value_for_key(key, nightly_build):
