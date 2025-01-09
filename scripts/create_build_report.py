@@ -124,7 +124,7 @@ def create_build_report(nightly_build, con, build_info, url):
         file_name_pattern = f"list_failed_ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
         failed_extensions = con.execute(f"""
             CREATE TABLE ext_{ nightly_build } AS
-                SELECT * FROM read_csv(f'{ file_name_pattern }')
+                SELECT * FROM read_csv('{ file_name_pattern }')
         """).df()
         f.write(failed_extensions.to_markdown(index=False))
     
@@ -141,9 +141,6 @@ def main():
     # list all nightly-build runs on current date
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
-    result = con.execute("SELECT * FROM duckdb_tables()").fetchall()
-    print(result)
-
     # create complete report
     for nightly_build in nightly_builds:
         build_info = {}
