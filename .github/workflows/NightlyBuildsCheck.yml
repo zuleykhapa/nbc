@@ -83,7 +83,7 @@ jobs:
       runs_on: ${{ steps.set-inputs.outputs.runs_on }}
       run_id: ${{ steps.set-inputs.outputs.run_id }}
     strategy:
-      matrix: ${{ needs.get-run-info.outputs.names_array }}
+      matrix: ${{ fromJson(needs.get-run-info.outputs.names_array) }}
     steps:
       - name: Set inputs from ${{ matrix.input_file }}
         id: set-inputs
