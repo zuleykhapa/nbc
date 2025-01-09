@@ -113,8 +113,10 @@ jobs:
             if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
               if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
                 name='osx'
-              else
+              elif [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
                 name=${{ matrix.inputs.platform }}-${{ matrix.inputs.architectures }}
+              else
+                name=${{ matrix.inputs.platform }}
               fi
               
               echo "Downloading duckdb-binaries-$name artifact..."
