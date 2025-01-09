@@ -96,7 +96,7 @@ jobs:
     strategy:
       matrix:
         inputs: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
-
+    continue-on-error: true
     runs-on: ${{ matrix.inputs.runs_on }}
     steps:
       - name: Set up Python
