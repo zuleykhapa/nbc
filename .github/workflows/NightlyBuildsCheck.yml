@@ -94,11 +94,12 @@ jobs:
         id: set-inputs
         run: |
           matrix=$(cat ${{ matrix.names_array }})
+          
           echo $matrix
-          echo $martix.['nightly_build']
+          echo $${{ matrix.names_array.nightly_build }}
           echo $matrix | jq -r '.nightly_build'
+
           nightly_build=$(echo $matrix | jq -r '.nightly_build')
-          echo $nightly_build
           echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
 
           platform=$(echo $matrix | jq -r '.platform')
