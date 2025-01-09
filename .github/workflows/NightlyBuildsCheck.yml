@@ -140,7 +140,7 @@ jobs:
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
         with:
-          name: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}
+          name: ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}
           path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}.md
           if-no-files-found: ignore
     

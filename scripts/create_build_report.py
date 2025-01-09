@@ -121,16 +121,14 @@ def create_build_report(nightly_build, con, build_info, url):
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
         
         # add extensions
-        file_name_pattern = f"list_failed_ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
-        failed_extensions = con.execute(f"""
-            CREATE TABLE ext_{ nightly_build } AS
-                SELECT * FROM read_csv('{ file_name_pattern }')
-        """).df()
-        f.write(failed_extensions.to_markdown(index=False))
-    
-
-
-
+        file_name_pattern = f"ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
+        matching_files = glob.glob(file_name_pattern)
+        if matching_files:
+            failed_extensions = con.execute(f"""
+                CREATE TABLE ext_{ nightly_build } AS
+                    SELECT * FROM read_csv('{ file_name_pattern }')
+            """).df()
+            f.write(failed_extensions.to_markdown(index=False))
 
     build_info["failures_count"] = failures_count
     build_info["url"] = url
