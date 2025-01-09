@@ -96,8 +96,7 @@ jobs:
           matrix=$(cat ${{ matrix.names_array }})
           
           echo $matrix
-          echo ${{ matrix.names_array.nightly_build }}
-          echo $matrix | jq -r '.nightly_build'
+          echo "🦑 ${{ matrix.names_array.nightly_build }}"
 
           nightly_build=$(echo $matrix | jq -r '.nightly_build')
           echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
@@ -126,7 +125,7 @@ jobs:
           echo runs_on: ${{ needs.set-matrix.outputs.runs_on }}
           echo run_id: ${{ needs.set-matrix.outputs.run_id }}
       - name: Trigger tests for ${{ needs.set-matrix.outputs.nightly_build }} on platform ${{ needs.set-matrix.outputs.platform }} with architecture ${{ needs.set-matrix.outputs.architectures }} 
-        uses: ./Tests.yml
+        uses: ./.github/workflows/Tests.yml
         with:
           nightly_build: ${{ needs.set-matrix.outputs.nightly_build }}
           platform: ${{ needs.set-matrix.outputs.platform }}
