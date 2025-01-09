@@ -151,7 +151,7 @@ def main():
     for nightly_build in nightly_builds:
         build_info = {}
         url = con.execute(f"""
-            SELECT url FROM '{ nightly_build }.json'
+            SELECT url FROM gh_run_list_{ nightly_build } LIMIT 1
             """).fetchone()[0]
         create_build_report(nightly_build, con, build_info, url)
         
