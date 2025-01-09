@@ -45,20 +45,6 @@ jobs:
         run: |
           gh --version
           python scripts/create_build_report.py ${{ env.GH_TOKEN }}
-      
-      - name: Set names array matrix
-        id: names-array
-        shell: bash
-        run: |
-          matrix=$(python scripts/create_names_matrix.py)
-          echo "🦑 $matrix"
-
-          echo "names_array=$matrix" >> $GITHUB_OUTPUT
-          
-          # matrix=$(cat matrix.json)
-          # removes whitespace and new lines:
-          # matrix=$(echo $matrix | jq -c)
-          # echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
       - name: Upload DuckDB file
         uses: actions/upload-artifact@v4
@@ -74,21 +60,6 @@ jobs:
         run: |
           matrix=$(cat inputs.json | jq -c '.')
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
-
-          # nightly_build=$(echo $matrix | jq -r '.nightly_build')
-          # echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
-
-          # platform=$(echo $matrix | jq -r '.platform')
-          # echo "platform=$platform" >> $GITHUB_OUTPUT
-
-          # architectures=$(echo $matrix | jq -r '.architectures')
-          # echo "architectures=$architectures" >> $GITHUB_OUTPUT
-          
-          # nightly_build=$(echo $matrix | jq -r '.nightly_build')
-          # echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
-          
-          # runs_on=$(echo $matrix | jq -r '.runs_on')
-          # echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
 
   run-tests:
     name: Verify ${{ matrix.inputs.nightly_build }} build and run test (${{ matrix.inputs.platform }} ${{ matrix.inputs.architectures }})
@@ -127,17 +98,17 @@ jobs:
       - name: Install Python dependencies
         run: pip install pandas tabulate docker
             
-      - name: Checkout the repo with the script
-        uses: actions/checkout@v4
-        with:
-            repository: ${{ env.GH_REPO }}
-            sparse-checkout: scripts
-            path: scripts
+      # - name: Checkout the repo with the script
+      #   uses: actions/checkout@v4
+      #   with:
+      #       repository: 
+      #       sparse-checkout: scripts
+      #       path: scripts
 
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
         with:
-            repository: duckdb/duckdb
+            repository: ${{ env.GH_REPO }}
             sparse-checkout: |
                 .github/config
             path: ext
