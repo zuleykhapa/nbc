@@ -86,6 +86,10 @@ jobs:
       matrix: 
         names_array: ${{ fromJson(needs.get-run-info.outputs.names_array) }}
     steps:
+      - name: Download input files
+        uses: actions/download-artifact@v4
+        with:
+          pattern: inputs*.json
       - name: Set inputs from ${{ matrix.names_array }}
         id: set-inputs
         run: |
