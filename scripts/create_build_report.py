@@ -147,7 +147,9 @@ def main():
     # list all nightly-build runs on current date
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
-    print(con.execute(".tables"))
+    result = con.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'").fetchall()
+    print(result)
+
     # create complete report
     for nightly_build in nightly_builds:
         build_info = {}
