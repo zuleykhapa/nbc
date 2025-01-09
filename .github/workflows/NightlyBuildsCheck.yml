@@ -144,7 +144,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}
-          path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}.md
+          path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}.csv
           if-no-files-found: ignore
     
   report:
