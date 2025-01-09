@@ -42,7 +42,7 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("Windows")) '
+            '.[] | select(.name == ("LinuxRelease")) '
         )
         # the whole list of builds:
         # "--jq", (
@@ -236,7 +236,8 @@ def main():
                         "platform": platform,
                         "architectures": architecture,
                         "runs_on": r_on,
-                        "run_id": build_info.get('nightly_build_run_id')
+                        "run_id": "12021416084"
+                        # "run_id": build_info.get('nightly_build_run_id')
                     })
             print("🦑", nightly_build, ":", build_info.get("failures_count"))
             with open("inputs.json", "w") as f:
