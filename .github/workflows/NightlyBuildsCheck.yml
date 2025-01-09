@@ -98,13 +98,9 @@ jobs:
       - name: Install Python dependencies
         run: pip install pandas tabulate docker
             
-      # - name: Checkout the repo with the script
-      #   uses: actions/checkout@v4
-      #   with:
-      #       repository: 
-      #       sparse-checkout: scripts
-      #       path: scripts
-
+      - name: Checkout the repo with the script
+        uses: actions/checkout@v4
+        
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
         with:
@@ -112,16 +108,12 @@ jobs:
             sparse-checkout: |
                 .github/config
             path: ext
-      
-      - uses: owenthereal/action-upterm@v1
-      
+            
       - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
         id: verify-build
         shell: bash
         run: |
             docker --version
-
-            ls -R scripts
 
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
