@@ -100,7 +100,11 @@ jobs:
             
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
-        
+        with:
+            repository: ${{ env.GH_ISSUE_REPO }}
+            sparse-checkout: scripts
+            path: scripts
+
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
         with:
