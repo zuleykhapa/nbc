@@ -149,8 +149,8 @@ jobs:
         shell: bash
         run: |
             docker --version
-            
-            ls -R
+
+            ls -R scripts
 
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
