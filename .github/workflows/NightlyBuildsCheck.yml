@@ -114,7 +114,8 @@ jobs:
               name=${{ matrix.inputs.architectures }}
               
               echo "Downloading duckdb-binaries-$name artifact..."
-              if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+              # if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+              if gh run download 12021416084 --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
                   echo "Artifact duckdb-binaries-$name is successfuly downloaded."
                   if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
                       unzip duckdb_cli-*.zip -d duckdb_path
