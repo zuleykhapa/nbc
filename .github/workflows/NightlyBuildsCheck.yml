@@ -118,8 +118,8 @@ jobs:
     needs: set-matrix
     runs-on: ${{ needs.set-matrix.outputs.runs_on }}
     steps:
-      - name: Checkout the repo with the script
-        uses: actions/checkout@v4
+      # - name: Checkout the repo with the script
+      #   uses: actions/checkout@v4
       - run: |
           echo nightly_build: ${{ needs.set-matrix.outputs.nightly_build }}
           echo platform: ${{ needs.set-matrix.outputs.platform }}
