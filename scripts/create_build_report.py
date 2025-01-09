@@ -341,11 +341,11 @@ def main():
                     runs_on = [ f"{ platform }-latest" ]
             
             matrix_data.append({
-                "nightly_build": nightly_build,
-                "platform": platform,
+                "nightly_build": [nightly_build],
+                "platform": [platform],
                 "architectures": build_info.get('architectures'),
-                "runs_on": runs_on,
-                "run_id": build_info.get('nightly_build_run_id')
+                "runs_on": [runs_on],
+                "run_id": [build_info.get('nightly_build_run_id')]
             })
             print(matrix_data)
             ###########################
