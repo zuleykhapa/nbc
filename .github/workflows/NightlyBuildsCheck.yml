@@ -148,6 +148,8 @@ jobs:
         run: |
             docker --version
             
+            ls -r
+
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
               name=${{ matrix.inputs.architectures }}
