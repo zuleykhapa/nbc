@@ -94,20 +94,21 @@ jobs:
         id: set-inputs
         run: |
           matrix=$(cat ${{ matrix.names_array }})
-          nightly_build=$(echo $matrix | jq -r '.[].nightly_build')
-          echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
+          echo $matrix
+          # nightly_build=$(echo $matrix | jq -r '.[].nightly_build')
+          # echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
 
-          platform=$(echo $matrix | jq -r '.[].platform')
-          echo "platform=$platform" >> $GITHUB_OUTPUT
+          # platform=$(echo $matrix | jq -r '.[].platform')
+          # echo "platform=$platform" >> $GITHUB_OUTPUT
 
-          architectures=$(echo $matrix | jq -r '.[].architectures')
-          echo "architectures=$architectures" >> $GITHUB_OUTPUT
+          # architectures=$(echo $matrix | jq -r '.[].architectures')
+          # echo "architectures=$architectures" >> $GITHUB_OUTPUT
           
-          nightly_build=$(echo $matrix | jq -r '.[].nightly_build')
-          echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
+          # nightly_build=$(echo $matrix | jq -r '.[].nightly_build')
+          # echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
           
-          runs_on=$(echo $matrix | jq -r '.[].runs_on')
-          echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
+          # runs_on=$(echo $matrix | jq -r '.[].runs_on')
+          # echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
   
   test:
     name: Verify and test 
