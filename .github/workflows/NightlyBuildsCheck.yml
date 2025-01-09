@@ -127,7 +127,7 @@ jobs:
           echo runs_on: ${{ needs.set-matrix.outputs.runs_on }}
           echo run_id: ${{ needs.set-matrix.outputs.run_id }}
       - name: Trigger tests for ${{ needs.set-matrix.outputs.nightly_build }} on platform ${{ needs.set-matrix.outputs.platform }} with architecture ${{ needs.set-matrix.outputs.architectures }} 
-        uses: ./.github/workflows/Tests.yml
+        uses: ./.github/workflows/Test.yml
         with:
           nightly_build: ${{ needs.set-matrix.outputs.nightly_build }}
           platform: ${{ needs.set-matrix.outputs.platform }}
