@@ -50,9 +50,6 @@ jobs:
         with:
           name: run_info_tables.duckdb
           path: run_info_tables.duckdb
-
-      - id: curr-date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
       
       - name: Read JSON and create matrix
         id: set-outputs
@@ -150,6 +147,8 @@ jobs:
   report:
     name: Create complete report
     runs-on: ubuntu-latest
+    outputs:
+      date: ${{ steps.curr-date.outputs.date }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4
@@ -182,6 +181,13 @@ jobs:
       - name: Generate report
         shell: bash
         run: |
-          if [ $(ls list_failed_ext_${{ inputs.nightly-build }}*/list_failed_ext_${{ inputs.nightly-build }}*/ | wc -l) -gt 0 ]; then
-            cat list_failed_ext_${{ inputs.nightly-build }}/list_failed_ext_${{ inputs.nightly-build }}*/*.md >> result.csv
           python scripts/create_build_report.py
+      
+      - id: curr-date
+        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Upload REPORT
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.curr-date.outputs.date }}_REPORT_FILE
+          path: ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
