@@ -22,7 +22,7 @@ jobs:
   get-run-info:
     runs-on: ubuntu-latest
     outputs:
-      names_array: ${{ steps.names-array.outputs.names_array }}
+      matrix: ${{ steps.set-outputs.outputs.matrix }}
     steps:
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
@@ -66,147 +66,126 @@ jobs:
           name: run_info_tables.duckdb
           path: run_info_tables.duckdb
 
-      - name: Upload inputs
-        uses: actions/upload-artifact@v4
-        with:
-          name: inputs
-          path: inputs*.json
-
-  set-inputs:
-    name: Set inputs
-    needs: get-run-info
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    outputs:
-      nightly_build: ${{ steps.set-outputs.outputs.nightly_build }}
-      platform: ${{ steps.set-outputs.outputs.platform }}
-      architectures: ${{ steps.set-outputs.outputs.architectures }}
-      runs_on: ${{ steps.set-outputs.outputs.runs_on }}
-      run_id: ${{ steps.set-outputs.outputs.run_id }}
-      CURR_DATE: ${{ steps.curr-date.outputs.date }}
-    strategy:
-      matrix: 
-        names_array: ${{ fromJson(needs.get-run-info.outputs.names_array) }}
-    steps:
-      - name: Download input files
-        uses: actions/download-artifact@v4
-        with:
-          name: inputs
-
       - id: curr-date
         run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
       
-      - name: Set outputs from ${{ matrix.names_array }}
+      - name: Read JSON and create matrix
         id: set-outputs
         run: |
-          matrix=$(cat ${{ matrix.names_array }})
+          matrix=$(cat inputs.json | jq -c '.')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
-          nightly_build=$(echo $matrix | jq -r '.nightly_build')
-          echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
+          # nightly_build=$(echo $matrix | jq -r '.nightly_build')
+          # echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
 
-          platform=$(echo $matrix | jq -r '.platform')
-          echo "platform=$platform" >> $GITHUB_OUTPUT
+          # platform=$(echo $matrix | jq -r '.platform')
+          # echo "platform=$platform" >> $GITHUB_OUTPUT
 
-          architectures=$(echo $matrix | jq -r '.architectures')
-          echo "architectures=$architectures" >> $GITHUB_OUTPUT
+          # architectures=$(echo $matrix | jq -r '.architectures')
+          # echo "architectures=$architectures" >> $GITHUB_OUTPUT
           
-          nightly_build=$(echo $matrix | jq -r '.nightly_build')
-          echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
+          # nightly_build=$(echo $matrix | jq -r '.nightly_build')
+          # echo "nightly_build=$nightly_build" >> $GITHUB_OUTPUT
           
-          runs_on=$(echo $matrix | jq -r '.runs_on')
-          echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
+          # runs_on=$(echo $matrix | jq -r '.runs_on')
+          # echo "runs_on=$runs_on" >> $GITHUB_OUTPUT
 
-  run-tests:
-    name: Verify ${{ needs.set-inputs.outputs.nightly_build }} build and run test (${{ needs.set-inputs.outputs.platform }} ${{ needs.set-inputs.outputs.architectures }})
-    needs: set-inputs
-    runs-on: ${{ needs.set-inputs.outputs.runs_on }}
+  test:
+    name: Test
+    needs: get-run-info
+    strategy:
+      matrix:
+        inputs: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
+
+    runs-on: ${{ matrix.inputs.runs_on }}
     steps:
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-            python-version: '3.10'
+      - run: echo ${{ matrix.inputs.nightly_build }}
 
-      - name: Set up QEMU for aarch64 builds
-        if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
-        uses: docker/setup-qemu-action@v3
-        with:
-            platforms: linux/aarch64
+  # run-tests:
+    # name: Verify ${{ needs.set-inputs.outputs.nightly_build }} build and run test (${{ needs.set-inputs.outputs.platform }} ${{ needs.set-inputs.outputs.architectures }})
+    # needs: set-inputs
+    # runs-on: ${{ needs.set-inputs.outputs.runs_on }}
+    # steps:
+    #   - name: Set up Python
+    #     uses: actions/setup-python@v5
+    #     with:
+    #         python-version: '3.10'
+
+    #   - name: Set up QEMU for aarch64 builds
+    #     if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
+    #     uses: docker/setup-qemu-action@v3
+    #     with:
+    #         platforms: linux/aarch64
     
-      - name: Install QEMU dependencies
-        if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
-        shell: bash
-        run: |
-            sudo apt-get update
-            sudo apt-get install -y libc6-arm64-cross qemu-user-static
-            # set up QEMU for Docker
-            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+    #   - name: Install QEMU dependencies
+    #     if: ${{ needs.set-inputs.outputs.architectures == 'linux-aarch64' }}
+    #     shell: bash
+    #     run: |
+    #         sudo apt-get update
+    #         sudo apt-get install -y libc6-arm64-cross qemu-user-static
+    #         # set up QEMU for Docker
+    #         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    #         docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
       
-      - name: Pull docker image for win-arm64
-        if: ${{ needs.set-inputs.outputs.architectures == 'windows-arm64' }}
-        run: docker pull mcr.microsoft.com/windows/servercore:ltsc2022-arm64
+    #   - name: Pull docker image for win-arm64
+    #     if: ${{ needs.set-inputs.outputs.architectures == 'windows-arm64' }}
+    #     run: docker pull mcr.microsoft.com/windows/servercore:ltsc2022-arm64
 
-      - name: Install Python dependencies
-        run: pip install pandas tabulate docker
+    #   - name: Install Python dependencies
+    #     run: pip install pandas tabulate docker
             
-      - name: Checkout the repo with the script
-        uses: actions/checkout@v4
-        with:
-            repository: ${{ env.GH_REPO }}
-            sparse-checkout: scripts
-            path: scripts
+    #   - name: Checkout the repo with the script
+    #     uses: actions/checkout@v4
+    #     with:
+    #         repository: ${{ env.GH_REPO }}
+    #         sparse-checkout: scripts
+    #         path: scripts
 
-      - name: Checkout repo with extensions config file
-        uses: actions/checkout@v4
-        with:
-            repository: duckdb/duckdb
-            sparse-checkout: |
-                .github/config
-            path: ext
+    #   - name: Checkout repo with extensions config file
+    #     uses: actions/checkout@v4
+    #     with:
+    #         repository: duckdb/duckdb
+    #         sparse-checkout: |
+    #             .github/config
+    #         path: ext
               
-      - name: Verify and Test ${{ needs.set-inputs.outputs.nightly_build }} version
-        id: verify-build
-        shell: bash
-        run: |
-            docker --version
+    #   - name: Verify and Test ${{ needs.set-inputs.outputs.nightly_build }} version
+    #     id: verify-build
+    #     shell: bash
+    #     run: |
+    #         docker --version
             
-            echo "Running tests for ${{ needs.set-inputs.outputs.architectures }} on ${{ needs.set-inputs.outputs.runs_on }}"
-            if [[ '${{ needs.set-inputs.outputs.nightly_build }}' != 'Python' ]]; then
-                # if [[ '${{ needs.set-inputs.outputs.architectures }}' == 'linux-aarch64' ]]; then
-                #     name=${{ needs.set-inputs.outputs.architectures }}
-                # else 
-                #     name=${{ needs.set-inputs.outputs.platform}}
-                # fi
-                
-                name=${{ needs.set-inputs.outputs.architectures }}
-                
-                echo "Downloading duckdb-binaries-$name artifact..."
-                if gh run download ${{ needs.set-inputs.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-                    echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-                    if [[ '${{ needs.set-inputs.outputs.nightly_build }}' == 'OSX' ]]; then
-                        unzip duckdb_cli-*.zip -d duckdb_path
-                    else
-                        unzip duckdb_cli-$name.zip -d duckdb_path
-                    fi
-                    
-                    ls duckdb_path
-                    echo "Verifying version and testing extensions..."
-                    python scripts/scripts/verify_and_test.py \
-                        --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
-                        --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
-                        --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
-                fi
-            else
-                # for Python save run information to get all python builds versions using verify_and_test.py
-                python scripts/scripts/verify_and_test.py \
-                        --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
-                        --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
-                        --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
-            fi
+    #         echo "Running tests for ${{ needs.set-inputs.outputs.architectures }} on ${{ needs.set-inputs.outputs.runs_on }}"
+    #         if [[ '${{ needs.set-inputs.outputs.nightly_build }}' != 'Python' ]]; then
+    #           name=${{ needs.set-inputs.outputs.architectures }}
+              
+    #           echo "Downloading duckdb-binaries-$name artifact..."
+    #           if gh run download ${{ needs.set-inputs.outputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+    #               echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+    #               if [[ '${{ needs.set-inputs.outputs.nightly_build }}' == 'OSX' ]]; then
+    #                   unzip duckdb_cli-*.zip -d duckdb_path
+    #               else
+    #                   unzip duckdb_cli-$name.zip -d duckdb_path
+    #               fi
+                  
+    #               ls duckdb_path
+    #               echo "Verifying version and testing extensions..."
+    #               python scripts/scripts/verify_and_test.py \
+    #                   --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
+    #                   --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
+    #                   --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+    #           fi
+    #         else
+    #           # for Python save run information to get all python builds versions using verify_and_test.py
+    #           python scripts/scripts/verify_and_test.py \
+    #                   --nightly_build ${{ needs.set-inputs.outputs.nightly_build }} --platform ${{ needs.set-inputs.outputs.platform }} \
+    #                   --architecture ${{ needs.set-inputs.outputs.architectures }} --run_id ${{ needs.set-inputs.outputs.run_id }} \
+    #                   --runs_on ${{ needs.set-inputs.outputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+    #         fi
           
-      - name: Upload actions for extensions
-        uses: actions/upload-artifact@v4
-        with:
-          name: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}
-          path: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}.md
-          if-no-files-found: ignore
+    #   - name: Upload actions for extensions
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}
+    #       path: list_failed_ext_${{ needs.set-inputs.outputs.nightly_build }}_${{ needs.set-inputs.outputs.architectures }}.md
+    #       if-no-files-found: ignore

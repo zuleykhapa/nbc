@@ -303,6 +303,7 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
 #     return result
     
 def main():
+    matrix_data = []
     con = duckdb.connect('run_info_tables.duckdb')
     # list all nightly-build runs on current date
     result = list_all_runs(con)
@@ -315,10 +316,8 @@ def main():
         create_tables_for_report(nightly_build, con, build_info, url)
         create_build_report(nightly_build, con, build_info, url)
         
-        
         # if build_info.get("failures_count") == 0:
         if build_info.get("failures_count") != 0:
-            print("🦑", nightly_build, ":", build_info.get("failures_count"))
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
             # if get_binaries_count(nightly_build, con) > 0 or nightly_build == 'Python':
             # if nightly_build == 'Python':
@@ -334,22 +333,20 @@ def main():
                 case _:
                     runs_on = [ f"{ platform }-latest" ]
             
-            
             architectures = build_info.get('architectures')
             for architecture in architectures:
                 for r_on in runs_on:
-                    input_file = f"inputs_{ nightly_build }_{ architecture }_{ r_on }.json"
-                    # write outputs into a file which will be passed into a script triggering the test runs
-                    # print(json.dumps(matrix_data, indent=4))
-                    matrix_data = {
+                    # write settings into a file
+                    matrix_data.append({
                         "nightly_build": nightly_build,
                         "platform": platform,
                         "architectures": architecture,
                         "runs_on": r_on,
                         "run_id": build_info.get('nightly_build_run_id')
-                    }
-                    with open(input_file, "w") as f:
-                        json.dump(matrix_data, f, indent=4)
+                    })
+            print("🦑", nightly_build, ":", build_info.get("failures_count"))
+            with open("inputs.json", "a") as f:
+                json.dump(matrix_data, f, indent=4)
 
             ###########################
             # TRIGGER VERIFY AND TEST #
