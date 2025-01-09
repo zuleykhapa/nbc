@@ -94,9 +94,6 @@ jobs:
 
       - id: curr-date
         run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-
-      - name: Checkout repo
-        uses: actions/checkout@v4
       
       - name: Set inputs from ${{ matrix.names_array }}
         id: set-inputs
