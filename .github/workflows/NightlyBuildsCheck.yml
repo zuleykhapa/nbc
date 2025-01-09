@@ -111,7 +111,11 @@ jobs:
         run: |
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
-              name=${{ matrix.inputs.architectures }}
+              if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
+                name='osx'
+              else
+                name=${{ matrix.inputs.platform }}-${{ matrix.inputs.architectures }}
+              fi
               
               echo "Downloading duckdb-binaries-$name artifact..."
               # if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
