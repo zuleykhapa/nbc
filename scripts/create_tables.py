@@ -216,32 +216,38 @@ def main():
             """).fetchone()[0]
         create_tables_for_report(nightly_build, con, build_info, url)
         
-        if build_info.get("failures_count") == 0:
-        # if build_info.get("failures_count") != 0:
-            get_platform_arch_from_artifact_name(nightly_build, con, build_info)
-            platform = str(build_info.get("platform"))
-            match platform:
-                case 'osx':
-                    runs_on = [ "macos-latest" ]
-                case 'windows':
-                    runs_on = [ "windows-2019" ]
-                case _:
-                    runs_on = [ f"{ platform }-latest" ]
+        # if build_info.get("failures_count") == 0:
+        #     get_platform_arch_from_artifact_name(nightly_build, con, build_info)
+        #     platform = str(build_info.get("platform"))
+        #     match platform:
+        #         case 'osx':
+        #             runs_on = [ "macos-latest" ]
+        #         case 'windows':
+        #             runs_on = [ "windows-2019" ]
+        #         case _:
+        #             runs_on = [ f"{ platform }-latest" ]
             
-            architectures = build_info.get('architectures')
-            for architecture in architectures:
-                for r_on in runs_on:
-                    matrix_data.append({
-                        "nightly_build": nightly_build,
-                        "platform": platform,
-                        "architectures": architecture,
-                        "runs_on": r_on,
-                        "run_id": "12021416084"
-                        # "run_id": build_info.get('nightly_build_run_id')
-                    })
-            print("🦑", nightly_build, ":", build_info.get("failures_count"))
-            with open("inputs.json", "w") as f:
-                json.dump(matrix_data, f, indent=4)
+        #     architectures = build_info.get('architectures')
+        #     for architecture in architectures:
+        #         for r_on in runs_on:
+        #             matrix_data.append({
+        #                 "nightly_build": nightly_build,
+        #                 "platform": platform,
+        #                 "architectures": architecture,
+        #                 "runs_on": r_on,
+        #                 "run_id": "12021416084"
+        #                 # "run_id": build_info.get('nightly_build_run_id')
+        #             })
+        #     print("🦑", nightly_build, ":", build_info.get("failures_count"))
+        matrix_data.append({
+            "nightly_build": "LinuxRelease",
+            "platform": "linux",
+            "architectures": "amd64",
+            "runs_on": "ubuntu-latest",
+            "run_id": "12021416084"
+        })
+        with open("inputs.json", "w") as f:
+            json.dump(matrix_data, f, indent=4)
 
     con.close()
     
