@@ -114,8 +114,7 @@ jobs:
               fi
               
               echo "Downloading duckdb-binaries-$name artifact..."
-              # if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-              if gh run download 12021416084 --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+              if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
                   echo "Artifact duckdb-binaries-$name is successfuly downloaded."
                   unzip duckdb_cli-*.zip -d duckdb_path
                   
@@ -201,7 +200,7 @@ jobs:
           mkdir -p gh-pages
           mv ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md gh-pages/index.md
           cd gh-pages
-          echo "https://example.github.io/repository-name/" > CNAME # Optional for custom domains
+          echo "https://example.github.io/nbc/" > CNAME # Optional for custom domains
           git init
           git add .
           git commit -m "Deploy workflow results"
