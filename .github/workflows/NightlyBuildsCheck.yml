@@ -189,8 +189,6 @@ jobs:
       - run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git remote add origin https://zuleykhapa:${{ env.GH_TOKEN }}@github.com/zuleykhapa/${{ github.repository }}.git
-          git push origin main
           git add ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
           git commit -m "new file"
           git push origin main
