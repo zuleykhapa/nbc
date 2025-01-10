@@ -37,8 +37,9 @@ jobs:
         with:
           name: 'REPORT_FILE'
           path: report
-          run-id: ${{ github.event.workflow_run.workflow_id }}
+          run-id: ${{ github.event.workflow_run.id }}
       - run: |
+          echo ${{ github.event.workflow_run.id }}
           ls
           ls report
           mv report/*FILE.md REPORT_FILE.md
