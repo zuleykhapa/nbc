@@ -9,7 +9,7 @@ permissions:
 env:
   GH_REPO: duckdb/duckdb
   GH_ISSUE_REPO: ${{ github.repository }}
-  GH_TOKEN: ${{ github.token }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   get-run-info:
@@ -207,9 +207,7 @@ jobs:
           git branch -M main
 
       - name: Deploy to GitHub Pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd gh-pages
-          git remote add origin https://${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git remote add origin https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
           git push --force origin main:gh-pages
