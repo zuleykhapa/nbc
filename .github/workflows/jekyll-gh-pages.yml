@@ -37,13 +37,13 @@ jobs:
         with:
           pattern: '*_REPORT_FILE'
           path: report
-          run-id: ${{ github.event.workflow.run_id }}
+          run-id: ${{ github.event.workflow.id }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./report
+          source: ./report/2025-01-09_REPORT_FILE.md
           destination: ./_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
