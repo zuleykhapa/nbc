@@ -60,9 +60,10 @@ jobs:
   run-tests:
     name: Verify ${{ matrix.inputs.nightly_build }} build and run test (${{ matrix.inputs.platform }} ${{ matrix.inputs.architectures }})
     needs: get-run-info
+    if: 
     strategy:
       matrix:
-        inputs: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
+        inputs: ${{ needs.get-run-info.outputs.matrix != null }}
     continue-on-error: true
     runs-on: ${{ matrix.inputs.runs_on }}
     steps:
@@ -150,6 +151,7 @@ jobs:
   report:
     name: Create complete report
     runs-on: ubuntu-latest
+    if: always()
     needs: run-tests
     outputs:
       date: ${{ steps.curr-date.outputs.date }}
