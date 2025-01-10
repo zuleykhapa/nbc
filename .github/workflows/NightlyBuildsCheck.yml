@@ -191,6 +191,7 @@ jobs:
           path: ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
   
   pages:
+    needs: report
     uses: ./.github/workflows/DeployPages.yml
     with:
       run_id: ${{ github.run_id }}
