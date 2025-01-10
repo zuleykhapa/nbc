@@ -30,9 +30,6 @@ run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 config = args.config # ext/config/out_of_tree_extensions.cmake
 
-print("INPUTS:", nightly_build, platform, architecture, run_id, runs_on)
-
-
 ##########
 # DOCKER #
 ##########
@@ -114,7 +111,7 @@ def verify_version(tested_binary, file_name):
     return True
 
 def test_extensions(tested_binary, file_name):
-    action=["INSTALL", "LOAD"]
+    action=["INSTALL", "LOAD"] 
     print(extensions)
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
@@ -179,6 +176,7 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
 
 def main():
+    print("INPUTS:", nightly_build, platform, architecture, run_id, runs_on)
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "_"))
     counter = 0 # to write only one header per table
     path_pattern = os.path.join("duckdb_path", "duckdb*")
