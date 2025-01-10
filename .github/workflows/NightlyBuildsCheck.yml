@@ -60,10 +60,10 @@ jobs:
   run-tests:
     name: Verify ${{ matrix.inputs.nightly_build }} build and run test (${{ matrix.inputs.platform }} ${{ matrix.inputs.architectures }})
     needs: get-run-info
-    if: 
+    if: ${{ needs.get-run-info.outputs.matrix != null }}
     strategy:
       matrix:
-        inputs: ${{ needs.get-run-info.outputs.matrix != null }}
+        inputs: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
     continue-on-error: true
     runs-on: ${{ matrix.inputs.runs_on }}
     steps:
