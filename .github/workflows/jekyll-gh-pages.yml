@@ -30,21 +30,13 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
+    outputs:
+      date: ${{ steps.curr-date.outputs.date }}
     steps:
+      - id: curr-date
+        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: '2025-01-10_REPORT_FILE'
-          path: report
-          run-id: ${{ github.event.workflow_run.id }}
-      - run: |
-          echo ${{ github.event.workflow_run.id }}
-          ls
-          ls report
-          mv report/*FILE.md REPORT_FILE.md
-          ls
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll

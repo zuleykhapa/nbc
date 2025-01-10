@@ -186,7 +186,10 @@ jobs:
       
       - id: curr-date
         run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-
+      - run: |
+          git add ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+          git commit -m "upload report"
+          git push origin main
       - name: Upload REPORT
         uses: actions/upload-artifact@v4
         with:
