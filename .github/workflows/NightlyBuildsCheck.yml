@@ -188,12 +188,3 @@ jobs:
         with:
           name: ${{ steps.curr-date.outputs.date }}_REPORT_FILE
           path: ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
-  
-  pages:
-    name: Deploy Pages
-    needs: report
-    runs-on: ubuntu-latest
-    steps:
-      - uses: ./.github/workflows/DeployPages.yml
-        with:
-          RUN_ID: ${{ github.run_id }}
