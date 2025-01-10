@@ -211,5 +211,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd gh-pages
-          git remote add origin https://github.com/${{ github.repository }}.git
+          git remote add origin https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push --force origin main:gh-pages
