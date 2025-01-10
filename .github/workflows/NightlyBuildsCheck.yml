@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   issues: write
 
 env:
@@ -189,24 +189,8 @@ jobs:
         with:
           name: ${{ steps.curr-date.outputs.date }}_REPORT_FILE
           path: ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
-
-      - name: Configure Git for Deployment
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Prepare GitHub Pages Content
-        run: |
-          mkdir -p gh-pages
-          mv ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md gh-pages/index.md
-          cd gh-pages
-          git init
-          git add .
-          git commit -m "Deploy workflow results"
-          git branch -M main
-
-      - name: Deploy to GitHub Pages
-        run: |
-          cd gh-pages
-          git remote add origin https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          git push --force origin main:gh-pages
+  
+  pages:
+    uses: ./.github/workflows/DeployPages.yml
+    with:
+      run_id: ${{ github.run_id }}
