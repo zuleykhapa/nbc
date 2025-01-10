@@ -3,10 +3,11 @@ name: Deploy to GH Pages
 on:
   workflow_call:
     inputs:
-      run_id:
+      RUN_ID:
+        description: "Calling workflow ID"
         required: true
         type: string
-
+    
 permissions:
   contents: write
   issues: write
@@ -16,13 +17,14 @@ env:
 
 jobs:
   pages:
-    name: Pages
+    name: Deploy Pages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: *_REPORT_FILE
           path: .
+          run_id: ${{ inputs.RUN_ID }}
 
       - name: Configure Git for Deployment
         run: |
