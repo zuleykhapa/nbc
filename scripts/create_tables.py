@@ -44,14 +44,14 @@ def list_all_runs(con):
         "--jq", (
             '.[] | select(.name == ("OSX", "LinuxRelease", "Windows")) '
         )
+    ]
         # the whole list of builds:
         # "--jq", (
         #     '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
         #     '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
         # )
-    ]
     fetch_data(gh_run_list_command, gh_run_list_file)
-    result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
+    result = duckdb.sql(f"SELECT name FROM read_json('{ gh_run_list_file }')").fetchall()
     return result
 
 def prepare_data(nightly_build, con, build_info):
