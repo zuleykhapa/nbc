@@ -153,9 +153,7 @@ def get_binaries_count(nightly_build, con):
 
 def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
     if nightly_build in has_no_artifacts:
-        print("nightly_build", nightly_build)
         platform = str(nightly_build).lower()
-        print("platform", platform)
         architectures = ['amd64', 'x86_64'] if nightly_build == 'Python' else ['x64']
     else:    
         result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
@@ -179,10 +177,10 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
 def main():
     matrix_data = []
     con = duckdb.connect('run_info_tables.duckdb')
-    # list all nightly-build runs on current date
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
     for nightly_build in nightly_builds:
+        print(f"Creating tables for { nightly_build }...")
         build_info = {}
         prepare_data(nightly_build, con, build_info)
         url = con.execute(f"""
