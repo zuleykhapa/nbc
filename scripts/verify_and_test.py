@@ -130,7 +130,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
     try:
         print("🦑", container.exec_run("cat /etc/os-release", stdout=True, stderr=True).output.decode())
         print("🦑", container.exec_run("arch", stdout=True, stderr=True).output.decode())
-        print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
+        print("📌", container.exec_run("print("Current Python version:", python --version"), stdout=True, stderr=True).output.decode())
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
         result = container.exec_run(
             "python -c \"import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])\"",

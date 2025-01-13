@@ -101,8 +101,12 @@ jobs:
         run: | 
           pwd
           ls -lah
-          python -m venv ~/.venv
-          source ~/.venv/bin/activate
+          python -m venv .venv
+          if [[ '${{ matrix.inputs.nightly_build }}' != 'Windows' ]]; then
+            .venv\Scripts\activate
+          else
+            source .venv/bin/activate  # For Linux/Mac
+          fi
           pip install --upgrade pip
           pip install -r requirements.txt
             
@@ -110,6 +114,7 @@ jobs:
         id: verify-build
         shell: bash
         run: |
+            source .venv/bin/activate
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
               if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
