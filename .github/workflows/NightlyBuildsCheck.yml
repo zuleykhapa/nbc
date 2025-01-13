@@ -101,13 +101,13 @@ jobs:
         run: | 
           ls -lah
           set -x
-          
+
           mkdir -p .venv
           python -m venv .venv
           if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
             .venv/Scripts/activate
           else
-            source .venv/bin/activate  # For Linux/Mac
+            source .venv/bin/activate
           fi
           pip install --upgrade pip
           pip install -r requirements.txt
@@ -116,29 +116,33 @@ jobs:
         id: verify-build
         shell: bash
         run: |
+          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
+            .venv/Scripts/activate
+          else
             source .venv/bin/activate
-            echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
-            if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
-              if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
-                name='osx'
-              elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' ]]; then
-                name=${{ matrix.inputs.architectures }}
-              else
-                name=${{ matrix.inputs.architectures }}
-              fi
-              
-              echo "Downloading duckdb-binaries-$name artifact..."
-              if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
-                  echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-                  unzip duckdb_cli-*.zip -d duckdb_path
-              fi      
-                  ls duckdb_path
+          fi
+          echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
+          if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
+            if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
+              name='osx'
+            elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' ]]; then
+              name=${{ matrix.inputs.architectures }}
+            else
+              name=${{ matrix.inputs.architectures }}
             fi
-            echo "Verifying version and testing extensions..."
-            python scripts/verify_and_test.py \
-                --nightly_build ${{ matrix.inputs.nightly_build }} --platform ${{ matrix.inputs.platform }} \
-                --architecture ${{ matrix.inputs.architectures }} --run_id ${{ matrix.inputs.run_id }} \
-                --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+            
+            echo "Downloading duckdb-binaries-$name artifact..."
+            if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
+                echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+                unzip duckdb_cli-*.zip -d duckdb_path
+            fi      
+                ls duckdb_path
+          fi
+          echo "Verifying version and testing extensions..."
+          python scripts/verify_and_test.py \
+              --nightly_build ${{ matrix.inputs.nightly_build }} --platform ${{ matrix.inputs.platform }} \
+              --architecture ${{ matrix.inputs.architectures }} --run_id ${{ matrix.inputs.run_id }} \
+              --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
 
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
