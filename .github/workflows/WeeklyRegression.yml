@@ -223,48 +223,6 @@ jobs:
         run: |
           echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
 
-  check-nightly-builds:
-    name: Check Nightly Build failures
-    if: always()
-    needs:
-      - define-matrix
-      - configure-mount-and-download-benchmark-data
-      - build-and-setup
-    runs-on: self-hosted
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      
-      - name: Install GH CLI
-        uses: dev-hanz-ops/install-gh-cli-action@v0.2.0
-        with:
-          gh-cli-version: 2.63.2 # optional, see action.yml for current default
-
-      - name: Checkout a repo with the "count_consecutive_failures" script
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.gh_issue_repo }}
-          sparse-checkout: |
-            scripts/
-          path: ${{ env.mounted_directory_name }}
-
-      - name: Install requirements
-        shell: bash
-        run: | 
-          python -m venv .venv
-          .venv/bin/python -m pip install -r requirements.txt
-          source .venv/bin/activate
-
-      - name: Create run status report for nightly-builds on 'main'
-        working-directory: ${{ env.mounted_directory_name }}
-        continue-on-error: true
-        run: |
-          source .venv/bin/activate
-          # count consecutive failures and create a nightly_builds_status.md file
-          python -X faulthandler -m trace --trace scripts/count_consecutive_failures_WR.py
-
   run-regression-tests:
     name: Run Regression Tests
     if: always()
@@ -272,7 +230,6 @@ jobs:
       - define-matrix
       - configure-mount-and-download-benchmark-data
       - build-and-setup
-      - check-nightly-builds
     runs-on: self-hosted
     strategy:
       fail-fast: false
@@ -317,6 +274,50 @@ jobs:
           path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_name }}
           if-no-files-found: error
   
+  check-nightly-builds:
+    name: Check Nightly Build failures
+    if: always()
+    needs:
+      - define-matrix
+      - configure-mount-and-download-benchmark-data
+      - build-and-setup
+      - run-regression-tests
+    runs-on: self-hosted
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install GH CLI
+        uses: dev-hanz-ops/install-gh-cli-action@v0.2.0
+        with:
+          gh-cli-version: 2.63.2 # optional, see action.yml for current default
+
+      - name: Checkout a repo with the "count_consecutive_failures" script
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.gh_issue_repo }}
+          sparse-checkout: |
+            scripts/
+            requirements.txt
+          path: ${{ env.mounted_directory_name }}
+
+      - name: Install requirements
+        shell: bash
+        run: | 
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt
+          source .venv/bin/activate
+
+      - name: Create run status report for nightly-builds on 'main'
+        working-directory: ${{ env.mounted_directory_name }}
+        continue-on-error: true
+        run: |
+          source .venv/bin/activate
+          # count consecutive failures and create a nightly_builds_status.md file
+          python -X faulthandler -m trace --trace scripts/count_consecutive_failures_WR.py
+
   collect-issues:
     name: Collect issues
     needs: 
