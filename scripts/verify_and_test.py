@@ -184,18 +184,18 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
         print("FINISH")
         stop_container(container, container_name)
 
-##############
-### OTHERS ###
-##############
-
+###################################################################################
+###                                  OTHERS                                     ###
+###################################################################################
 
 def verify_version(tested_binary, file_name):
     full_sha = get_full_sha(run_id)
+    path = f"{ tested_binary }:/duckdb"
     if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
             "docker", "run", "--rm",
             "--platform", "linux/arm64",
-            "-v", f"{ tested_binary }:/duckdb",
+            "-v", path,
             "ubuntu:22.04",
             "/bin/bash", "-c", f"/duckdb --version"
         ]
