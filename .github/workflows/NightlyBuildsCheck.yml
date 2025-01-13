@@ -96,10 +96,10 @@ jobs:
                 .github/config
             path: ext
       
-      - name: Install requirements
+      - name: Setup venv and Install requirements
         shell: bash
         run: | 
-          ls -lah
+          # trace each command during execution
           set -x
 
           mkdir -p .venv

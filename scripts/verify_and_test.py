@@ -130,7 +130,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
     try:
         print("🦑", container.exec_run("cat /etc/os-release", stdout=True, stderr=True).output.decode())
         print("🦑", container.exec_run("arch", stdout=True, stderr=True).output.decode())
-        print("📌", container.exec_run("python --version"), stdout=True, stderr=True).output.decode()
+        print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
         result = container.exec_run(
             "python -c \"import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])\"",
@@ -193,7 +193,7 @@ def verify_version(tested_binary, file_name):
     if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
             "docker", "run", "--rm",
-            "--platform", architecture,
+            "--platform", "linux/arm64",
             "-v", f"{ tested_binary }:/duckdb",
             "ubuntu:22.04",
             "/bin/bash", "-c", f"/duckdb --version"
@@ -227,7 +227,7 @@ def test_extensions(tested_binary, file_name):
         if architecture.count("aarch64") or architecture.count("arm64"):
             select_installed = [
                 "docker", "run", "--rm",
-                "--platform", architecture,
+                "--platform", "linux/arm64",
                 "-v", f"{ tested_binary }:/duckdb",
                 "-e", f"ext={ ext }",
                 "ubuntu:22.04",
@@ -249,10 +249,10 @@ def test_extensions(tested_binary, file_name):
         if is_installed == 'false':
             for act in action:
                 print(f"{ act }ing { ext }...")
-                if architecture.count("aarch64"):
+                if architecture.count("aarch64") or architecture.count("arm64"):
                     install_ext = [
                         "docker", "run", "--rm",
-                        "--platform", f"{ architecture }",
+                        "--platform", "linux/arm64",
                         "-v", f"{ tested_binary }:/duckdb",
                         "-e", f"ext={ ext }",
                         "ubuntu:22.04",
