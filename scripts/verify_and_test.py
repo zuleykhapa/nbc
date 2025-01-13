@@ -9,6 +9,9 @@ import subprocess
 import sys
 import tabulate
 from shared_functions import fetch_data
+from shared_functions import list_extensions
+from shared_functions import sha_matching
+from shared_functions import verify_and_test_python_macos
 
 GH_REPO = 'duckdb/duckdb'
 
@@ -28,15 +31,6 @@ architecture = args.architecture if nightly_build == 'Python' else args.architec
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 config = args.config # ext/config/out_of_tree_extensions.cmake
-
-def list_extensions(config) :
-    with open(config, "r") as file:
-        content = file.read()
-    # Adjusted regex for matching after `load(`
-    pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
-    matches = re.findall(pattern, content)
-    return matches
-extensions = list_extensions(config)
 
 def get_full_sha(run_id):
     gh_headSha_command = [
@@ -81,7 +75,7 @@ def get_python_versions_from_run(run_id):
     file_name = "python_run_info.md"
     command = [
         "gh", "run", "view",
-        "--repo", "duckdb/duckdb",
+        "--repo", GH_REPO,
         run_id, "-v"
     ]
     fetch_data(command, file_name)
@@ -104,24 +98,15 @@ def verify_and_test_python(file_name, counter, run_id, architecture):
         verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter)
 
 def verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter):
-    if runs_on == 'macos-latest':
-        # install proper version of python
-        # run tests
-        print("macos")
-    elif runs_on == 'windows-2019':
-        docker_image = "mcr.microsoft.com/windows/servercore:ltsc2022-arm64"
-        command = f"""
-                powershell -Command "python --version; if (-not $?) {{ Write-Host 'Install Python'; }} "
-            """
+    if (architecture == 'arm64' and runs_on == 'macos-latest') or (architecture == 'amd64' and runs_on == 'windows-2019'):
+        verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config)
+        return
     elif runs_on == 'ubuntu-latest':
         docker_image = f"python:{ version }"
         architecture = f"linux/{ architecture }"
     else:
         raise ValueError(f"Unsupported OS: { runs_on }")
-    # if runs_on == 'ubuntu-latest':
-    #     docker_image = f"python:{ version }"
-    # else:
-    #     return
+
     arch = architecture.replace("/", "-")
     container_name = f"python-test-{ runs_on }-{ arch }-python-{ version.replace('.', '-') }"
     print(container_name)
@@ -139,21 +124,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
         print(f"Result: { result.output.decode() }")
         
         short_sha = result.output.decode().strip()
-        if not full_sha.startswith(short_sha):
-            print(f"""
-            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
-            - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
-            """)
-            with open(file_name, 'a') as f:
-                f.write(f"""
-                Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
-                """)
-        else:
-            print(f"""
-            Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
-            - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
-            """)
+        if sha_matching(short_sha, full_sha, file_name, nightly_build):
             print(f"TESTING EXTENSIONS ON python{ version }")
             extensions = list_extensions(config)
             action=["INSTALL", "LOAD"]
@@ -165,16 +136,16 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
                 if installed.output.decode().strip() == "False":
                     for act in action:
                         print(f"{ act }ing { ext }...")
-                        result = container.exec_run(f"""
+                        action_result_ouput = container.exec_run(f"""
                             python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\''))"
                         """,
                         stdout=True, stderr=True).output.decode().strip()
-                        print(f"STDOUT: {result}")
+                        print(f"STDOUT: {action_result_ouput}")
                         installed = container.exec_run(f"""
                             python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
                             """, stdout=True, stderr=True)
-                        print( f"Is { ext } already { act }ed: { installed.output.decode() }")
-                        if result != "None":
+                        print( f"Is { ext } { act }ed: { installed.output.decode() }")
+                        if action_result_ouput != "None":
                             with open(file_name, 'a') as f:
                                 if counter == 0:
                                     f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
@@ -184,9 +155,9 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
         print("FINISH")
         stop_container(container, container_name)
 
-###################################################################################
-###                                  OTHERS                                     ###
-###################################################################################
+##############
+### OTHERS ###
+##############
 
 def verify_version(tested_binary, file_name):
     full_sha = get_full_sha(run_id)
