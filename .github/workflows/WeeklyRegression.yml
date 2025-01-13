@@ -192,36 +192,36 @@ jobs:
           mkdir ../duckdb-curr-${{ matrix.branch }}/benchmark
           cp -r benchmark ../duckdb-curr-${{ matrix.branch }}
 
-      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
-        run: |
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
+      #   run: |
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
-      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-        run: |
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+      #   run: |
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
-      - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-        run: |
-          find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch }}/.github/regression/micro_extended.csv
+      # - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+      #   run: |
+      #     find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+      #     cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch }}/.github/regression/micro_extended.csv
 
-      - id: failed-build
-        shell: bash
-        if: failure()
-        run: |
-          echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
+      # - id: failed-build
+      #   shell: bash
+      #   if: failure()
+      #   run: |
+      #     echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
 
   check-nightly-builds:
     name: Check Nightly Build failures
