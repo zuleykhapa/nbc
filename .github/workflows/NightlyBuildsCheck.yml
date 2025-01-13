@@ -102,7 +102,7 @@ jobs:
           pwd
           ls -lah
           python -m venv .venv
-          if [[ '${{ matrix.inputs.nightly_build }}' != 'Windows' ]]; then
+          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
             .venv\Scripts\activate
           else
             source .venv/bin/activate  # For Linux/Mac
