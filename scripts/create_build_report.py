@@ -8,6 +8,9 @@ import os
 import glob
 import re
 from collections import defaultdict
+from shared_functions import fetch_data
+from shared_functions import list_all_runs
+from shared_functions import count_consecutive_failures
 
 GH_REPO = 'duckdb/duckdb'
 CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')

@@ -9,6 +9,7 @@ import os
 import glob
 import re
 from collections import defaultdict
+from shared_functions import count_consecutive_failures
 
 GH_REPO = 'duckdb/duckdb'
 CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -216,7 +217,7 @@ def main():
             """).fetchone()[0]
         create_tables_for_report(nightly_build, con, build_info, url)
         
-        if build_info.get("failures_count") == 0:
+        if count_consecutive_failures(nightly_build, con) == 0 or get_binaries_count(nightly_build, con) > 0:
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
             platform = str(build_info.get("platform"))
             match platform:
@@ -224,6 +225,8 @@ def main():
                     runs_on = [ "macos-latest" ]
                 case 'windows':
                     runs_on = [ "windows-2019" ]
+                case 'python':
+                    runs_on = [ "windows-2019", "macos-latest", "ubuntu-latest" ]
                 case _:
                     runs_on = [ f"{ platform }-latest" ]
             
