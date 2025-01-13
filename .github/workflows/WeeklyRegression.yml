@@ -112,14 +112,14 @@ jobs:
           sudo mount /dev/$mount_name ${{ env.mounted_directory_name }}
           sudo chown -R ubuntu ${{ env.mounted_directory_name }}
 
-      # - name: Load data for sf100 benchmarks.
-      #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name}}
-      #   run: |
-      #     wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
-      #     wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb
-      #     # aws s3 ccp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
-      #     # aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
+      - name: Load data for sf100 benchmarks.
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name}}
+        run: |
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+          # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb
+          # aws s3 ccp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
+          # aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
 
   build-and-setup:
     name: Build DuckDB versions and link the benchmarks
@@ -192,14 +192,14 @@ jobs:
           mkdir ../duckdb-curr-${{ matrix.branch }}/benchmark
           cp -r benchmark ../duckdb-curr-${{ matrix.branch }}
 
-      # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-      #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
-      #   run: |
-      #     mkdir duckdb_benchmark_data
-      #     cd duckdb_benchmark_data
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+        shell: bash 
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
+        run: |
+          mkdir duckdb_benchmark_data
+          cd duckdb_benchmark_data
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
       # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
       #   shell: bash 
@@ -210,18 +210,18 @@ jobs:
       #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
       #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
-      # - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
-      #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-      #   run: |
-      #     find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-      #     cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch }}/.github/regression/micro_extended.csv
+      - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+        run: |
+          find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch }}/.github/regression/micro_extended.csv
 
-      # - id: failed-build
-      #   shell: bash
-      #   if: failure()
-      #   run: |
-      #     echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
+      - id: failed-build
+        shell: bash
+        if: failure()
+        run: |
+          echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
 
   check-nightly-builds:
     name: Check Nightly Build failures
@@ -261,153 +261,153 @@ jobs:
           # count consecutive failures and create a nightly_builds_status.md file
           python -X faulthandler -m trace --trace scripts/count_consecutive_failures_WR.py
 
-  # run-regression-tests:
-  #   name: Run Regression Tests
-  #   if: always()
-  #   needs: 
-  #     - define-matrix
-  #     - configure-mount-and-download-benchmark-data
-  #     - build-and-setup
-  #     - check-nightly-builds
-  #   runs-on: self-hosted
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-  #       test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
-  #       exclude: 
-  #         - branch: ${{ needs.build-and-setup.outputs.failed_build }}
-  #   outputs:
-  #     file_name: ${{ steps.create.outputs.file_name }}
+  run-regression-tests:
+    name: Run Regression Tests
+    if: always()
+    needs: 
+      - define-matrix
+      - configure-mount-and-download-benchmark-data
+      - build-and-setup
+      - check-nightly-builds
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+        test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
+        exclude: 
+          - branch: ${{ needs.build-and-setup.outputs.failed_build }}
+    outputs:
+      file_name: ${{ steps.create.outputs.file_name }}
         
-  #   steps:
-  #     - name: Create a File Name 
-  #       if: always()
-  #       id: create
-  #       shell: bash
-  #       working-directory: ${{ env.mounted_directory_name }}
-  #       run: |
-  #         echo "file_name=$(echo regression_output_${{ matrix.test }}_${{ matrix.branch }}.txt | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
+    steps:
+      - name: Create a File Name 
+        if: always()
+        id: create
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
+        run: |
+          echo "file_name=$(echo regression_output_${{ matrix.test }}_${{ matrix.branch }}.txt | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
           
-  #     - name: Run Regression Test
-  #       if: contains(${{ steps.create.outputs.file_name }}, 'regression')
-  #       continue-on-error: true
-  #       shell: bash
-  #       working-directory: ${{ env.mounted_directory_name }}
-  #       run: |
-  #         export disable_timeout=""
-  #         if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
-  #           disable_timeout="--disable-timeout"
-  #         fi
-  #         python duckdb-curr-${{ matrix.branch }}/scripts/regression/test_runner.py \
-  #           --old=duckdb-old-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
-  #           --new=duckdb-curr-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
-  #           --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
-  #           --verbose > ${{ steps.create.outputs.file_name }}
+      - name: Run Regression Test
+        if: contains(${{ steps.create.outputs.file_name }}, 'regression')
+        continue-on-error: true
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
+        run: |
+          export disable_timeout=""
+          if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
+            disable_timeout="--disable-timeout"
+          fi
+          python duckdb-curr-${{ matrix.branch }}/scripts/regression/test_runner.py \
+            --old=duckdb-old-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
+            --new=duckdb-curr-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
+            --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
+            --verbose > ${{ steps.create.outputs.file_name }}
           
-  #     - name: Upload results
-  #       uses: actions/upload-artifact@v4
-  #       if: success()
-  #       with:
-  #         name: ${{ steps.create.outputs.file_name }}
-  #         path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_name }}
-  #         if-no-files-found: error
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ${{ steps.create.outputs.file_name }}
+          path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_name }}
+          if-no-files-found: error
   
-  # collect-issues:
-  #   name: Collect issues
-  #   needs: 
-  #     - start-runner
-  #     - define-matrix
-  #     - configure-mount-and-download-benchmark-data
-  #     - build-and-setup
-  #     - check-nightly-builds
-  #     - run-regression-tests
-  #   if: always()
-  #   runs-on: self-hosted
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: ${{ env.mounted_directory_name }}
-  #   strategy:
-  #     matrix: 
-  #       branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-  #       exclude: 
-  #         - branch: ${{ needs.build-and-setup.outputs.failed_build }}
+  collect-issues:
+    name: Collect issues
+    needs: 
+      - start-runner
+      - define-matrix
+      - configure-mount-and-download-benchmark-data
+      - build-and-setup
+      - check-nightly-builds
+      - run-regression-tests
+    if: always()
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
+    strategy:
+      matrix: 
+        branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+        exclude: 
+          - branch: ${{ needs.build-and-setup.outputs.failed_build }}
 
-  #   steps:
-  #     - name: Collect issues on Benchmarks
-  #       if: contains(github.ref_name, 'main')
-  #       run: |
-  #         # get versions
-  #         ./duckdb-old-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_old_version.txt
-  #         ./duckdb-curr-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_curr_version.txt
-  #         printf "\`\`\` \nRegressed Version of Branch: ${{ matrix.branch }} \n$(cat ${{ matrix.branch }}_curr_version.txt)\n\
-  #         OLD VERSION of Branch: ${{ matrix.branch }}\n$(cat ${{ matrix.branch }}_old_version.txt) \n \`\`\` \n" >> issue_body_${{ matrix.branch }}.txt
+    steps:
+      - name: Collect issues on Benchmarks
+        if: contains(github.ref_name, 'main')
+        run: |
+          # get versions
+          ./duckdb-old-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_old_version.txt
+          ./duckdb-curr-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_curr_version.txt
+          printf "\`\`\` \nRegressed Version of Branch: ${{ matrix.branch }} \n$(cat ${{ matrix.branch }}_curr_version.txt)\n\
+          OLD VERSION of Branch: ${{ matrix.branch }}\n$(cat ${{ matrix.branch }}_old_version.txt) \n \`\`\` \n" >> issue_body_${{ matrix.branch }}.txt
 
-  #         # collect issues on benchmarks runs
-  #         for output in regression*.txt; do
-  #           if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-  #             printf "[ ${{ matrix.branch }} ] [ Regression Test $output ]\n" >> issue_body_${{ matrix.branch }}.txt
-  #             printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch }}.txt
-  #           fi
-  #         done
-  #     - name: Add nightly-build failures
-  #       if: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md
-  #       run: |
-  #           printf "#### [ ${{ matrix.branch }} ] [ Nightly-Build ]\n\n" >> nightly_build_${{ matrix.branch }}.txt
-  #           echo $(cat `pwd`/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md) >> nightly_build_${{ matrix.branch }}.txt
+          # collect issues on benchmarks runs
+          for output in regression*.txt; do
+            if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
+              printf "[ ${{ matrix.branch }} ] [ Regression Test $output ]\n" >> issue_body_${{ matrix.branch }}.txt
+              printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch }}.txt
+            fi
+          done
+      - name: Add nightly-build failures
+        if: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md
+        run: |
+            printf "#### [ ${{ matrix.branch }} ] [ Nightly-Build ]\n\n" >> nightly_build_${{ matrix.branch }}.txt
+            echo $(cat `pwd`/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md) >> nightly_build_${{ matrix.branch }}.txt
 
-  # file-issue:
-  #   name: File Issue
-  #   needs: 
-  #     - start-runner
-  #     - define-matrix
-  #     - configure-mount-and-download-benchmark-data
-  #     - build-and-setup
-  #     - check-nightly-builds
-  #     - run-regression-tests
-  #     - collect-issues
-  #   if: always()
-  #   runs-on: self-hosted
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: ${{ env.mounted_directory_name }}
-  #   steps:
-  #     - name: File issue on preparation steps
-  #       if: |
-  #           contains(github.ref_name, 'main') && 
-  #           (needs.configure-mount-and-download-benchmark-data.result != 'success' ||
-  #           needs.build-and-setup.result != 'success')
-  #       run: |
-  #         echo -e "Benchmark preparation steps have failed, please check the \
-  #           [workflow run](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }}) for details.\n\n" > report.txt
+  file-issue:
+    name: File Issue
+    needs: 
+      - start-runner
+      - define-matrix
+      - configure-mount-and-download-benchmark-data
+      - build-and-setup
+      - check-nightly-builds
+      - run-regression-tests
+      - collect-issues
+    if: always()
+    runs-on: self-hosted
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
+    steps:
+      - name: File issue on preparation steps
+        if: |
+            contains(github.ref_name, 'main') && 
+            (needs.configure-mount-and-download-benchmark-data.result != 'success' ||
+            needs.build-and-setup.result != 'success')
+        run: |
+          echo -e "Benchmark preparation steps have failed, please check the \
+            [workflow run](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }}) for details.\n\n" > report.txt
 
-  #     - name: Create Regressions Report
-  #       run: |
-  #         if grep -q "REGRESSIONS DETECTED" issue_body*.txt; then
-  #           echo "Regressions detected, GitHub issue will be filed."
-  #           cat issue_body*.txt >> report.txt
-  #         fi
+      - name: Create Regressions Report
+        run: |
+          if grep -q "REGRESSIONS DETECTED" issue_body*.txt; then
+            echo "Regressions detected, GitHub issue will be filed."
+            cat issue_body*.txt >> report.txt
+          fi
 
-  #     - name: Add Nightly-Build Failures to Report
-  #       run: |
-  #         if grep -q "nightly-build" nightly_build*.md; then
-  #           echo "Adding nightly-build report to GitHub issue."
-  #           cat nightly_build*.md >> report.txt
-  #         fi
-  #         cat report.txt
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: REPORT
-  #         path: ${{ env.mounted_directory_name }}/report.txt
-  #     - name: Create Issue
-  #       if: success()
-  #       run: |
-  #         if [ -f report.txt ]; then
-  #           # create issue
-  #           gh issue create --repo zuleykhapa/nbc.github.io --title "Weekly Regression Test Failure" --body-file report.txt
-  #         fi
+      - name: Add Nightly-Build Failures to Report
+        run: |
+          if grep -q "nightly-build" nightly_build*.md; then
+            echo "Adding nightly-build report to GitHub issue."
+            cat nightly_build*.md >> report.txt
+          fi
+          cat report.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: REPORT
+          path: ${{ env.mounted_directory_name }}/report.txt
+      - name: Create Issue
+        if: success()
+        run: |
+          if [ -f report.txt ]; then
+            # create issue
+            gh issue create --repo zuleykhapa/nbc.github.io --title "Weekly Regression Test Failure" --body-file report.txt
+          fi
 
   # shutdown:
   #   name: shut down
