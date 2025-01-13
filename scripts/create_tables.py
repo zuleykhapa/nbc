@@ -204,7 +204,7 @@ def main():
             architectures = build_info.get('architectures')
             for architecture in architectures:
                 for r_on in runs_on:
-                    print(f"Writing inputs for { nightly_build } architecture: { architecture } runner: { runs_on }")
+                    print(f"Writing inputs for { nightly_build } architecture: { architecture } runner: { r_on }")
                     matrix_data.append({
                         "nightly_build": nightly_build,
                         "platform": platform,
