@@ -103,11 +103,20 @@ def verify_version(tested_binary, file_name):
         pragma_version = [ tested_binary, "--version" ]
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
-        print(f"The version of { nightly_build} build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
+        print(f"""
+            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n
+            - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+            """)
         with open(file_name, 'w') as f:
-            f.write(f"- The version of { nightly_build } build ({ short_sha }) doesn't match to the version triggered the build ({ full_sha }).\n")
+            f.write(f"""
+                Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n
+                - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+            """)
         return False
-    print(f"The versions of { nightly_build} build match: ({ short_sha }) and ({ full_sha }).\n")
+    print(f"""
+        Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).\n
+        - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+    """)
     return True
 
 def test_extensions(tested_binary, file_name):
