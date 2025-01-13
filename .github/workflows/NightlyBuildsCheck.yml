@@ -99,12 +99,13 @@ jobs:
       - name: Install requirements
         shell: bash
         run: | 
-          pwd
           ls -lah
+          set -x
+          
           mkdir -p .venv
           python -m venv .venv
           if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
-            .venv\Scripts\activate
+            .venv/Scripts/activate
           else
             source .venv/bin/activate  # For Linux/Mac
           fi
@@ -130,7 +131,7 @@ jobs:
               if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
                   echo "Artifact duckdb-binaries-$name is successfuly downloaded."
                   unzip duckdb_cli-*.zip -d duckdb_path
-                  
+              fi      
                   ls duckdb_path
             fi
             echo "Verifying version and testing extensions..."
