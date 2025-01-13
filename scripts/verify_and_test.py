@@ -161,7 +161,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
                 installed = container.exec_run(f"""
                     python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
                     """, stdout=True, stderr=True)
-                print( f"Is { ext } already installed: { installed.output.decode() }")
+                print( f"Is { ext } already { act }ed: { installed.output.decode() }")
                 if installed.output.decode().strip() == "False":
                     for act in action:
                         print(f"{ act }ing { ext }...")
@@ -173,7 +173,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
                         installed = container.exec_run(f"""
                             python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
                             """, stdout=True, stderr=True)
-                        print( f"Is { ext } already installed: { installed.output.decode() }")
+                        print( f"Is { ext } already { act }ed: { installed.output.decode() }")
                         if result != "None":
                             with open(file_name, 'a') as f:
                                 if counter == 0:
@@ -181,6 +181,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
                                     counter += 1
                                 f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
     finally:
+        print("FINISH")
         stop_container(container, container_name)
 
 ##############
