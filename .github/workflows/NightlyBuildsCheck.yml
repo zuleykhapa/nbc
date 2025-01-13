@@ -55,7 +55,7 @@ jobs:
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   run-tests:
-    name: Verify ${{ matrix.inputs.nightly_build }} build and run test (${{ matrix.inputs.platform }} ${{ matrix.inputs.architectures }})
+    name: Verify ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.platform }} - ${{ matrix.inputs.architectures }} and test
     needs: get-run-info
     if: ${{ needs.get-run-info.outputs.matrix != '[]' }}
     strategy:
