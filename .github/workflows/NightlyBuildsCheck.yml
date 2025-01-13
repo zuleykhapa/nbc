@@ -101,6 +101,7 @@ jobs:
         run: | 
           pwd
           ls -lah
+          mkdir -p .venv
           python -m venv .venv
           if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
             .venv\Scripts\activate
