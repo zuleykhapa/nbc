@@ -116,8 +116,10 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name}}
         run: |
-          aws s3 cp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
-          aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb
+          # aws s3 ccp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
+          # aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
 
   build-and-setup:
     name: Build DuckDB versions and link the benchmarks
@@ -257,7 +259,7 @@ jobs:
         continue-on-error: true
         run: |
           # count consecutive failures and create a nightly_builds_status.md file
-          python scripts/count_consecutive_failures_WR.py
+          python -X faulthandler -m trace --trace scripts/count_consecutive_failures_WR.py
 
   run-regression-tests:
     name: Run Regression Tests
@@ -404,7 +406,7 @@ jobs:
         run: |
           if [ -f report.txt ]; then
             # create issue
-            gh issue create --repo zuleykhapa/nbc --title "Weekly Regression Test Failure" --body-file report.txt
+            gh issue create --repo zuleykhapa/nbc.github.io --title "Weekly Regression Test Failure" --body-file report.txt
           fi
 
   shutdown:

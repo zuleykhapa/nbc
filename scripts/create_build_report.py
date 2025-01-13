@@ -106,7 +106,7 @@ def create_build_report(nightly_build, con, build_info, url):
                 FROM 'gh_run_list_{ nightly_build }'
                 WHERE conclusion = 'failure'
                 ORDER BY createdAt DESC
-                LIMIT { failures_count }
+                LIMIT 7
             """).df()
             f.write(failure_details.to_markdown(index=False))
             
@@ -116,7 +116,7 @@ def create_build_report(nightly_build, con, build_info, url):
             artifacts_per_job = con.execute(f"""
                 SELECT * FROM 'artifacts_per_jobs_{ nightly_build }';
                 """).df()
-            f.write(artifacts_per_job.to_markdown(index=False))
+            f.write(artifacts_per_job.to_markdown(index=False) + '\n')
         else:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
         
