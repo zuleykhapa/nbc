@@ -104,7 +104,7 @@ jobs:
 
           mkdir -p .venv
           python -m venv .venv
-          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
+          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
             .venv/Scripts/activate
           else
             source .venv/bin/activate
@@ -116,7 +116,7 @@ jobs:
         id: verify-build
         shell: bash
         run: |
-          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' ]]; then
+          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
             .venv/Scripts/activate
           else
             source .venv/bin/activate
