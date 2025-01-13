@@ -9,6 +9,8 @@ import os
 import glob
 import re
 from collections import defaultdict
+from shared_functions import fetch_data
+from shared_functions import list_all_runs
 from shared_functions import count_consecutive_failures
 
 GH_REPO = 'duckdb/duckdb'
@@ -25,35 +27,6 @@ def get_value_for_key(key, nightly_build):
         DESC LIMIT 1;
         """).fetchone()[0]
     return value
-    
-def fetch_data(command, f_output): # saves command execution results into a file
-    data = open(f_output, "w")
-    try:
-        subprocess.run(command, stdout=data, stderr=True, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Command failed with error: {e.stderr}")
-
-def list_all_runs(con):
-    gh_run_list_file = f"GH_run_list.json"
-    gh_run_list_command = [
-        "gh", "run", "list",
-        "--repo", GH_REPO,
-        "--event", "repository_dispatch",
-        "--created", CURR_DATE,
-        "--limit", "50",
-        "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
-        "--jq", (
-            '.[] | select(.name == ("OSX", "LinuxRelease", "Windows", "Python")) '
-        )
-    ]
-        # the whole list of builds:
-        # "--jq", (
-        #     '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
-        #     '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
-        # )
-    fetch_data(gh_run_list_command, gh_run_list_file)
-    result = duckdb.sql(f"SELECT name FROM read_json('{ gh_run_list_file }')").fetchall()
-    return result
 
 def prepare_data(nightly_build, con, build_info):
     gh_run_list_file = f"{ nightly_build }.json"

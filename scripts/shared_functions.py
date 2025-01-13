@@ -30,6 +30,13 @@ def list_all_runs(con):
     result = duckdb.sql(f"SELECT name FROM read_json('{ gh_run_list_file }')").fetchall()
     return result
 
+        # the whole list of builds:
+        # "--jq", (
+        #     '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
+        #     '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
+        # )
+
+
 def count_consecutive_failures(nightly_build, con):
     latest_success_rowid = con.execute(f"""
         SELECT rowid
