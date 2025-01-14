@@ -352,7 +352,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: regression_output_*.txt 
-          path: regression_output
+          path: ${{ env.mounted_directory_name }}/regression_output
 
       - name: Collect Benchmarks issues
         if: contains(github.ref_name, 'main')
@@ -393,7 +393,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: nightly_builds_status 
-          path: .
+          path: ${{ env.mounted_directory_name }}
 
       # - name: File issue on preparation steps
       #   if: |
