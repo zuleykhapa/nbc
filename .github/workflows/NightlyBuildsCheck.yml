@@ -23,7 +23,7 @@ jobs:
       CURR_DATE: ${{ steps.curr-date.outputs.CURR_DATE }}
     steps:
       - id: curr-date
-        run: echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+        run: echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
 
@@ -44,7 +44,7 @@ jobs:
         env:
           CURR_DATE: ${{ steps.curr-date.outputs.CURR_DATE }}
         run: |
-          echo ${{ env.CURR_DATE }}
+          echo ${{ steps.curr-date.outputs.CURR_DATE }}
           python scripts/create_tables.py
 
       - name: Upload DuckDB file
