@@ -70,13 +70,13 @@ jobs:
             python-version: '3.10'
 
       - name: Set up QEMU for aarch64 builds
-        if: ${{ matrix.inputs.architectures == 'linux-aarch64' }}
+        if: ${{ matrix.inputs.architectures == 'aarch64' }}
         uses: docker/setup-qemu-action@v3
         with:
             platforms: linux/aarch64
     
       - name: Install QEMU dependencies
-        if: ${{ matrix.inputs.architectures == 'linux-aarch64' }}
+        if: ${{ matrix.inputs.architectures == 'aarch64' }}
         shell: bash
         run: |
             sudo apt-get update
@@ -147,7 +147,11 @@ jobs:
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
               name='osx'
             elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' ]]; then
-                name=${{ matrix.inputs.platform }}-${{ matrix.inputs.architectures }}
+                if [[ '${{ matrix.inputs.architectures }}' == 'aarch64' ]]; then
+                  name=${{ matrix.inputs.platform }}-${{ matrix.inputs.architectures }}
+                else
+                  name=${{ matrix.inputs.platform }}
+                fi
             else
               name=${{ matrix.inputs.architectures }}
             fi
