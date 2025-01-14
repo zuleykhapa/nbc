@@ -147,7 +147,7 @@ jobs:
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
               name='osx'
             elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' ]]; then
-              name=${{ matrix.inputs.architectures }}
+              name=${{ matrix.inputs.platform }}
             else
               name=${{ matrix.inputs.architectures }}
             fi

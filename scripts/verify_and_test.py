@@ -171,6 +171,7 @@ def verify_version(tested_binary, file_name):
             "/bin/bash", "-c", f"/duckdb --version"
         ]
     else:
+        print("WE ARE HERE")
         pragma_version = [ tested_binary, "--version" ]
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
