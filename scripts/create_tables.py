@@ -215,17 +215,17 @@ def main():
 
         matrix_data.append({
                     "nightly_build": "LinuxRelease",
-                    "platform": linux,
-                    "architectures": amd64,
-                    "runs_on": ubuntu-latest,
-                    "run_id": 12021416084
+                    "platform": "linux",
+                    "architectures": "amd64",
+                    "runs_on": "ubuntu-latest",
+                    "run_id": "12021416084"
                 })
         matrix_data.append({
                     "nightly_build": "LinuxRelease",
-                    "platform": linux,
-                    "architectures": aarch64,
-                    "runs_on": ubuntu-latest,
-                    "run_id": 12021416084
+                    "platform": "linux",
+                    "architectures": "aarch64",
+                    "runs_on": "ubuntu-latest",
+                    "run_id": "12021416084"
                 })
         with open("inputs.json", "w") as f:
             json.dump(matrix_data, f, indent=4)
