@@ -423,13 +423,13 @@ jobs:
         with:
           name: REPORT
           path: ${{ env.mounted_directory_name }}/report.txt
-      - name: Create Issue
-        if: success()
-        run: |
-          if [ -f report.txt ]; then
-            # create issue
-            gh issue create --repo zuleykhapa/nbc.github.io --title "Weekly Regression Test Failure" --body-file report.txt
-          fi
+      # - name: Create Issue
+      #   if: success()
+      #   run: |
+      #     if [ -f report.txt ]; then
+      #       # create issue
+      #       gh issue create --repo zuleykhapa/nbc.github.io --title "Weekly Regression Test Failure" --body-file report.txt
+      #     fi
 
   # shutdown:
   #   name: shut down
