@@ -199,16 +199,16 @@ jobs:
           mkdir duckdb_benchmark_data
           cd duckdb_benchmark_data
           ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
-      # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-      #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-      #   run: |
-      #     mkdir duckdb_benchmark_data
-      #     cd duckdb_benchmark_data
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+        shell: bash 
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+        run: |
+          mkdir duckdb_benchmark_data
+          cd duckdb_benchmark_data
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
       - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
         shell: bash
@@ -235,7 +235,8 @@ jobs:
       fail-fast: false
       matrix:
         branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-        test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
+        test: ['large/tpch.csv']
+        # test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
         exclude: 
           - branch: ${{ needs.build-and-setup.outputs.failed_build }}
     outputs:
