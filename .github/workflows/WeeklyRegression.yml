@@ -320,6 +320,14 @@ jobs:
           # count consecutive failures and create a nightly_builds_status.md file
           python -X faulthandler -m trace --trace scripts/count_consecutive_failures_WR.py
 
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: nightly_builds_status
+          path: ${{ env.mounted_directory_name }}/nightly_builds_status.md
+          if-no-files-found: error
+
   collect-issues:
     name: Collect issues
     needs: 
@@ -342,7 +350,13 @@ jobs:
           - branch: ${{ needs.build-and-setup.outputs.failed_build }}
 
     steps:
-      - name: Collect issues on Benchmarks
+      - name: Download Benchmarks issues
+        uses: actions/download-artifact@v4
+        with:
+          pattern: regression_output_*.txt 
+          path: regression_output
+
+      - name: Collect Benchmarks issues
         if: contains(github.ref_name, 'main')
         run: |
           # get versions
@@ -352,17 +366,12 @@ jobs:
           OLD VERSION of Branch: ${{ matrix.branch }}\n$(cat ${{ matrix.branch }}_old_version.txt) \n \`\`\` \n" >> issue_body_${{ matrix.branch }}.txt
 
           # collect issues on benchmarks runs
-          for output in regression*.txt; do
+          for output in regression_output/regression*.txt; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
               printf "[ ${{ matrix.branch }} ] [ Regression Test $output ]\n" >> issue_body_${{ matrix.branch }}.txt
               printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch }}.txt
             fi
           done
-      - name: Add nightly-build failures
-        if: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md
-        run: |
-            printf "#### [ ${{ matrix.branch }} ] [ Nightly-Build ]\n\n" >> nightly_build_${{ matrix.branch }}.txt
-            echo $(cat `pwd`/duckdb-curr-${{ matrix.branch }}/nightly_builds_status.md) >> nightly_build_${{ matrix.branch }}.txt
 
   file-issue:
     name: File Issue
@@ -401,7 +410,7 @@ jobs:
         run: |
           if grep -q "nightly-build" nightly_build*.md; then
             echo "Adding nightly-build report to GitHub issue."
-            cat nightly_build*.md >> report.txt
+            cat nightly_build_status.md >> report.txt
           fi
           cat report.txt
       - uses: actions/upload-artifact@v4
