@@ -13,6 +13,7 @@ env:
   GH_REPO: duckdb/duckdb
   GH_ISSUE_REPO: ${{ github.repository }}
   GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  CURR_DATE: '' # placeholder for the CURR_DATE value
 
 jobs:
   get-run-info:
@@ -20,7 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-outputs.outputs.matrix }}
+      CURR_DATE: ${{ steps.curr-date.outputs.date }}
     steps:
+      - id: curr-date
+        run: echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
       - name: Checkout the repo with the script
         uses: actions/checkout@v4
 
@@ -136,6 +140,8 @@ jobs:
       - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
         id: verify-build
         shell: bash
+        env:
+          CURR_DATE: ${{ env.CURR_DATE }}
         run: |
           if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
             .venv/Scripts/activate
@@ -214,11 +220,13 @@ jobs:
       
       - name: Generate report
         shell: bash
+        env:
+          CURR_DATE: ${{ env.CURR_DATE }}
         run: |
           python scripts/create_build_report.py
       
-      - id: curr-date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+      # - id: curr-date
+      #   run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
       # - run: |
       #     git config --global user.name "github-actions[bot]"
       #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -228,5 +236,5 @@ jobs:
       - name: Upload REPORT
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.curr-date.outputs.date }}_REPORT_FILE
-          path: ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+          name: ${{ env.CURR_DATE }}_REPORT_FILE
+          path: ${{ env.CURR_DATE }}_REPORT_FILE.md

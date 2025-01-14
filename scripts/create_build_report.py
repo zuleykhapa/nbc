@@ -3,7 +3,6 @@ import pandas as pd
 import tabulate
 import subprocess
 import json
-import datetime
 import os
 import glob
 import re
@@ -12,8 +11,8 @@ from shared_functions import fetch_data
 from shared_functions import list_all_runs
 from shared_functions import count_consecutive_failures
 
-GH_REPO = 'duckdb/duckdb'
-CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+GH_REPO = os.environ.get('GH_REPO')
+CURR_DATE = os.environ.get('CURR_DATE')
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 has_no_artifacts = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
