@@ -363,19 +363,20 @@ jobs:
       - name: Collect Benchmarks issues
         if: contains(github.ref_name, 'main')
         run: |
-          # get versions
-          ./duckdb-old-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_old_version.txt
-          ./duckdb-curr-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_curr_version.txt
-          printf "\`\`\` \nRegressed Version of Branch: ${{ matrix.branch }} \n$(cat ${{ matrix.branch }}_curr_version.txt)\n\
-          OLD VERSION of Branch: ${{ matrix.branch }}\n$(cat ${{ matrix.branch }}_old_version.txt) \n \`\`\` \n" >> issue_body_${{ matrix.branch }}.txt
+          # # get versions
+          # ./duckdb-old-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_old_version.txt
+          # ./duckdb-curr-${{ matrix.branch }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch }}_curr_version.txt
+          # printf "\`\`\` \nRegressed Version of Branch: ${{ matrix.branch }} \n$(cat ${{ matrix.branch }}_curr_version.txt)\n\
+          # OLD VERSION of Branch: ${{ matrix.branch }}\n$(cat ${{ matrix.branch }}_old_version.txt) \n \`\`\` \n" >> issue_body_${{ matrix.branch }}.txt
 
-          # collect issues on benchmarks runs
-          for output in regression_output/regression*.txt; do
-            if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-              printf "[ ${{ matrix.branch }} ] [ Regression Test $output ]\n" >> issue_body_${{ matrix.branch }}.txt
-              printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch }}.txt
-            fi
-          done
+          # # collect issues on benchmarks runs
+          # for output in regression_output/regression*.txt; do
+          #   if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
+          #     printf "[ ${{ matrix.branch }} ] [ Regression Test $output ]\n" >> issue_body_${{ matrix.branch }}.txt
+          #     printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch }}.txt
+          #   fi
+          # done
+          echo "Was here"
 
   file-issue:
     name: File Issue
