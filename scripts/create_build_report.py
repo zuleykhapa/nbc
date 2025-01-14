@@ -14,7 +14,6 @@ from shared_functions import count_consecutive_failures
 GH_REPO = os.environ.get('GH_REPO')
 CURR_DATE = os.environ.get('CURR_DATE')
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
-print("📌", REPORT_FILE)
 has_no_artifacts = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
 def create_build_report(nightly_build, con, build_info, url):

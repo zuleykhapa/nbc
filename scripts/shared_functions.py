@@ -1,11 +1,13 @@
 import subprocess
 import duckdb
+import datetime
 import os
 import re
 
+#GH_REPO = 'duckdb/duckdb'
+#CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 GH_REPO = os.environ.get('GH_REPO')
 CURR_DATE = os.environ.get('CURR_DATE')
-
 
 def fetch_data(command, f_output): # saves command execution results into a file
     data = open(f_output, "w")
