@@ -37,6 +37,56 @@ jobs:
           else
             echo 'branches=["main", "feature"]' >> $GITHUB_OUTPUT
           fi
+    
+  check-nightly-builds:
+    name: Check Nightly Build failures
+    if: always()
+    needs:
+      - define-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      # - name: Install GH CLI
+      #   uses: dev-hanz-ops/install-gh-cli-action@v0.2.0
+      #   with:
+      #     gh-cli-version: 2.63.2 # optional, see action.yml for current default
+
+      - name: Checkout a repo with the "count_consecutive_failures" script
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.gh_issue_repo }}
+          sparse-checkout: |
+            scripts/
+            requirements.txt
+          path: ${{ env.mounted_directory_name }}
+
+      - name: Install requirements
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
+        run: | 
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt
+          source .venv/bin/activate
+
+      - name: Create run status report for nightly-builds on 'main'
+        working-directory: ${{ env.mounted_directory_name }}
+        continue-on-error: true
+        run: |
+          source .venv/bin/activate
+          # count consecutive failures and create a nightly_builds_status.md file
+          python -X faulthandler -m trace --trace scripts/count_consecutive_failures_WR.py
+
+      - name: Upload nightly-build status
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: nightly_builds_status
+          path: ${{ env.mounted_directory_name }}/nightly_builds_status.md
+          if-no-files-found: error
 
   start-runner:
     name: Start self-hosted ec2 runner
@@ -61,7 +111,7 @@ jobs:
         if: ${{ failure() && contains(github.ref_name, 'main') }}
         run: |
           gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body "AWS box with instance-id ${{ env.instance_id }} could not be started"
-
+  
   configure-mount-and-download-benchmark-data:
     name: Configure mount and download benchmark data
     needs: 
@@ -120,7 +170,7 @@ jobs:
           # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb
           # aws s3 ccp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
           # aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
-
+  
   build-and-setup:
     name: Build DuckDB versions and link the benchmarks
     needs: 
@@ -273,59 +323,6 @@ jobs:
         with:
           name: ${{ steps.create.outputs.file_name }}
           path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_name }}
-          if-no-files-found: error
-  
-  check-nightly-builds:
-    name: Check Nightly Build failures
-    if: always()
-    needs:
-      - define-matrix
-      - configure-mount-and-download-benchmark-data
-      - build-and-setup
-      - run-regression-tests
-    runs-on: self-hosted
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      
-      - name: Install GH CLI
-        uses: dev-hanz-ops/install-gh-cli-action@v0.2.0
-        with:
-          gh-cli-version: 2.63.2 # optional, see action.yml for current default
-
-      - name: Checkout a repo with the "count_consecutive_failures" script
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.gh_issue_repo }}
-          sparse-checkout: |
-            scripts/
-            requirements.txt
-          path: ${{ env.mounted_directory_name }}
-
-      - name: Install requirements
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: | 
-          python -m venv .venv
-          .venv/bin/python -m pip install -r requirements.txt
-          source .venv/bin/activate
-
-      - name: Create run status report for nightly-builds on 'main'
-        working-directory: ${{ env.mounted_directory_name }}
-        continue-on-error: true
-        run: |
-          source .venv/bin/activate
-          # count consecutive failures and create a nightly_builds_status.md file
-          python -X faulthandler -m trace --trace scripts/count_consecutive_failures_WR.py
-
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: nightly_builds_status
-          path: ${{ env.mounted_directory_name }}/nightly_builds_status.md
           if-no-files-found: error
 
   collect-issues:
