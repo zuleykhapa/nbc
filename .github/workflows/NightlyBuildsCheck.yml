@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-outputs.outputs.matrix }}
-      CURR_DATE: ${{ steps.curr-date.outputs.date }}
+      CURR_DATE: ${{ steps.curr-date.outputs.CURR_DATE }}
     steps:
       - id: curr-date
         run: echo "CURR_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
@@ -41,8 +41,10 @@ jobs:
       
       - name: Generate inputs
         shell: bash
+        env:
+          CURR_DATE: ${{ steps.curr-date.outputs.CURR_DATE }}
         run: |
-          gh --version
+          echo ${{ env.CURR_DATE }}
           python scripts/create_tables.py
 
       - name: Upload DuckDB file
@@ -222,6 +224,7 @@ jobs:
         env:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
+          echo ${{ env.CURR_DATE }}
           python scripts/create_build_report.py
       
       # - id: curr-date
