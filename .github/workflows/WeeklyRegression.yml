@@ -354,12 +354,6 @@ jobs:
           pattern: regression_output_*.txt 
           path: regression_output
 
-      - name: Download Benchmarks issues
-        uses: actions/download-artifact@v4
-        with:
-          name: nightly_builds_status 
-          path: .
-
       - name: Collect Benchmarks issues
         if: contains(github.ref_name, 'main')
         run: |
@@ -395,6 +389,12 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
     steps:
+      - name: Download Benchmarks issues
+        uses: actions/download-artifact@v4
+        with:
+          name: nightly_builds_status 
+          path: .
+
       # - name: File issue on preparation steps
       #   if: |
       #       contains(github.ref_name, 'main') && 
