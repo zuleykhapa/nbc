@@ -416,7 +416,7 @@ jobs:
           ls -R
           if grep -q "nightly-build" nightly_builds_status.md; then
             echo "Adding nightly-build report to GitHub issue."
-            cat nightly_build_status.md >> report.txt
+            cat nightly_builds_status.md >> report.txt
           fi
           cat report.txt
       - uses: actions/upload-artifact@v4
