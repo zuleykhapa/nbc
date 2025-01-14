@@ -13,7 +13,6 @@ env:
   GH_REPO: duckdb/duckdb
   GH_ISSUE_REPO: ${{ github.repository }}
   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-  CURR_DATE: '' # placeholder for the CURR_DATE value
 
 jobs:
   get-run-info:
@@ -141,7 +140,7 @@ jobs:
         id: verify-build
         shell: bash
         env:
-          CURR_DATE: ${{ env.CURR_DATE }}
+          CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
           if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
             .venv/Scripts/activate
@@ -186,9 +185,9 @@ jobs:
     name: Create complete report
     runs-on: ubuntu-latest
     if: always()
-    needs: run-tests
-    outputs:
-      date: ${{ steps.curr-date.outputs.date }}
+    needs:
+      - get-run-info 
+      - run-tests
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4
@@ -221,7 +220,7 @@ jobs:
       - name: Generate report
         shell: bash
         env:
-          CURR_DATE: ${{ env.CURR_DATE }}
+          CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
           python scripts/create_build_report.py
       
@@ -236,5 +235,5 @@ jobs:
       - name: Upload REPORT
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.CURR_DATE }}_REPORT_FILE
-          path: ${{ env.CURR_DATE }}_REPORT_FILE.md
+          name: ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE
+          path: ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md
