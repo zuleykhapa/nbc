@@ -143,8 +143,8 @@ def verify_and_test_python(file_name, counter, run_id, architecture, nightly_bui
     
     version = "3.13"
     for version in python_versions:
-    # architecture = "arm64"
-        if (architecture == 'arm64' and runs_on == 'macos-latest') or (architecture == 'amd64' and runs_on == 'windows-2019'):
+    # architecture = "arm64" #  (architecture == 'arm64' and runs_on == 'windows-2019')
+        if (architecture == 'amd64' and runs_on == 'macos-latest'):
             verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
             return
         elif runs_on == 'ubuntu-latest':

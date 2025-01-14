@@ -117,11 +117,15 @@ jobs:
           pip install -r requirements.txt
 
       - name: Set-up docker for macos
+        if: ${{ matrix.inputs.runs_on == 'macos-latest' }} && ${{ matrix.inputs.architecture == 'amd64' }}
         shell: bash
         run: |
           brew install --cask docker
-          
-          sudo service docker start
+      - name: Start Docker
+        run: open /Applications/Docker.app
+      - name: Wait for Docker to Start
+        run: |
+          while ! docker info > /dev/null 2>&1; do sleep 1; done
             
       - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
         id: verify-build
