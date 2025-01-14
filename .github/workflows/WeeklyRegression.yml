@@ -389,7 +389,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
     steps:
-      - name: Download Benchmarks issues
+      - name: Download nightly build status
         uses: actions/download-artifact@v4
         with:
           name: nightly_builds_status 
@@ -413,7 +413,8 @@ jobs:
 
       - name: Add Nightly-Build Failures to Report
         run: |
-          if grep -q "nightly-build" nightly_build*.md; then
+          ls -R
+          if grep -q "nightly-build" nightly_builds_status.md; then
             echo "Adding nightly-build report to GitHub issue."
             cat nightly_build_status.md >> report.txt
           fi
