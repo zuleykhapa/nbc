@@ -146,8 +146,8 @@ jobs:
           if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
               name='osx'
-            elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' ]]; then
-              name=${{ matrix.inputs.platform }}
+            elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' && '${{ matrix.inputs.architectures }}' == 'aarch64' ]]; then
+                name=${{ matrix.inputs.platform }}-${{ matrix.inputs.architectures }}
             else
               name=${{ matrix.inputs.architectures }}
             fi

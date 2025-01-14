@@ -212,23 +212,26 @@ def main():
         #                 "runs_on": r_on,
         #                 "run_id": build_info.get('nightly_build_run_id')
         #             })
-
-        matrix_data.append({
-                    "nightly_build": "LinuxRelease",
-                    "platform": "linux",
-                    "architectures": "amd64",
-                    "runs_on": "ubuntu-latest",
-                    "run_id": "12021416084"
-                })
-        matrix_data.append({
-                    "nightly_build": "LinuxRelease",
-                    "platform": "linux",
-                    "architectures": "aarch64",
-                    "runs_on": "ubuntu-latest",
-                    "run_id": "12021416084"
-                })
-        with open("inputs.json", "w") as f:
-            json.dump(matrix_data, f, indent=4)
+        # with open("inputs.json", "w") as f:
+        #     json.dump(matrix_data, f, indent=4)
+    
+    ### TEST LINUX
+    matrix_data.append({
+                "nightly_build": "LinuxRelease",
+                "platform": "linux",
+                "architectures": "amd64",
+                "runs_on": "ubuntu-latest",
+                "run_id": "12021416084"
+            })
+    matrix_data.append({
+                "nightly_build": "LinuxRelease",
+                "platform": "linux",
+                "architectures": "aarch64",
+                "runs_on": "ubuntu-latest",
+                "run_id": "12021416084"
+            })
+    with open("inputs.json", "w") as f:
+        json.dump(matrix_data, f, indent=4)
 
     con.close()
     
