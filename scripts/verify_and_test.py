@@ -87,26 +87,8 @@ def get_python_versions_from_run(run_id):
         result = [word[0] + '.' + word[1:] if len(word) > 1 else word + '.' for word in matches]
         return result
 
-def verify_and_test_python(file_name, counter, run_id, architecture):
-    python_versions = get_python_versions_from_run(run_id)
+def verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
-    full_sha = get_full_sha(run_id)
-    
-    version = "3.13"
-    for version in python_versions:
-    # architecture = "arm64"
-        verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter)
-
-def verify_python_build_and_test_extensions(client, version, full_sha, file_name, architecture, counter):
-    if (architecture == 'arm64' and runs_on == 'macos-latest') or (architecture == 'amd64' and runs_on == 'windows-2019'):
-        verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config)
-        return
-    elif runs_on == 'ubuntu-latest':
-        docker_image = f"python:{ version }"
-        architecture = f"linux/{ architecture }"
-    else:
-        raise ValueError(f"Unsupported OS: { runs_on }")
-
     arch = architecture.replace("/", "-")
     container_name = f"python-test-{ runs_on }-{ arch }-python-{ version.replace('.', '-') }"
     print(container_name)
@@ -132,7 +114,7 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
                 installed = container.exec_run(f"""
                     python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
                     """, stdout=True, stderr=True)
-                print( f"Is { ext } already { act }ed: { installed.output.decode() }")
+                print( f"Is { ext } already installed: { installed.output.decode() }")
                 if installed.output.decode().strip() == "False":
                     for act in action:
                         print(f"{ act }ing { ext }...")
@@ -154,6 +136,24 @@ def verify_python_build_and_test_extensions(client, version, full_sha, file_name
     finally:
         print("FINISH")
         stop_container(container, container_name)
+
+def verify_and_test_python(file_name, counter, run_id, architecture, nightly_build, runs_on):
+    python_versions = get_python_versions_from_run(run_id)
+    full_sha = get_full_sha(run_id)
+    
+    version = "3.13"
+    for version in python_versions:
+    # architecture = "arm64"
+        if (architecture == 'arm64' and runs_on == 'macos-latest') or (architecture == 'amd64' and runs_on == 'windows-2019'):
+            verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
+            return
+        elif runs_on == 'ubuntu-latest':
+            docker_image = f"python:{ version }"
+            architecture = f"linux/{ architecture }"
+            verify_and_test_python_linux()
+        else:
+            raise ValueError(f"Unsupported OS: { runs_on }")
+        
 
 ##############
 ### OTHERS ###
@@ -191,6 +191,7 @@ def verify_version(tested_binary, file_name):
     return True
 
 def test_extensions(tested_binary, file_name):
+    extensions = list_extensions(config)
     action=["INSTALL", "LOAD"]
     print(extensions)
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
@@ -260,7 +261,7 @@ def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "_"))
     counter = 0 # to write only one header per table
     if nightly_build == 'Python':
-        verify_and_test_python(file_name, counter, run_id, architecture)
+        verify_and_test_python(file_name, counter, run_id, architecture, nightly_build, runs_on)
     else:
         path_pattern = os.path.join("duckdb_path", "duckdb*")
         matches = glob.glob(path_pattern)

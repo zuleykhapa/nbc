@@ -76,7 +76,7 @@ Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
         """)
         return True
 
-def verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config):
+def verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on):
     # install passed version of python and pull duckdb
     print(version)
     # if version != '3.10':
