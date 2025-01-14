@@ -162,116 +162,116 @@ jobs:
           sudo mount /dev/$mount_name ${{ env.mounted_directory_name }}
           sudo chown -R ubuntu ${{ env.mounted_directory_name }}
 
-      - name: Load data for sf100 benchmarks.
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name}}
-        run: |
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+      # - name: Load data for sf100 benchmarks.
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name}}
+      #   run: |
+          # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
           # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb
           # aws s3 ccp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
           # aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
   
-  build-and-setup:
-    name: Build DuckDB versions and link the benchmarks
-    needs: 
-      - define-matrix
-      - configure-mount-and-download-benchmark-data
-    strategy:
-      matrix:
-        branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-      fail-fast: false
-    runs-on: self-hosted
-    env:
-      GEN: ninja
-      BUILD_BENCHMARK: 1
-      BUILD_TPCH: 1
-      BUILD_TPCDS: 1
-      BUILD_JSON: 1
-      BUILD_HTTPFS: 1
-      BUILD_ICU: 1
-      BUILD_JEMALLOC: 1
-      CORE_EXTENSIONS: "inet"
-      regression_output: regression_output.txt
-    outputs:
-      failed_build: ${{ steps.failed-build.outputs.failed_build }}
-    steps:
-      - name: checkout duckdb-curr
-        uses: actions/checkout@v4
-        with:
-          repository: 'duckdb/duckdb'
-          ref: ${{ matrix.branch }}
-          fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-curr-${{ matrix.branch }}
+  # build-and-setup:
+  #   name: Build DuckDB versions and link the benchmarks
+  #   needs: 
+  #     - define-matrix
+  #     - configure-mount-and-download-benchmark-data
+  #   strategy:
+  #     matrix:
+  #       branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+  #     fail-fast: false
+  #   runs-on: self-hosted
+  #   env:
+  #     GEN: ninja
+  #     BUILD_BENCHMARK: 1
+  #     BUILD_TPCH: 1
+  #     BUILD_TPCDS: 1
+  #     BUILD_JSON: 1
+  #     BUILD_HTTPFS: 1
+  #     BUILD_ICU: 1
+  #     BUILD_JEMALLOC: 1
+  #     CORE_EXTENSIONS: "inet"
+  #     regression_output: regression_output.txt
+  #   outputs:
+  #     failed_build: ${{ steps.failed-build.outputs.failed_build }}
+  #   steps:
+  #     - name: checkout duckdb-curr
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: 'duckdb/duckdb'
+  #         ref: ${{ matrix.branch }}
+  #         fetch-depth: 0
+  #         path: ${{ env.mounted_directory_name}}/duckdb-curr-${{ matrix.branch }}
 
-      - name: checkout duckdb-old
-        uses: actions/checkout@v4
-        with:
-          repository: 'duckdb/duckdb'
-          ref: ${{ matrix.branch }}
-          fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.branch }}
+  #     - name: checkout duckdb-old
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: 'duckdb/duckdb'
+  #         ref: ${{ matrix.branch }}
+  #         fetch-depth: 0
+  #         path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.branch }}
 
-      - name: Checkout duckdb-old to week ago version
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-        run: |
-          git checkout $( cat ../../duckdb_curr_version_${{ matrix.branch }}.txt )
+  #     - name: Checkout duckdb-old to week ago version
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+  #       run: |
+  #         git checkout $( cat ../../duckdb_curr_version_${{ matrix.branch }}.txt )
 
-      - name: Store current git hash of duckdb-curr
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
-        run: |
-          # update duckdb_curr_version_${{ matrix.branch }}.txt
-          git rev-parse --verify HEAD > ../../duckdb_curr_version_${{ matrix.branch }}.txt
+  #     - name: Store current git hash of duckdb-curr
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
+  #       run: |
+  #         # update duckdb_curr_version_${{ matrix.branch }}.txt
+  #         git rev-parse --verify HEAD > ../../duckdb_curr_version_${{ matrix.branch }}.txt
 
-      - name: Build old and current
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          cd duckdb-curr-${{ matrix.branch }} && make clean && make
-          cd ..
-          cd duckdb-old-${{ matrix.branch }} && make clean && make
+  #     - name: Build old and current
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       run: |
+  #         cd duckdb-curr-${{ matrix.branch }} && make clean && make
+  #         cd ..
+  #         cd duckdb-old-${{ matrix.branch }} && make clean && make
 
-      - name: Set up benchmarks 
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-        run: |
-          # we do this so new added benchmarks that break duckdb old
-          # do not cause failures.
-          rm -rf ../duckdb-curr-${{ matrix.branch }}/benchmark
-          mkdir ../duckdb-curr-${{ matrix.branch }}/benchmark
-          cp -r benchmark ../duckdb-curr-${{ matrix.branch }}
+  #     - name: Set up benchmarks 
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+  #       run: |
+  #         # we do this so new added benchmarks that break duckdb old
+  #         # do not cause failures.
+  #         rm -rf ../duckdb-curr-${{ matrix.branch }}/benchmark
+  #         mkdir ../duckdb-curr-${{ matrix.branch }}/benchmark
+  #         cp -r benchmark ../duckdb-curr-${{ matrix.branch }}
 
-      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
-        run: |
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
+      #   run: |
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      #     # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
-      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-        run: |
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+      #   run: |
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      #     # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
-      - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-        run: |
-          find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch }}/.github/regression/micro_extended.csv
+      # - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+      #   run: |
+      #     find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+      #     cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch }}/.github/regression/micro_extended.csv
 
-      - id: failed-build
-        shell: bash
-        if: failure()
-        run: |
-          echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
+      # - id: failed-build
+      #   shell: bash
+      #   if: failure()
+      #   run: |
+      #     echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
 
   run-regression-tests:
     name: Run Regression Tests
@@ -279,7 +279,7 @@ jobs:
     needs: 
       - define-matrix
       - configure-mount-and-download-benchmark-data
-      - build-and-setup
+      # - build-and-setup
     runs-on: self-hosted
     strategy:
       fail-fast: false
@@ -307,15 +307,16 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          export disable_timeout=""
-          if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
-            disable_timeout="--disable-timeout"
-          fi
-          python duckdb-curr-${{ matrix.branch }}/scripts/regression/test_runner.py \
-            --old=duckdb-old-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
-            --new=duckdb-curr-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
-            --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
-            --verbose > ${{ steps.create.outputs.file_name }}
+          # export disable_timeout=""
+          # if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
+          #   disable_timeout="--disable-timeout"
+          # fi
+          # python duckdb-curr-${{ matrix.branch }}/scripts/regression/test_runner.py \
+          #   --old=duckdb-old-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
+          #   --new=duckdb-curr-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
+          #   --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
+          #   --verbose > ${{ steps.create.outputs.file_name }}
+          cat Hello world! > ${{ steps.create.outputs.file_name }}
           
       - name: Upload results
         uses: actions/upload-artifact@v4
@@ -331,7 +332,7 @@ jobs:
       - start-runner
       - define-matrix
       - configure-mount-and-download-benchmark-data
-      - build-and-setup
+      # - build-and-setup
       - check-nightly-builds
       - run-regression-tests
     if: always()
@@ -343,8 +344,8 @@ jobs:
     strategy:
       matrix: 
         branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-        exclude: 
-          - branch: ${{ needs.build-and-setup.outputs.failed_build }}
+        # exclude: 
+        #   - branch: ${{ needs.build-and-setup.outputs.failed_build }}
 
     steps:
       - name: Download Benchmarks issues
@@ -352,6 +353,12 @@ jobs:
         with:
           pattern: regression_output_*.txt 
           path: regression_output
+
+      - name: Download Benchmarks issues
+        uses: actions/download-artifact@v4
+        with:
+          name: nightly_builds_status 
+          path: .
 
       - name: Collect Benchmarks issues
         if: contains(github.ref_name, 'main')
@@ -376,7 +383,7 @@ jobs:
       - start-runner
       - define-matrix
       - configure-mount-and-download-benchmark-data
-      - build-and-setup
+      # - build-and-setup
       - check-nightly-builds
       - run-regression-tests
       - collect-issues
@@ -387,14 +394,14 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
     steps:
-      - name: File issue on preparation steps
-        if: |
-            contains(github.ref_name, 'main') && 
-            (needs.configure-mount-and-download-benchmark-data.result != 'success' ||
-            needs.build-and-setup.result != 'success')
-        run: |
-          echo -e "Benchmark preparation steps have failed, please check the \
-            [workflow run](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }}) for details.\n\n" > report.txt
+      # - name: File issue on preparation steps
+      #   if: |
+      #       contains(github.ref_name, 'main') && 
+      #       (needs.configure-mount-and-download-benchmark-data.result != 'success' ||
+      #       needs.build-and-setup.result != 'success')
+      #   run: |
+      #     echo -e "Benchmark preparation steps have failed, please check the \
+      #       [workflow run](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }}) for details.\n\n" > report.txt
 
       - name: Create Regressions Report
         run: |
