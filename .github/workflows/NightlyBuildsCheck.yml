@@ -122,7 +122,7 @@ jobs:
         env:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
-          if [[ '${{ matrix.inputs.nightly_build }}' == 'Python' ]]
+          if [[ '${{ matrix.inputs.nightly_build }}' == 'Python' ]]; then
             if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
               .venv/Scripts/activate
             else
