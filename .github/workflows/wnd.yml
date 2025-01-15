@@ -25,14 +25,9 @@ jobs:
         run: | 
           mkdir -p .venv
           python -m venv .venv
-          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
-            # Install pyenv-win on Windows
-            git clone https://github.com/pyenv-win/pyenv-win.git $HOME/.pyenv
-            .venv/Scripts/activate
-          else
-            curl https://pyenv.run | bash
-            source .venv/bin/activate
-          fi
+          # Install pyenv-win on Windows
+          git clone https://github.com/pyenv-win/pyenv-win.git $HOME/.pyenv
+          .venv/Scripts/activate
           pip install --upgrade pip
           pip install -r requirements.txt
       - uses: owenthereal/action-upterm@v1
