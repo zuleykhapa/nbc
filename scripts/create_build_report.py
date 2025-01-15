@@ -1,4 +1,16 @@
+'''
+The scripts/create_build_report.py script job is to create a final report file "{ CURR_DATE }_REPORT_FILE.md".
+    For each name of nightly-build it writes the latest run's conclusion, in case of failure,
+    followed with a list of last 7 failed runs.
+    Then it adds 'artifacts_per_jobs_{ nightly_build }' table contents.
+
+Can be tested locally running 'python scripts/create_tables_and_inputs.py' with preconditions:
+    1. Run 'scripts/create_build_report.py'.
+    2. mkdir tables && mv run_info_tables.duckdb tables
+'''
+
 import duckdb
+import datetime
 import pandas as pd
 import tabulate
 import subprocess
@@ -11,8 +23,8 @@ from shared_functions import fetch_data
 from shared_functions import list_all_runs
 from shared_functions import count_consecutive_failures
 
-GH_REPO = os.environ.get('GH_REPO')
-CURR_DATE = os.environ.get('CURR_DATE')
+GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
+CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 has_no_artifacts = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
@@ -79,14 +91,13 @@ def create_build_report(nightly_build, con, build_info, url):
             artifacts_per_job = con.execute(f"""
                 SELECT * FROM 'artifacts_per_jobs_{ nightly_build }';
                 """).df()
-            f.write(artifacts_per_job.to_markdown(index=False) + '\n')
+            f.write(artifacts_per_job.to_markdown(index=False))
         else:
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
         
         # add extensions
-        file_name_pattern = f"failed_ext/ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
+        file_name_pattern = f"ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
         matching_files = glob.glob(file_name_pattern)
-        print(matching_files, "🦑")
         if matching_files:
             failed_extensions = con.execute(f"""
                 SELECT * FROM read_csv('{ file_name_pattern }')
@@ -99,7 +110,7 @@ def create_build_report(nightly_build, con, build_info, url):
 def main():
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
-    # list all nightly-build runs on current date
+    # list all nightly-build runs on current date to get all nightly-build names
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
     # create complete report
