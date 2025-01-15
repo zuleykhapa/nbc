@@ -1,6 +1,9 @@
 name: Windows
 on:
   workflow_dispatch
+
+env:
+    GH_TOKEN: ${{ github.token }}
 jobs:
   upterm:
     name: Run docker in windows
