@@ -34,7 +34,7 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("Python")) '
+            '.[] | select(.name == ("LinuxRelease")) '
             # '.[] | select(.name == ("OSX", "LinuxRelease", "Windows", "Python")) '
         )
     ]
