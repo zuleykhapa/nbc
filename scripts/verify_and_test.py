@@ -57,7 +57,7 @@ def verify_version(tested_binary, file_name):
             "docker", "run", "--rm",
             "--platform", architecture,
             "-v", tested_binary_path,
-            "ubuntu:22.04",
+            "ubuntu",
             "/bin/bash", "-c", f"/duckdb --version"
         ]
     else:
@@ -101,7 +101,7 @@ def test_extensions(tested_binary, file_name):
                 "--platform", architecture,
                 "-v", tested_binary_path,
                 "-e", f"ext={ ext }",
-                "ubuntu:22.04",
+                "ubuntu",
                 "/bin/bash", "-c", 
                 f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
             ]
@@ -123,10 +123,10 @@ def test_extensions(tested_binary, file_name):
                 if architecture.count("aarch64"):
                     install_ext = [
                         "docker", "run", "--rm",
-                        "--platform", f"{ architecture }",
+                        "--platform", architecture",
                         "-v", tested_binary_path,
                         "-e", f"ext={ ext }",
-                        "ubuntu:22.04",
+                        "ubuntu",
                         "/bin/bash", "-c",
                         f"/duckdb -c \"{ act } '{ ext }';\""
                     ]
