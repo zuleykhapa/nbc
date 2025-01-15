@@ -26,4 +26,7 @@ jobs:
           python -m venv .venv
           source .venv/Scripts/activate
           pip install -r requirements.txt
-      - uses: owenthereal/action-upterm@v1
+      - run: |
+          pwd
+          docker pull mcr.microsoft.com/windows:ltsc2019
+          # docker run --rm --platform linux/aarch64 -v /Users/zuleykhapavlichenkova/Documents/nbc/duckdb_path/duckdb.exe:/duckdb mcr.microsoft.com/windows/nanoserver:2025 /bin/bash -c "/duckdb --version"   
