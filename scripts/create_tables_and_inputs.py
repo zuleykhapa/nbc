@@ -284,7 +284,7 @@ def main():
     matrix_data.append({
         "nightly_build": "Windows",
         "platform": "windows",
-        "architectures": "windows-arm64",
+        "architectures": "windows-amd64",
         "runs_on": "windows-2019",
         "run_id": "12779008613"
     })
