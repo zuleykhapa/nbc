@@ -304,6 +304,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{github.repository}}
+          ref: 'main'
           sparse-checkout: regression_output_large_ingestion_main-2.txt
           path: ${{ env.mounted_directory_name }}/reg
       - name: Run Regression Test
