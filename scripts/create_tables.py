@@ -28,7 +28,7 @@ def get_value_for_key(key, nightly_build):
         """).fetchone()[0]
     return value
 
-def prepare_data(nightly_build, con, build_info):
+def save_run_data_to_json_files(nightly_build, con, build_info):
     gh_run_list_file = f"{ nightly_build }.json"
     runs_command = [
             "gh", "run", "list",
@@ -182,7 +182,7 @@ def main():
     for nightly_build in nightly_builds:
         print(f"Creating tables for { nightly_build }...")
         build_info = {}
-        prepare_data(nightly_build, con, build_info)
+        save_run_data_to_json_files(nightly_build, con, build_info)
         url = con.execute(f"""
             SELECT url FROM '{ nightly_build }.json'
             """).fetchone()[0]
