@@ -55,7 +55,7 @@ def verify_version(tested_binary, file_name):
     if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
             "docker", "run", "--rm",
-            "--platform", f{ platform }/{ architecture },
+            "--platform", architecture,
             "-v", tested_binary_path,
             "ubuntu:22.04",
             "/bin/bash", "-c", f"/duckdb --version"
