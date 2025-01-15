@@ -34,20 +34,20 @@ def list_all_runs(con):
         "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
         "--jq", (
-            '.[] | select(.name == ("LinuxRelease")) '
-            # '.[] | select(.name == ("OSX", "LinuxRelease", "Windows", "Python")) '
+            '.[] | select(.name == ("OSX", "LinuxRelease", "Windows", "Python")) '
         )
+
+        '''
+        the whole list of nightly-build names:
+        "--jq", (
+            '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
+            '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
+            )
+        '''
     ]
     fetch_data(gh_run_list_command, gh_run_list_file)
     result = duckdb.sql(f"SELECT name FROM read_json('{ gh_run_list_file }')").fetchall()
     return result
-
-        # the whole list of builds:
-        # "--jq", (
-        #     '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
-        #     '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
-        # )
-
 
 def count_consecutive_failures(nightly_build, con):
     latest_success_rowid = con.execute(f"""

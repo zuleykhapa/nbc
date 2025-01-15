@@ -101,7 +101,6 @@ jobs:
       
       - name: Setup venv and Install requirements
         shell: bash
-        # if: ${{ matrix.inputs.nightly_build == 'Python' }}
         run: | 
           mkdir -p .venv
           python -m venv .venv
@@ -122,13 +121,11 @@ jobs:
         env:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
-          # if [[ '${{ matrix.inputs.nightly_build }}' == 'Python' ]]; then
-            if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
-              .venv/Scripts/activate
-            else
-              source .venv/bin/activate
-            fi
-          # fi
+          if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
+            .venv/Scripts/activate
+          else
+            source .venv/bin/activate
+          fi
           echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
           if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
@@ -147,8 +144,7 @@ jobs:
             if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-$name; then
                 echo "Artifact duckdb-binaries-$name is successfuly downloaded."
                 unzip duckdb_cli-*.zip -d duckdb_path
-            fi      
-                ls duckdb_path
+            fi
           fi
           echo "Verifying version and testing extensions..."
           python scripts/verify_and_test.py \
@@ -206,15 +202,7 @@ jobs:
         run: |
           echo ${{ env.CURR_DATE }}
           python scripts/create_build_report.py
-      
-      # - id: curr-date
-      #   run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-      # - run: |
-      #     git config --global user.name "github-actions[bot]"
-      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
-      #     git commit -m "new file"
-      #     git push origin main
+
       - name: Upload REPORT
         uses: actions/upload-artifact@v4
         with:
