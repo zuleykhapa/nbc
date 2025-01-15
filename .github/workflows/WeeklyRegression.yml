@@ -369,7 +369,8 @@ jobs:
               printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch }}.txt
             fi
           done
-
+          cat issue_body_${{ matrix.branch }}.txt
+          
   file-issue:
     name: File Issue
     needs: 
