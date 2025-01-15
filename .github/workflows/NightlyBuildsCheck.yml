@@ -117,7 +117,7 @@ jobs:
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
               name='osx'
-            elif [[ '${{ matrix.inputs.architectures }}' == 'linux-arm64' ]]; then
+            elif [[ '${{ matrix.inputs.architectures }}' == 'linux-amd64' ]]; then
                 name=${{ matrix.inputs.platform }}
             else
               name=${{ matrix.inputs.architectures }}
