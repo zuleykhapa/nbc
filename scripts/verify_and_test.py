@@ -123,7 +123,7 @@ def test_extensions(tested_binary, file_name):
                 if architecture.count("aarch64"):
                     install_ext = [
                         "docker", "run", "--rm",
-                        "--platform", architecture",
+                        "--platform", architecture,
                         "-v", tested_binary_path,
                         "-e", f"ext={ ext }",
                         "ubuntu",
