@@ -358,12 +358,14 @@ jobs:
           printf "\`\`\` \nRegressed Version of Branch: ${{ matrix.branch }} \n$(cat ${{ matrix.branch }}_curr_version.txt)\n\
           OLD VERSION of Branch: ${{ matrix.branch }}\n$(cat ${{ matrix.branch }}_old_version.txt) \n \`\`\` \n" >> issue_body_${{ matrix.branch }}.txt
           # collect issues on benchmarks runs
-          for output in ${{ env.mounted_directory_name }}/regression_output/*.txt; do
+          # for output in regression_output/regression_output*/regression*.txt; do
+          for output in regression_output/regression*.txt; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
               printf "[ ${{ matrix.branch }} ] [ Regression Test $output ]\n" >> issue_body_${{ matrix.branch }}.txt
               printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch }}.txt
             fi
           done
+          ls regression_output
           cat issue_body_${{ matrix.branch }}.txt
           
   file-issue:
