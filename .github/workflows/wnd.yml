@@ -35,4 +35,4 @@ jobs:
           unzip duckdb_cli-*.zip -d duckdb_path
           ls
           docker pull mcr.microsoft.com/windows:ltsc2019
-          docker run --rm --platform windows/arm64 -v /Users/zuleykhapavlichenkova/Documents/nbc/duckdb_path/duckdb.exe:/duckdb windows /bin/bash -c "/duckdb --version"
+          docker run --rm --platform windows/arm64 -v /Users/zuleykhapavlichenkova/Documents/nbc/duckdb_path/duckdb.exe:/duckdb mcr.microsoft.com/windows:ltsc2019 /bin/bash -c "/duckdb --version"
