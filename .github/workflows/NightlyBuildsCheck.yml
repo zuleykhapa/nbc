@@ -32,7 +32,9 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
-
+        with:
+            python-version: '3.10'
+            
       - name: Install DuckDB for Python
         shell: bash
         run: |
@@ -70,7 +72,9 @@ jobs:
     steps:
       - name: Set up Python
         uses: actions/setup-python@v5
-
+        with:
+            python-version: '3.10'
+            
       - name: Set up QEMU for aarch64 builds
         if: ${{ matrix.inputs.architectures == 'aarch64' }}
         uses: docker/setup-qemu-action@v3
@@ -151,6 +155,8 @@ jobs:
       
       - name: Set up Python
         uses: actions/setup-python@v5
+        with:
+            python-version: '3.10'
 
       - name: Install DuckDB for Python
         shell: bash
