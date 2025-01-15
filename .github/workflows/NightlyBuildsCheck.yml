@@ -117,12 +117,8 @@ jobs:
             echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
               name='osx'
-            elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' ]]; then
-              if [[ '${{ matrix.inputs.architectures }}' == 'linux-aarch64' ]]
-                name=${{ matrix.inputs.platform }}-${{ matrix.inputs.architectures }}
-              else
+            elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' && '${{ matrix.inputs.architectures }}' == 'linux-aarch64' ]]; then
                 name=${{ matrix.inputs.platform }}
-              fi
             else
               name=${{ matrix.inputs.architectures }}
             fi
