@@ -101,7 +101,7 @@ jobs:
       
       - name: Setup venv and Install requirements
         shell: bash
-        if: ${{ matrix.inputs.nightly_build == 'Python' }}
+        # if: ${{ matrix.inputs.nightly_build == 'Python' }}
         run: | 
           mkdir -p .venv
           python -m venv .venv
@@ -122,13 +122,13 @@ jobs:
         env:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
-          if [[ '${{ matrix.inputs.nightly_build }}' == 'Python' ]]; then
+          # if [[ '${{ matrix.inputs.nightly_build }}' == 'Python' ]]; then
             if [[ '${{ matrix.inputs.nightly_build }}' == 'Windows' || '${{ matrix.inputs.runs_on }}' == 'windows-2019' ]]; then
               .venv/Scripts/activate
             else
               source .venv/bin/activate
             fi
-          fi
+          # fi
           echo "Running tests for ${{ matrix.inputs.architectures }} on ${{ matrix.inputs.runs_on }}"
           if [[ '${{ matrix.inputs.nightly_build }}' != 'Python' ]]; then
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
