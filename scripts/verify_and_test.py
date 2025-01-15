@@ -55,14 +55,23 @@ def verify_version(tested_binary, file_name):
     if architecture.count("aarch64") or architecture.count("arm64"):
         pragma_version = [
             "docker", "run", "--rm",
-            "--platform", architecture,
+            "--platform", f{ platform }/{ architecture },
             "-v", tested_binary_path,
             "ubuntu:22.04",
             "/bin/bash", "-c", f"/duckdb --version"
         ]
     else:
         pragma_version = [ tested_binary, "--version" ]
-    short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
+    try:
+        result = subprocess.run(pragma_version, check=True, text=True, capture_output=True)
+        short_sha = result.stdout.strip().split()[-1]
+    except subprocess.CalledProcessError as e:
+        print(f"Error: Command failed with exit code {e.returncode}")
+        print(f"Command: {e.cmd}")
+        print(f"Output: {e.output}")
+        print(f"Error Output: {e.stderr}")
+        raise
+
     if not full_sha.startswith(short_sha):
         print(f"""
         Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n

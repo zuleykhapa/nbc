@@ -263,14 +263,14 @@ def main():
     matrix_data.append({
         "nightly_build": "LinuxRelease",
         "platform": "linux",
-        "architectures": "aarch64",
+        "architectures": "linux-aarch64",
         "runs_on": "ubuntu-latest",
         "run_id": "12021416084"
     })
     matrix_data.append({
         "nightly_build": "LinuxRelease",
         "platform": "linux",
-        "architectures": "amd64",
+        "architectures": "linux-amd64",
         "runs_on": "ubuntu-latest",
         "run_id": "12021416084"
     })
