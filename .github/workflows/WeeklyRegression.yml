@@ -317,6 +317,8 @@ jobs:
             --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
             --verbose > ${{ steps.create.outputs.file_name }}
           
+          echo " REGRESSIONS DETECTED  ============= OTHER TIMINGS" > ${{ steps.create.outputs.file_name }}
+          
       - name: Upload results
         uses: actions/upload-artifact@v4
         if: success()
