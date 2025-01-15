@@ -61,7 +61,7 @@ jobs:
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   run-tests:
-    name: Verify ${{ matrix.inputs.nightly_build }} build and run test (${{ matrix.inputs.platform }} ${{ matrix.inputs.architectures }})
+    name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.platform }} - ${{ matrix.inputs.architectures }}
     needs: get-run-info
     if: ${{ needs.get-run-info.outputs.matrix != '[]' }}
     strategy:
@@ -74,7 +74,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
             python-version: '3.10'
-            
+
       - name: Set up QEMU for aarch64 builds
         if: ${{ matrix.inputs.architectures == 'aarch64' }}
         uses: docker/setup-qemu-action@v3
@@ -118,7 +118,11 @@ jobs:
             if [[ '${{ matrix.inputs.nightly_build }}' == 'OSX' ]]; then
               name='osx'
             elif [[ '${{ matrix.inputs.nightly_build }}' == 'LinuxRelease' ]]; then
-              name=${{ matrix.inputs.platform }}
+              if [[ '${{ matrix.inputs.architectures }}' == 'linux-aarch64' ]]
+                name=${{ matrix.inputs.platform }}-${{ matrix.inputs.architectures }}
+              else
+                name=${{ matrix.inputs.platform }}
+              fi
             else
               name=${{ matrix.inputs.architectures }}
             fi
