@@ -8,8 +8,7 @@ jobs:
     steps:
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:
-            python-version: '3.10'
+
       - name: Install DuckDB for Python
         shell: bash
         run: |
@@ -25,7 +24,6 @@ jobs:
         run: | 
           python -m venv .venv
           source .venv/Scripts/activate
-          pip install --upgrade pip
           pip install -r requirements.txt
       - run: |
           gh run download 12779008613 --repo duckdb/duckdb -n duckdb-binaries-windows-arm64
