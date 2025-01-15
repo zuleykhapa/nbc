@@ -300,7 +300,12 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           echo "file_name=$(echo regression_output_${{ matrix.test }}_${{ matrix.branch }}.txt | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
-          
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ${{github.repository}}
+          sparse-checkout: regression_output_large_ingestion_main-2.txt
+          path: ${{ env.mounted_directory_name }}/reg
       - name: Run Regression Test
         if: contains(${{ steps.create.outputs.file_name }}, 'regression')
         continue-on-error: true
@@ -317,7 +322,7 @@ jobs:
           #   --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
           #   --verbose > ${{ steps.create.outputs.file_name }}
           
-          echo " REGRESSIONS DETECTED  ============= OTHER TIMINGS" >> ${{ steps.create.outputs.file_name }}
+          cat reg/*.txt >> ${{ steps.create.outputs.file_name }}
           
       - name: Upload results
         uses: actions/upload-artifact@v4
