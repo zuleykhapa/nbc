@@ -27,4 +27,7 @@ jobs:
           source .venv/Scripts/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-      - uses: owenthereal/action-upterm@v1
+      - run: |
+          gh run download 12779008613 --repo duckdb/duckdb -n duckdb-binaries-windows-arm64
+          unzip duckdb_cli-*.zip -d duckdb_path
+          docker run --rm --platform windows/arm64 -v /Users/zuleykhapavlichenkova/Documents/nbc/duckdb_path/duckdb.exe:/duckdb windows /bin/bash -c "/duckdb --version"
