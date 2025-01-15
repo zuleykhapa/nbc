@@ -3,12 +3,13 @@ on:
   workflow_dispatch
 jobs:
   upterm:
-    name: Run upterm
+    name: Run docker in windows
     runs-on: windows-2019
     steps:
       - name: Set up Python
         uses: actions/setup-python@v5
-
+        with:
+            python-version: '3.10'
       - name: Install DuckDB for Python
         shell: bash
         run: |
@@ -26,6 +27,9 @@ jobs:
           source .venv/Scripts/activate
           pip install -r requirements.txt
       - run: |
+          pwd
           gh run download 12779008613 --repo duckdb/duckdb -n duckdb-binaries-windows-arm64
           unzip duckdb_cli-*.zip -d duckdb_path
+          ls
+          docker pull mcr.microsoft.com/windows:ltsc2019
           docker run --rm --platform windows/arm64 -v /Users/zuleykhapavlichenkova/Documents/nbc/duckdb_path/duckdb.exe:/duckdb windows /bin/bash -c "/duckdb --version"
