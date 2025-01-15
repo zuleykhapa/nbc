@@ -26,6 +26,9 @@ jobs:
 
       - name: Checkout repo with the script
         uses: actions/checkout@v4
+        with:
+          repository: ${{github.repository}}
+          ref: 'clone-internal'
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -87,8 +90,11 @@ jobs:
       - name: Install Python dependencies
         run: pip install duckdb pandas tabulate docker
             
-      - name: Checkout repo with the scripts
+      - name: Checkout repo with the script
         uses: actions/checkout@v4
+        with:
+          repository: ${{github.repository}}
+          ref: 'clone-internal'
 
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
