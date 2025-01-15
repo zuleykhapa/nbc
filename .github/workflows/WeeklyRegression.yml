@@ -305,7 +305,7 @@ jobs:
         with:
           repository: ${{github.repository}}
           ref: 'main'
-          sparse-checkout: regression_output_large_ingestion_main-2.txt
+          sparse-checkout: regression_output_micro_extended_main.txt
           path: ${{ env.mounted_directory_name }}/reg
       - name: Run Regression Test
         if: contains(${{ steps.create.outputs.file_name }}, 'regression')
