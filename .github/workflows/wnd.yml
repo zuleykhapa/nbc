@@ -3,7 +3,7 @@ on:
   workflow_dispatch
 jobs:
   upterm:
-    name: Run upterm
+    name: Run docker in windows
     runs-on: windows-2019
     steps:
       - name: Set up Python
