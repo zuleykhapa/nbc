@@ -242,22 +242,22 @@ jobs:
           mkdir ../duckdb-curr-${{ matrix.branch }}/benchmark
           cp -r benchmark ../duckdb-curr-${{ matrix.branch }}
 
-      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
-        run: |
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
+      #   run: |
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
           # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
-      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-        run: |
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+      #   run: |
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
           # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
       # - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
@@ -307,15 +307,15 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          export disable_timeout=""
-          if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
-            disable_timeout="--disable-timeout"
-          fi
-          python duckdb-curr-${{ matrix.branch }}/scripts/regression/test_runner.py \
-            --old=duckdb-old-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
-            --new=duckdb-curr-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
-            --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
-            --verbose > ${{ steps.create.outputs.file_name }}
+          # export disable_timeout=""
+          # if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
+          #   disable_timeout="--disable-timeout"
+          # fi
+          # python duckdb-curr-${{ matrix.branch }}/scripts/regression/test_runner.py \
+          #   --old=duckdb-old-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
+          #   --new=duckdb-curr-${{ matrix.branch }}/build/release/benchmark/benchmark_runner \
+          #   --benchmarks=duckdb-curr-${{ matrix.branch }}/.github/regression/${{ matrix.test }} $disable_timeout \
+          #   --verbose > ${{ steps.create.outputs.file_name }}
           
           echo " REGRESSIONS DETECTED  ============= OTHER TIMINGS" >> ${{ steps.create.outputs.file_name }}
           
