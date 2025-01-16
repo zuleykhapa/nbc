@@ -334,11 +334,11 @@ jobs:
           - branch: ${{ needs.build-and-setup.outputs.failed_build }}
 
     steps:
-      - name: Download Benchmarks issues
-        uses: actions/download-artifact@v4
-        with:
-          pattern: regression_output_*.txt 
-          path: ${{ env.mounted_directory_name }}/regression_output
+      # - name: Download Benchmarks issues
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     pattern: regression_output_*.txt 
+      #     path: ${{ env.mounted_directory_name }}/regression_output
 
       - name: Collect Benchmarks issues
         # if: contains(github.ref_name, 'main')
