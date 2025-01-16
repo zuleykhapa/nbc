@@ -101,7 +101,7 @@ def test_extensions(tested_binary, file_name):
                 "--platform", architecture,
                 "-v", tested_binary_path,
                 "-e", f"ext={ ext }",
-                "ubuntu",
+                "ubuntu:latest",
                 "/bin/bash", "-c", 
                 f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
             ]
@@ -126,7 +126,7 @@ def test_extensions(tested_binary, file_name):
                         "--platform", architecture,
                         "-v", tested_binary_path,
                         "-e", f"ext={ ext }",
-                        "ubuntu",
+                        "ubuntu:latest",
                         "/bin/bash", "-c",
                         f"/duckdb -c \"{ act } '{ ext }';\""
                     ]
@@ -153,6 +153,9 @@ def test_extensions(tested_binary, file_name):
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ act }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
+        if os.stat(file_name) == 0:
+            with open(file_name, 'w') as f:
+                f.write(f"All extensions are installed and loaded successfully.\nList of tested extensions:\n{ extensions }")
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "_"))
