@@ -109,7 +109,7 @@ jobs:
                 .github/config
             path: ext
             
-      - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
+      - name: Verify ${{ matrix.inputs.nightly_build }} build version and Test extensions
         id: verify-build
         shell: bash
         env:
