@@ -34,5 +34,7 @@ jobs:
           gh run download 12779008613 --repo duckdb/duckdb -n duckdb-binaries-windows-arm64
           unzip duckdb_cli-*.zip -d duckdb_path
           ls
+          docker manifest inspect mcr.microsoft.com/windows:ltsc2019
+          docker manifest inspect mcr.microsoft.com/windows/servercore:ltsc2022
           docker pull mcr.microsoft.com/windows:ltsc2019
           docker run --rm --platform windows/arm64 -v /Users/zuleykhapavlichenkova/Documents/nbc/duckdb_path/duckdb.exe:/duckdb mcr.microsoft.com/windows:ltsc2019 /bin/bash -c "/duckdb --version"
