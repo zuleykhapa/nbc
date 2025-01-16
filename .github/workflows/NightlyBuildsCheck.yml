@@ -89,7 +89,17 @@ jobs:
             sudo apt-get install -y libc6-arm64-cross qemu-user-static
             # set up QEMU for Docker
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker run --rm --platform linux/aarch64 ubuntu:22.04 uname -m
+            # run Docker container for arm64
+            docker run --rm --platform linux/aarch64 ubuntu uname -m
+      
+      - name: WINDOWS ARM64
+        if: ${{ matrix.inputs.architectures == 'windows-arm64' }}
+        shell: bash
+        run: |
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker pull docker pull mcr.microsoft.com/windows:ltsc2019
+            # run Docker container for arm64
+            docker run --rm --platform linux/aarch64 mcr.microsoft.com/windows:ltsc2019 uname -m
 
       - name: Install Python dependencies
         run: pip install duckdb pandas tabulate docker

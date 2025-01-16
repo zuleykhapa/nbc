@@ -12,6 +12,7 @@ from shared_functions import fetch_data
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTION = ["INSTALL", "LOAD"]
+CONTAINER = "mcr.microsoft.com/windows:ltsc2019" if nightly_build == 'Windows' else "ubuntu"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
@@ -57,7 +58,7 @@ def verify_version(tested_binary, file_name):
             "docker", "run", "--rm",
             "--platform", architecture,
             "-v", tested_binary_path,
-            "ubuntu",
+            CONTAINER,
             "/bin/bash", "-c", f"/duckdb --version"
         ]
     else:
@@ -101,7 +102,7 @@ def test_extensions(tested_binary, file_name):
                 "--platform", architecture,
                 "-v", tested_binary_path,
                 "-e", f"ext={ ext }",
-                "ubuntu",
+                CONTAINER,
                 "/bin/bash", "-c", 
                 f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
             ]
