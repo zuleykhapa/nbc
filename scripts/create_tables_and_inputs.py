@@ -265,7 +265,7 @@ def main():
                     matrix_data.append({
                             "nightly_build": nightly_build,
                             "platform": platform,
-                            "architectures": architecture,
+                            "architectures": "linux-aarch64",
                             "runs_on": "ubuntu-latest",
                             "run_id": build_info.get('nightly_build_run_id')
                         })
