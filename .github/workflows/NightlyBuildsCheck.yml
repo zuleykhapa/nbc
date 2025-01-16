@@ -63,12 +63,20 @@ jobs:
   run-tests:
     name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.platform }} - ${{ matrix.inputs.architectures }}
     needs: get-run-info
-    if: ${{ (needs.get-run-info.outputs.matrix != '[]') ||
-            (fromJson(needs.get-run-info.outputs.matrix).architectures == 'osx-arm64' ||
-             fromJson(needs.get-run-info.outputs.matrix).architectures == 'windows-arm64') }}
+    if: ${{ needs.get-run-info.outputs.matrix != '[]' }}
     strategy:
       matrix:
         inputs: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
+        exclude:
+          - inputs.nightly_build: 'OSX'
+            inputs.platform: 'osx'
+            inputs.architectures: 'osx-arm64'
+            inputs.runs_on: 'macos-latest'
+          - inputs.nightly_build: 'Windows'
+            inputs.platform: 'windows'
+            inputs.architectures: 'windows-arm64'
+            inputs.runs_on: 'windows-2019'
+
     continue-on-error: true
     runs-on: ${{ matrix.inputs.runs_on }}
     steps:
