@@ -104,7 +104,8 @@ def create_build_report(nightly_build, con, build_info, url):
             """).df()
             f.write(failed_extensions.to_markdown(index=False))
         else:
-            f.write(f"####All extensions were successfully installed and loaded.\n")
+            if failures_count == 0:
+                f.write(f"####All extensions were successfully installed and loaded.\n")
 
     build_info["failures_count"] = failures_count
     build_info["url"] = url
