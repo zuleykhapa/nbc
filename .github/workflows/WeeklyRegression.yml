@@ -59,13 +59,10 @@ jobs:
             requirements.txt
           path: ${{ env.mounted_directory_name }}
 
-      - name: Install requirements
+      - name: Install duckdb pandas tabulate
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: | 
-          python -m venv .venv
-          .venv/bin/python -m pip install -r requirements.txt
-          source .venv/bin/activate
+        run: pip install duckdb pandas tabulate
+
       - name: Create run status report for nightly-builds on 'main'
         working-directory: ${{ env.mounted_directory_name }}
         continue-on-error: true
