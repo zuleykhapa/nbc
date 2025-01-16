@@ -13,7 +13,7 @@ env:
   GH_TOKEN: ${{ github.token }}
   GH_REPO: duckdb/duckdb
   GH_ISSUE_REPO: ${{ github.repository }}
-
+  
 jobs:
   get-run-info:
     runs-on: ubuntu-latest
@@ -63,7 +63,10 @@ jobs:
   run-tests:
     name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.platform }} - ${{ matrix.inputs.architectures }}
     needs: get-run-info
-    if: ${{ needs.get-run-info.outputs.matrix != '[]' }}
+    if: ${{ (needs.get-run-info.outputs.matrix != '[]') &&
+            (needs.get-run-info.outputs.matrix.inputs.architectures == 'linux-amd64' ||
+             needs.get-run-info.outputs.matrix.inputs.architectures == 'windows-amd64' ||
+             needs.get-run-info.outputs.matrix.inputs.architectures == 'x86_64') }}
     strategy:
       matrix:
         inputs: ${{ fromJson(needs.get-run-info.outputs.matrix) }}
@@ -112,7 +115,6 @@ jobs:
       - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
         id: verify-build
         shell: bash
-        if: ${{ matrix.inputs.architectures == 'linux-amd64' || matrix.inputs.architectures == 'windows-amd64' || matrix.inputs.architectures == 'x86_64' }}
         env:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
