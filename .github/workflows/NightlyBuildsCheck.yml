@@ -92,15 +92,6 @@ jobs:
             # run Docker container for arm64
             docker run --rm --platform linux/aarch64 ubuntu uname -m
       
-      - name: WINDOWS ARM64
-        if: ${{ matrix.inputs.architectures == 'windows-arm64' }}
-        shell: bash
-        run: |
-            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker pull docker pull mcr.microsoft.com/windows:ltsc2019
-            # run Docker container for arm64
-            docker run --rm --platform linux/aarch64 mcr.microsoft.com/windows:ltsc2019 uname -m
-
       - name: Install Python dependencies
         run: pip install duckdb pandas tabulate docker
             
@@ -121,6 +112,7 @@ jobs:
       - name: Verify and Test ${{ matrix.inputs.nightly_build }} version
         id: verify-build
         shell: bash
+        if: ${{ matrix.inputs.architectures == 'linux-amd64' || matrix.inputs.architectures == 'windows-amd64' || matrix.inputs.architectures == 'x86_64' }}
         env:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |

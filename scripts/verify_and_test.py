@@ -24,9 +24,6 @@ parser.add_argument("--config")
 args = parser.parse_args()
 
 nightly_build = args.nightly_build
-
-CONTAINER = "mcr.microsoft.com/windows:ltsc2019" if nightly_build == 'Windows' else "ubuntu"
-
 platform = args.platform # linux
 architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
 run_id = args.run_id
@@ -60,7 +57,7 @@ def verify_version(tested_binary, file_name):
             "docker", "run", "--rm",
             "--platform", architecture,
             "-v", tested_binary_path,
-            CONTAINER,
+            "ubuntu",
             "/bin/bash", "-c", f"/duckdb --version"
         ]
     else:
@@ -104,7 +101,7 @@ def test_extensions(tested_binary, file_name):
                 "--platform", architecture,
                 "-v", tested_binary_path,
                 "-e", f"ext={ ext }",
-                CONTAINER,
+                "ubuntu",
                 "/bin/bash", "-c", 
                 f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
             ]
