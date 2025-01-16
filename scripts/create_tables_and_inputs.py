@@ -252,15 +252,23 @@ def main():
             
             architectures = build_info.get('architectures')
             for architecture in architectures:
-                # if not architecture in ('windows-arm64', 'arm64'):
-                for r_on in runs_on:
+                if not architecture in ('windows-arm64', 'arm64'):
+                    for r_on in runs_on:
+                        matrix_data.append({
+                            "nightly_build": nightly_build,
+                            "platform": platform,
+                            "architectures": architecture,
+                            "runs_on": r_on,
+                            "run_id": build_info.get('nightly_build_run_id')
+                        })
+                else
                     matrix_data.append({
-                        "nightly_build": nightly_build,
-                        "platform": platform,
-                        "architectures": architecture,
-                        "runs_on": r_on,
-                        "run_id": build_info.get('nightly_build_run_id')
-                    })
+                            "nightly_build": nightly_build,
+                            "platform": platform,
+                            "architectures": architecture,
+                            "runs_on": "ubuntu-latest",
+                            "run_id": build_info.get('nightly_build_run_id')
+                        })
     # matrix_data.append({
     #     "nightly_build": "LinuxRelease",
     #     "platform": "linux",
