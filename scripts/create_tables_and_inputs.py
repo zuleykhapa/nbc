@@ -233,7 +233,7 @@ def get_binary_name(nightly_build, platform, architecture):
     else:
         return architecture
 
-def get_runner(platform):
+def get_runners(platform):
     match platform:
         case 'osx':
             return [ "macos-latest" ]
@@ -260,7 +260,7 @@ def main():
         # if count_consecutive_failures(nightly_build, con) == 0:
         #     get_platform_arch_from_artifact_name(nightly_build, con, build_info)
         #     platform = str(build_info.get("platform"))
-        #     runs_on = get_runner(platform)
+        #     runs_on = get_runners(platform)
         #     architectures = build_info.get('architectures')
 
         #     for architecture in architectures:
@@ -268,7 +268,6 @@ def main():
         #             for r_on in runs_on:
         #                 matrix_data.append({
         #                     "nightly_build": nightly_build,
-        #                     "platform": platform,
         #                     "architectures": architecture,
         #                     "runs_on": r_on,
         #                     "run_id": build_info.get('nightly_build_run_id'),
