@@ -61,7 +61,7 @@ jobs:
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   run-tests:
-    name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.platform }} - ${{ matrix.inputs.architectures }}
+    name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.architectures }}
     needs: get-run-info
     if: ${{ needs.get-run-info.outputs.matrix != '[]' }}
     strategy:
@@ -123,7 +123,7 @@ jobs:
                 echo "Verifying version and testing extensions..."
                 python scripts/verify_and_test.py \
                     --nightly_build ${{ matrix.inputs.nightly_build }} \
-                    --architecture ${{ matrix.inputs.architecture }} --run_id ${{ matrix.inputs.run_id }} \
+                    --architecture ${{ matrix.inputs.architectures }} --run_id ${{ matrix.inputs.run_id }} \
                     --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
             fi
 
