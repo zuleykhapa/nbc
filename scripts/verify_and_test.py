@@ -153,9 +153,9 @@ def test_extensions(tested_binary, file_name):
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ act }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
-        if os.stat(file_name) == 0:
-            with open(file_name, 'w') as f:
-                f.write(f"All extensions are installed and loaded successfully.\nList of tested extensions:\n{ extensions }")
+    if os.stat(file_name) == 0:
+        with open(file_name, 'w') as f:
+            f.write(f"All extensions are installed and loaded successfully.\nList of tested extensions:\n{ extensions }")
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "_"))
