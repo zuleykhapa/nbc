@@ -261,7 +261,7 @@ def main():
                             "runs_on": r_on,
                             "run_id": build_info.get('nightly_build_run_id')
                         })
-                else
+                else:
                     matrix_data.append({
                             "nightly_build": nightly_build,
                             "platform": platform,
