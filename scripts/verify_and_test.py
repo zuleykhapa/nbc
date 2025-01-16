@@ -158,7 +158,7 @@ def test_extensions(tested_binary, file_name):
             f.write(f"All extensions are installed and loaded successfully.\nList of tested extensions:\n{ extensions }")
 
 def main():
-    file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "_"))
+    file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "_").replace("-", "_"))
     counter = 0 # to write only one header per table
     if nightly_build == 'Python':
         verify_and_test_python(file_name, counter, run_id, architecture)
