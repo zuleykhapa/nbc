@@ -123,7 +123,7 @@ jobs:
                 echo "Verifying version and testing extensions..."
                 python scripts/verify_and_test.py \
                     --nightly_build ${{ matrix.inputs.nightly_build }} \
-                    --architecture ${{ matrix.inputs.name }} --run_id ${{ matrix.inputs.run_id }} \
+                    --architecture ${{ matrix.inputs.architecture }} --run_id ${{ matrix.inputs.run_id }} \
                     --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
             fi
 
