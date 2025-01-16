@@ -225,6 +225,24 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
     build_info["architectures"] = ['osx'] if nightly_build == 'OSX' else architectures
     build_info["platform"] = platform
     
+def get_binary_name(nightly_build, platform, architecture):
+    if nightly_build == 'OSX':
+        return 'osx'
+    elif architecture == 'linux-amd64':
+        return platform
+    else:
+        return architecture
+
+def get_runner(platform):
+    match platform:
+        case 'osx':
+            return [ "macos-latest" ]
+        case 'windows':
+            return [ "windows-2019" ]
+        case _:
+            return [ f"{ platform }-latest" ]
+
+
 def main():
     matrix_data = []
     con = duckdb.connect('run_info_tables.duckdb')
@@ -242,15 +260,9 @@ def main():
         if count_consecutive_failures(nightly_build, con) == 0:
             get_platform_arch_from_artifact_name(nightly_build, con, build_info)
             platform = str(build_info.get("platform"))
-            match platform:
-                case 'osx':
-                    runs_on = [ "macos-latest" ]
-                case 'windows':
-                    runs_on = [ "windows-2019" ]
-                case _:
-                    runs_on = [ f"{ platform }-latest" ]
-            
+            runs_on = get_runner(platform)
             architectures = build_info.get('architectures')
+
             for architecture in architectures:
                 if not architecture in ('windows-arm64', 'arm64'):
                     for r_on in runs_on:
@@ -259,43 +271,40 @@ def main():
                             "platform": platform,
                             "architectures": architecture,
                             "runs_on": r_on,
-                            "run_id": build_info.get('nightly_build_run_id')
-                        })
-                else:
-                    matrix_data.append({
-                            "nightly_build": nightly_build,
-                            "platform": platform,
-                            "architectures": "linux-aarch64",
-                            "runs_on": "ubuntu-latest",
-                            "run_id": build_info.get('nightly_build_run_id')
+                            "run_id": build_info.get('nightly_build_run_id'),
+                            "name": get_binary_name(nightly_build, platform, architecture)
                         })
     # matrix_data.append({
     #     "nightly_build": "LinuxRelease",
     #     "platform": "linux",
     #     "architectures": "linux-aarch64",
     #     "runs_on": "ubuntu-latest",
-    #     "run_id": "12021416084"
+    #     "run_id": "12021416084",
+    #     "name": "linux-aarch64"
     # })
     # matrix_data.append({
     #     "nightly_build": "LinuxRelease",
     #     "platform": "linux",
     #     "architectures": "linux-amd64",
     #     "runs_on": "ubuntu-latest",
-    #     "run_id": "12021416084"
+    #     "run_id": "12021416084",
+    #     "name": "linux"
     # })
     # matrix_data.append({
     #     "nightly_build": "Windows",
     #     "platform": "windows",
     #     "architectures": "windows-amd64",
     #     "runs_on": "windows-2019",
-    #     "run_id": "12779008613"
+    #     "run_id": "12779008613",
+    #     "name": "windows-amd64"
     # })
     # matrix_data.append({
     #     "nightly_build": "OSX",
     #     "platform": "osx",
     #     "architectures": "x86_64",
     #     "runs_on": "macos-latest",
-    #     "run_id": "12642824816"
+    #     "run_id": "12642824816",
+    #     "name": "osx"
     # })
 
     with open("inputs.json", "w") as f:

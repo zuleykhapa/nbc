@@ -15,7 +15,6 @@ ACTION = ["INSTALL", "LOAD"]
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
-parser.add_argument("--platform")
 parser.add_argument("--architecture")
 parser.add_argument("--run_id")
 parser.add_argument("--runs_on")
@@ -24,7 +23,6 @@ parser.add_argument("--config")
 args = parser.parse_args()
 
 nightly_build = args.nightly_build
-platform = args.platform # linux
 architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
