@@ -12,7 +12,6 @@ from shared_functions import fetch_data
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTION = ["INSTALL", "LOAD"]
-CONTAINER = "mcr.microsoft.com/windows:ltsc2019" if nightly_build == 'Windows' else "ubuntu"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
@@ -25,6 +24,9 @@ parser.add_argument("--config")
 args = parser.parse_args()
 
 nightly_build = args.nightly_build
+
+CONTAINER = "mcr.microsoft.com/windows:ltsc2019" if nightly_build == 'Windows' else "ubuntu"
+
 platform = args.platform # linux
 architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
 run_id = args.run_id
