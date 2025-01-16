@@ -84,7 +84,7 @@ jobs:
       - define-matrix
     runs-on: ubuntu-latest
     env:
-      instance_id: i-0b2d4c509fc3f1e3a
+      instance_id: i-0a6cd2153bfd28349
 
     steps:
       - name: Start EC2 runner
