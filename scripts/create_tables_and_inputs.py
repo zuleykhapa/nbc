@@ -252,14 +252,15 @@ def main():
             
         #     architectures = build_info.get('architectures')
         #     for architecture in architectures:
-        #         for r_on in runs_on:
-        #             matrix_data.append({
-        #                 "nightly_build": nightly_build,
-        #                 "platform": platform,
-        #                 "architectures": architecture,
-        #                 "runs_on": r_on,
-        #                 "run_id": build_info.get('nightly_build_run_id')
-        #             })
+        #         if not architecture in ('windows-arm64', 'arm64'):
+        #             for r_on in runs_on:
+        #                 matrix_data.append({
+        #                     "nightly_build": nightly_build,
+        #                     "platform": platform,
+        #                     "architectures": architecture,
+        #                     "runs_on": r_on,
+        #                     "run_id": build_info.get('nightly_build_run_id')
+        #                 })
     matrix_data.append({
         "nightly_build": "LinuxRelease",
         "platform": "linux",
@@ -277,13 +278,6 @@ def main():
     matrix_data.append({
         "nightly_build": "Windows",
         "platform": "windows",
-        "architectures": "windows-arm64",
-        "runs_on": "windows-2019",
-        "run_id": "12779008613"
-    })
-    matrix_data.append({
-        "nightly_build": "Windows",
-        "platform": "windows",
         "architectures": "windows-amd64",
         "runs_on": "windows-2019",
         "run_id": "12779008613"
@@ -292,13 +286,6 @@ def main():
         "nightly_build": "OSX",
         "platform": "osx",
         "architectures": "x86_64",
-        "runs_on": "macos-latest",
-        "run_id": "12642824816"
-    })
-    matrix_data.append({
-        "nightly_build": "OSX",
-        "platform": "osx",
-        "architectures": "arm64",
         "runs_on": "macos-latest",
         "run_id": "12642824816"
     })
