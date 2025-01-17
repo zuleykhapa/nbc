@@ -53,14 +53,14 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Checkout repo with "count_consecutive_failures" script
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.gh_issue_repo }}
-          sparse-checkout: |
-            scripts/
-            requirements.txt
-          path: ${{ env.mounted_directory_name }}
+      # - name: Checkout repo with "count_consecutive_failures" script
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: ${{ env.gh_issue_repo }}
+      #     sparse-checkout: |
+      #       scripts/
+      #       requirements.txt
+      #     path: ${{ env.mounted_directory_name }}
 
       - name: Install 
         shell: bash
@@ -73,7 +73,7 @@ jobs:
           source .venv/bin/activate
           # count consecutive failures and create a nightly_builds_status.md file
           python scripts/count_consecutive_failures_WR.py
-          
+
       - name: Upload nightly-build status
         uses: actions/upload-artifact@v4
         if: success()
