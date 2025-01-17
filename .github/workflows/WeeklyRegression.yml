@@ -79,7 +79,7 @@ jobs:
         if: success()
         with:
           name: nightly_builds_status
-          path: ${{ env.mounted_directory_name }}/nightly_builds_status.md
+          path: nightly_builds_status.md
           if-no-files-found: error
 
   start-runner:
