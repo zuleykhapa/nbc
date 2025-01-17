@@ -70,7 +70,6 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         continue-on-error: true
         run: |
-          source .venv/bin/activate
           # count consecutive failures and create a nightly_builds_status.md file
           python scripts/count_consecutive_failures.py
 
