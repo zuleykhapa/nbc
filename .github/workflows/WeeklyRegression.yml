@@ -265,7 +265,7 @@ jobs:
       fail-fast: false
       matrix:
         branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-        test: ['micro_extended.csv']
+        test: ['large/ingestion.csv']
         # test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
         exclude: 
           - branch: ${{ needs.build-and-setup.outputs.failed_build }}
@@ -401,7 +401,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: report.txt
+          path: ${{ env.mounted_directory_name }}/report.txt
           if-no-files-found: error
           
 
