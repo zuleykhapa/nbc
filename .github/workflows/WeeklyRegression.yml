@@ -390,13 +390,20 @@ jobs:
             cat nightly_build*.md >> report.txt
           fi
 
-      - name: Create Issue
-        if: success()
-        run: |
-          if [ -f report.txt ]; then
-            # create issue
-            gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
-          fi
+      # - name: Create Issue
+      #   if: success()
+      #   run: |
+      #     if [ -f report.txt ]; then
+      #       # create issue
+      #       gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
+      #     fi
+      - name: Upload nightly-build status
+        uses: actions/upload-artifact@v4
+        with:
+          name: REPORT
+          path: report.txt
+          if-no-files-found: error
+          
 
   shutdown:
     name: shut down
