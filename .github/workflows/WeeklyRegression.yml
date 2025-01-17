@@ -72,7 +72,7 @@ jobs:
         run: |
           source .venv/bin/activate
           # count consecutive failures and create a nightly_builds_status.md file
-          python scripts/count_consecutive_failures_WR.py
+          python scripts/count_consecutive_failures.py
 
       - name: Upload nightly-build status
         uses: actions/upload-artifact@v4
