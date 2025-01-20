@@ -50,16 +50,16 @@ def get_full_sha(run_id):
 def verify_version(tested_binary, file_name):
     full_sha = get_full_sha(run_id)
     # if architecture.count("aarch64") or architecture.count("arm64"):
-    if architecture.count("aarch64"):
-        pragma_version = [
-            "docker", "run", "--rm",
-            "--platform", architecture,
-            "-v", f"{ tested_binary }:/duckdb",
-            "ubuntu:latest",
-            "/bin/bash", "-c", f"/duckdb --version"
-        ]
-    else:
-        pragma_version = [ tested_binary, "--version" ]
+    # if architecture.count("aarch64"):
+    #     pragma_version = [
+    #         "docker", "run", "--rm",
+    #         "--platform", architecture,
+    #         "-v", f"{ tested_binary }:/duckdb",
+    #         "ubuntu:latest",
+    #         "/bin/bash", "-c", f"/duckdb --version"
+    #     ]
+    # else:
+    pragma_version = [ tested_binary, "--version" ]
     short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"""
@@ -84,46 +84,46 @@ def test_extensions(tested_binary, file_name):
 
     for ext in extensions:
         # if architecture.count("aarch64") or architecture.count("arm64"):
-        if architecture.count("aarch64"):
-            select_installed = [
-                "docker", "run", "--rm",
-                "--platform", architecture,
-                "-v", f"{ tested_binary }:/duckdb",
-                "-e", f"ext={ ext }",
-                "ubuntu:latest",
-                "/bin/bash", "-c", 
-                f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
-            ]
-        else:
-            select_installed = [
-                tested_binary,
-                "-csv",
-                "-noheader",
-                "-c",
-                f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
-            ]
+        # if architecture.count("aarch64"):
+        #     select_installed = [
+        #         "docker", "run", "--rm",
+        #         "--platform", architecture,
+        #         "-v", f"{ tested_binary }:/duckdb",
+        #         "-e", f"ext={ ext }",
+        #         "ubuntu:latest",
+        #         "/bin/bash", "-c", 
+        #         f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
+        #     ]
+        # else:
+        select_installed = [
+            tested_binary,
+            "-csv",
+            "-noheader",
+            "-c",
+            f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
+        ]
         result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
 
         is_installed = result.stdout.strip()
         if is_installed == 'false':
             for action in ACTIONS:
                 print(f"{ action }ing { ext }...")
-                if architecture.count("aarch64"):
-                    install_ext = [
-                        "docker", "run", "--rm",
-                        "--platform", f"{ architecture }",
-                        "-v", f"{ tested_binary }:/duckdb",
-                        "-e", f"ext={ ext }",
-                        "ubuntu:latest",
-                        "/bin/bash", "-c",
-                        f"/duckdb -c \"{ action } '{ ext }';\""
-                    ]
-                else:
-                    install_ext = [
-                        tested_binary,
-                        "-c",
-                        f"{ action } '{ ext }';"
-                    ]
+                # if architecture.count("aarch64"):
+                #     install_ext = [
+                #         "docker", "run", "--rm",
+                #         "--platform", f"{ architecture }",
+                #         "-v", f"{ tested_binary }:/duckdb",
+                #         "-e", f"ext={ ext }",
+                #         "ubuntu:latest",
+                #         "/bin/bash", "-c",
+                #         f"/duckdb -c \"{ action } '{ ext }';\""
+                #     ]
+                # else:
+                install_ext = [
+                    tested_binary,
+                    "-c",
+                    f"{ action } '{ ext }';"
+                ]
                 try:
                     result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
                     print(result.stdout)
