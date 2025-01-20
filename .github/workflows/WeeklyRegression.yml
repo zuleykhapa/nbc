@@ -4,9 +4,9 @@ on:
     - cron:  '0 1 * * MON' # runs at 2am CET MONDAY
   workflow_dispatch:
 
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}
+  cancel-in-progress: true
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -143,12 +143,12 @@ jobs:
           sudo mount /dev/$mount_name ${{ env.mounted_directory_name }}
           sudo chown -R ubuntu ${{ env.mounted_directory_name }}
 
-      # - name: Load data for sf100 benchmarks.
-      #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name}}
-      #   run: |
-      #     aws s3 cp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
-      #     aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
+      - name: Load data for sf100 benchmarks.
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name}}
+        run: |
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb
 
   build-and-setup:
     name: Build DuckDB versions and link the benchmarks
@@ -221,23 +221,23 @@ jobs:
           mkdir ../duckdb-curr-${{ matrix.branch }}/benchmark
           cp -r benchmark ../duckdb-curr-${{ matrix.branch }}
 
-      # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-      #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
-      #   run: |
-      #     mkdir duckdb_benchmark_data
-      #     cd duckdb_benchmark_data
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+        shell: bash 
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch }}
+        run: |
+          mkdir duckdb_benchmark_data
+          cd duckdb_benchmark_data
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
-      # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-      #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
-      #   run: |
-      #     mkdir duckdb_benchmark_data
-      #     cd duckdb_benchmark_data
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+        shell: bash 
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch }}
+        run: |
+          mkdir duckdb_benchmark_data
+          cd duckdb_benchmark_data
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
       - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch }}
         shell: bash
@@ -265,8 +265,8 @@ jobs:
       fail-fast: false
       matrix:
         branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-        test: ['large/ingestion.csv']
-        # test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
+        # test: ['large/ingestion.csv']
+        test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
         exclude: 
           - branch: ${{ needs.build-and-setup.outputs.failed_build }}
     outputs:
