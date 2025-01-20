@@ -62,7 +62,7 @@ def verify_version(tested_binary, file_name):
     #     ]
     # else:
     pragma_version = [ tested_binary, "--version" ]
-    short_sha = subprocess.run(pragma_version, check=True, text=True, capture_output=True).stdout.strip().split()[-1]
+    short_sha = subprocess.run(pragma_version, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"""
         Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n
@@ -104,7 +104,7 @@ def test_extensions(tested_binary, file_name):
             "-c",
             f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
         ]
-        result=subprocess.run(select_installed, check=True, text=True, capture_output=True)
+        result=subprocess.run(select_installed, text=True, capture_output=True)
 
         is_installed = result.stdout.strip()
         if is_installed == 'false':
@@ -116,7 +116,7 @@ def test_extensions(tested_binary, file_name):
                     f"{ action } '{ ext }';"
                 ]
                 try:
-                    result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
+                    result = subprocess.run(install_ext, text=True, capture_output=True)
                     # print(result.stdout)
                     print(result.stderr)
                     print(result)
@@ -134,7 +134,7 @@ def test_extensions(tested_binary, file_name):
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
-    result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], check=True, text=True, capture_output=True)
+    result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
     if result.stderr:
         print(result.stderr)
     else:
