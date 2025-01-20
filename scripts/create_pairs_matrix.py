@@ -76,13 +76,13 @@ def main():
         })
     else:
         if main_sha and old_main_sha:
-        # first pair - `curr-main` & `old-main`
-        pairs.append({
-            "new_name": f"{ main_name }",
-            "new_sha": f"{ main_sha }",
-            "old_name": f"{ main_name }",
-            "old_sha": f"{ old_main_sha }"
-        })
+            # first pair - `curr-main` & `old-main`
+            pairs.append({
+                "new_name": f"{ main_name }",
+                "new_sha": f"{ main_sha }",
+                "old_name": f"{ main_name }",
+                "old_sha": f"{ old_main_sha }"
+            })
         if highest_version_sha:
             # second pair - `curr-main` & `curr-vx.y`
             pairs.append({
