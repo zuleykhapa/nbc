@@ -41,6 +41,7 @@ def main():
             old_highest_version_sha = parsed_data[1]["old_sha"]   
     else:
         print("`duckdb_curr_version_main.txt` or `duckdb_previous_version_pairs.json` not found")
+        no_files = True
     # fetch current versions and names
     command = [ "git", "ls-remote", "--heads" ]
     try:
@@ -65,7 +66,16 @@ def main():
                 highest_version = version_number
                 highest_version_sha, highest_version_name = sha, name
 
-    if main_sha and old_main_sha:
+    if main_sha and no_files:
+        # a very first pair - if the new machine `curr-main` & `curr-main`
+        pairs.append({
+            "new_name": f"{ main_name }",
+            "new_sha": f"{ main_sha }",
+            "old_name": f"{ main_name }",
+            "old_sha": f"{ main_sha }"
+        })
+    else:
+        if main_sha and old_main_sha:
         # first pair - `curr-main` & `old-main`
         pairs.append({
             "new_name": f"{ main_name }",
@@ -73,22 +83,22 @@ def main():
             "old_name": f"{ main_name }",
             "old_sha": f"{ old_main_sha }"
         })
-    if highest_version_sha:
-        # second pair - `curr-main` & `curr-vx.y`
-        pairs.append({
-            "new_name": f"{ main_name }",
-            "new_sha": f"{ main_sha }",
-            "old_name": f"{ highest_version_name }",
-            "old_sha": f"{ highest_version_sha }"
-        })
-        if old_highest_version_sha:
-            # third pair - `curr-vx.y` & `old-vx.y`
+        if highest_version_sha:
+            # second pair - `curr-main` & `curr-vx.y`
             pairs.append({
-                "new_name": f"{ highest_version_name }",
-                "new_sha": f"{ highest_version_sha }",
+                "new_name": f"{ main_name }",
+                "new_sha": f"{ main_sha }",
                 "old_name": f"{ highest_version_name }",
-                "old_sha": f"{ old_highest_version_sha }"
+                "old_sha": f"{ highest_version_sha }"
             })
+            if old_highest_version_sha:
+                # third pair - `curr-vx.y` & `old-vx.y`
+                pairs.append({
+                    "new_name": f"{ highest_version_name }",
+                    "new_sha": f"{ highest_version_sha }",
+                    "old_name": f"{ highest_version_name }",
+                    "old_sha": f"{ old_highest_version_sha }"
+                })
 
     # write to json file
     with open(PAIR_FILE_PATH, "w") as f:
