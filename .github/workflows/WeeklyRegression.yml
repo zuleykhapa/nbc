@@ -137,6 +137,13 @@ jobs:
           fetch-depth: 0
           path: ${{ env.mounted_directory_name }}
       
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/create_pairs_matrix.py
+          path: ${{ env.mounted_directory_name }}
+
+      
       - name: create pairs.json
         id: branches
         working-directory: ${{ env.mounted_directory_name }}
@@ -164,8 +171,8 @@ jobs:
       BUILD_JEMALLOC: 1
       CORE_EXTENSIONS: "inet"
       regression_output: regression_output.txt
-    outputs:
-      failed_build: ${{ steps.failed-build.outputs.failed_build }}
+    # outputs:
+    #   failed_build: ${{ steps.failed-build.outputs.failed_build }}
     steps:
       - name: checkout duckdb-curr
         uses: actions/checkout@v4
