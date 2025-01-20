@@ -49,7 +49,8 @@ def get_full_sha(run_id):
 
 def verify_version(tested_binary, file_name):
     full_sha = get_full_sha(run_id)
-    if architecture.count("aarch64") or architecture.count("arm64"):
+    # if architecture.count("aarch64") or architecture.count("arm64"):
+    if architecture.count("aarch64"):
         pragma_version = [
             "docker", "run", "--rm",
             "--platform", architecture,
@@ -82,7 +83,8 @@ def test_extensions(tested_binary, file_name):
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
-        if architecture.count("aarch64") or architecture.count("arm64"):
+        # if architecture.count("aarch64") or architecture.count("arm64"):
+        if architecture.count("aarch64"):
             select_installed = [
                 "docker", "run", "--rm",
                 "--platform", architecture,
