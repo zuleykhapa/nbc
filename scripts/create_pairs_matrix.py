@@ -3,10 +3,10 @@ We would like to run benchmarks in comparison of `current main` with `a week ago
 `current main` with `current v1.2-histrionicus`,
 `current v1.2-histrionicus` with `a week ago v1.2-histrionicus`.
 
-This script creates a `pairs.json` file containing the values we need to run regression tests
+This script creates a `duckdb_previous_version_pairs.json` file containing the values we need to run regression tests
 in pairs of `--old` and `--new` passing respectful values to the `regression_runner`.
 
-Contents of the `pairs.json` should look like this:
+Contents of the `duckdb_previous_version_pairs.json` should look like this:
 [
     {
         "new_name": "main",
@@ -23,19 +23,18 @@ import os
 import re
 from collections import defaultdict
 
+PAIR_FILE_PATH = "duckdb_previous_version_pairs.json"
+TXT_FILE_PATH = "duckdb_curr_version_main.txt"
+
 def main():
     pairs = []
     old_highest_version_sha = None
-    # find a file on runner duckdb_curr_version_main.txt or pairs.json to get previous run SHA
-    parent_dir = os.path.dirname(os.getcwd())
-    pair_file_path = os.path.join(parent_dir, "duckdb_previous_version_pairs.json")
-    txt_file_path = os.path.join(parent_dir, "duckdb_curr_version_main.txt")
-    if os.path.isfile(txt_file_path):
-        with open(txt_file_path, "r") as f:
+    # find a file on runner duckdb_curr_version_main.txt or duckdb_previous_version_pairs.json to get previous run SHA
+    if os.path.isfile(TXT_FILE_PATH):
+        with open(TXT_FILE_PATH, "r") as f:
             old_main_sha = f.read()
-    if os.path.isfile(pair_file_path):
-        print("HERE")
-        with open(pair_file_path, "r") as f:
+    if os.path.isfile(PAIR_FILE_PATH):
+        with open(PAIR_FILE_PATH, "r") as f:
             data = f.read()
             parsed_data = json.loads(data)
             old_main_sha = parsed_data[1]["new_sha"]
@@ -65,35 +64,34 @@ def main():
             if version_number > highest_version:
                 highest_version = version_number
                 highest_version_sha, highest_version_name = sha, name
-    # first pair - `curr-main` & `old-main`
+
     if main_sha and old_main_sha:
-        print(f"Main branch: { main_name } with SHA { main_sha }")
+        # first pair - `curr-main` & `old-main`
         pairs.append({
-            "new_name": f"curr-{ main_name }",
+            "new_name": f"{ main_name }",
             "new_sha": f"{ main_sha }",
-            "old_name": f"old-{ main_name }",
+            "old_name": f"{ main_name }",
             "old_sha": f"{ old_main_sha }"
         })
-
     if highest_version_sha:
         # second pair - `curr-main` & `curr-vx.y`
         pairs.append({
-            "new_name": f"curr-{ main_name }",
+            "new_name": f"{ main_name }",
             "new_sha": f"{ main_sha }",
-            "old_name": f"curr-{ highest_version_name }",
+            "old_name": f"{ highest_version_name }",
             "old_sha": f"{ highest_version_sha }"
         })
         if old_highest_version_sha:
             # third pair - `curr-vx.y` & `old-vx.y`
             pairs.append({
-                "new_name": f"curr-{ highest_version_name }",
+                "new_name": f"{ highest_version_name }",
                 "new_sha": f"{ highest_version_sha }",
-                "old_name": f"old-{ highest_version_name }",
+                "old_name": f"{ highest_version_name }",
                 "old_sha": f"{ old_highest_version_sha }"
             })
 
-    # write to `pairs.json` file
-    with open("pairs.json", "w") as f:
+    # write to json file
+    with open(PAIR_FILE_PATH, "w") as f:
         json.dump(pairs, f, indent=4)
 
 if __name__ == "__main__":
