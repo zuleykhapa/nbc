@@ -237,12 +237,11 @@ def get_binary_name(nightly_build, platform, architecture):
 def get_runner(platform, architecture):
     match platform:
         case 'osx':
-            if architecture == 'arm64':
-                return "macos-13"
-            else:
-                return "macos-latest"
+            return "macos-13" if architecture == 'arm64' else "macos-latest"
         case 'windows':
             return "windows-2019"
+        case 'linux':
+            return "ubuntu-24.04-arm" if architecture == 'aarch64' else "ubuntu-latest"
         case _:
             return "ubuntu-latest"
 
