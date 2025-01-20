@@ -118,7 +118,8 @@ def test_extensions(tested_binary, file_name):
                 try:
                     result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
                     # print(result.stdout)
-                    # print(result.stderr)
+                    print(result.stderr)
+                    print(result)
                     if result.stderr:
                         if counter == 0:
                             f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
