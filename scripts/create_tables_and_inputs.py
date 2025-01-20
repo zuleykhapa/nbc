@@ -241,7 +241,7 @@ def get_runner(platform, architecture):
         case 'windows':
             return "windows-2019"
         case 'linux':
-            return "ubuntu-24.04-arm" if architecture == 'linux-aarch64' else "ubuntu-latest"
+            return "ubuntu-22.04-arm" if architecture == 'linux-aarch64' else "ubuntu-latest"
         case _:
             return "ubuntu-latest"
 
