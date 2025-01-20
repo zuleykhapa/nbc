@@ -51,16 +51,6 @@ def get_full_sha(run_id):
 
 def verify_version(tested_binary, file_name):
     full_sha = get_full_sha(run_id)
-    # if architecture.count("aarch64") or architecture.count("arm64"):
-    # if architecture.count("aarch64"):
-    #     pragma_version = [
-    #         "docker", "run", "--rm",
-    #         "--platform", architecture,
-    #         "-v", f"{ tested_binary }:/duckdb",
-    #         "ubuntu:latest",
-    #         "/bin/bash", "-c", f"/duckdb --version"
-    #     ]
-    # else:
     pragma_version = [ tested_binary, "--version" ]
     short_sha = subprocess.run(pragma_version, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
@@ -85,18 +75,6 @@ def test_extensions(tested_binary, file_name):
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
-        # if architecture.count("aarch64") or architecture.count("arm64"):
-        # if architecture.count("aarch64"):
-        #     select_installed = [
-        #         "docker", "run", "--rm",
-        #         "--platform", architecture,
-        #         "-v", f"{ tested_binary }:/duckdb",
-        #         "-e", f"ext={ ext }",
-        #         "ubuntu:latest",
-        #         "/bin/bash", "-c", 
-        #         f"/duckdb -csv -noheader -c \"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';\""
-        #     ]
-        # else:
         select_installed = [
             tested_binary,
             "-csv",
@@ -117,14 +95,13 @@ def test_extensions(tested_binary, file_name):
                 ]
                 try:
                     result = subprocess.run(install_ext, text=True, capture_output=True)
-                    # print(result.stdout)
-                    print(result.stderr)
                     print(result)
                     if result.stderr:
-                        if counter == 0:
-                            f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                            counter += 1
-                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
+                        with open(file_name, "a") as f:
+                            if counter == 0:
+                                f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
+                                counter += 1
+                            f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
                     with open(file_name, 'a') as f:
