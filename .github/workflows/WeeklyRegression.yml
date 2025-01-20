@@ -146,10 +146,15 @@ jobs:
 
       
       - name: create pairs.json
-        id: branches
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           python scripts/create_pairs_matrix.py
+      
+      - name: Read JSON and create branches matrix
+        id: branches
+        run: |
+          branches=$(cat duckdb_previous_version_pairs.json | jq -c '.')
+          echo "branches=$branches" >> $GITHUB_OUTPUT
       
   build-and-setup:
     name: Build DuckDB versions and link the benchmarks
