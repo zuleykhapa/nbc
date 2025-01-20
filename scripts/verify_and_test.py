@@ -128,6 +128,7 @@ def test_extensions(tested_binary, file_name):
                 try:
                     result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
                     print(result.stdout)
+                    print(result.stderr)
                     if result.stdout.strip() == 'false':
                         if counter == 0:
                             f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
@@ -142,7 +143,7 @@ def test_extensions(tested_binary, file_name):
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
-        result = subprocess.run([ tested_binary, "-c", "INSTALL", "XXX"], check=True, text=True, capture_output=True)
+        result = subprocess.run([ tested_binary, "-c", "INSTALL", "'XXX'"], check=True, text=True, capture_output=True)
     print(">>>>>>", result.stdout)
     print("<<<<<<", result.stderr)
 
