@@ -15,7 +15,7 @@ env:
 
 jobs:
   get-run-info:
-    name: Get Latest Runs Info, Create Tables and Inputs
+    name: Get Runs Info
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-outputs.outputs.matrix }}
