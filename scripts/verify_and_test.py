@@ -1,4 +1,7 @@
-#!/usr/bin/env python3
+'''
+We would like to know if extensions can be installed and loaded on fresh builds.
+
+'''
 import argparse
 import docker
 import glob
@@ -33,7 +36,7 @@ config = args.config # ext/config/out_of_tree_extensions.cmake
 def list_extensions(config) :
     with open(config, "r") as file:
         content = file.read()
-    # Adjusted regex for matching after `load(`
+    # matching each word after `load(`
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     matches = re.findall(pattern, content)
     return matches
