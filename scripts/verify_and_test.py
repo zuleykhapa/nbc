@@ -130,7 +130,7 @@ def test_extensions(tested_binary, file_name):
                     result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
                     print(result.stdout)
                     print(result.stderr)
-                    if result.stdout.strip() == 'false':
+                    if result.stderr:
                         if counter == 0:
                             f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
                             counter += 1
@@ -146,7 +146,7 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
     result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], check=True, text=True, capture_output=True)
     if result.stderr:
-        print("<<<<<<", result.stderr)
+        print(result.stderr)
     else:
         print(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
         f.write(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
