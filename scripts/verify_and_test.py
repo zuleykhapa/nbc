@@ -119,11 +119,11 @@ def test_extensions(tested_binary, file_name):
                     result = subprocess.run(install_ext, check=True, text=True, capture_output=True)
                     # print(result.stdout)
                     # print(result.stderr)
-                    # if result.stderr:
-                    #     if counter == 0:
-                    #         f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                    #         counter += 1
-                    #     f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
+                    if result.stderr:
+                        if counter == 0:
+                            f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
+                            counter += 1
+                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
                     with open(file_name, 'a') as f:
