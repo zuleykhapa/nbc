@@ -151,6 +151,7 @@ jobs:
           python scripts/create_pairs_matrix.py
       
       - name: Read JSON and create branches matrix
+        working-directory: ${{ env.mounted_directory_name }}
         id: branches
         run: |
           branches=$(cat duckdb_previous_version_pairs.json | jq -c '.')
@@ -161,6 +162,7 @@ jobs:
     needs: 
       - define-matrix
       - configure-mount-and-download-benchmark-data
+    if: ${{ needs.define-matrix.outputs.branches != '[]' }}
     strategy:
       matrix:
         branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
