@@ -145,11 +145,11 @@ def test_extensions(tested_binary, file_name):
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
     result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], check=True, text=True, capture_output=True)
-    if ! result.stderr:
+    if result.stderr:
+        print("<<<<<<", result.stderr)
+    else:
         print(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
         f.write(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
-    print(">>>>>>", result.stdout)
-    print("<<<<<<", result.stderr)
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
