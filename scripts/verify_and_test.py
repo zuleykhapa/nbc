@@ -13,6 +13,7 @@ from shared_functions import fetch_data
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTIONS = ["INSTALL", "LOAD"]
+EXT_WHICH_DOESNT_EXIST = "EXT_WHICH_DOESNT_EXIST"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
@@ -143,7 +144,10 @@ def test_extensions(tested_binary, file_name):
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
-        result = subprocess.run([ tested_binary, "-c", "INSTALL", "'XXX'"], check=True, text=True, capture_output=True)
+    result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], check=True, text=True, capture_output=True)
+    if ! result.stderr:
+        print(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
+        f.write(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
     print(">>>>>>", result.stdout)
     print("<<<<<<", result.stderr)
 
