@@ -142,6 +142,8 @@ def test_extensions(tested_binary, file_name):
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
+        result = subprocess.run([ tested_binary, "-c", "INSTALL", "XXX"], check=True, text=True, capture_output=True)
+        print("🐠", result.stdout)
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
