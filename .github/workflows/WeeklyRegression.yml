@@ -153,10 +153,10 @@ jobs:
       - define-matrix
       - configure-mount-and-download-benchmark-data
     if: ${{ needs.define-matrix.outputs.branches != '[]' }}
-    strategy:
-      matrix:
-        branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-      fail-fast: false
+    # strategy:
+    #   matrix:
+    #     branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+      # fail-fast: false
     runs-on: self-hosted
     env:
       GEN: ninja
@@ -267,7 +267,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+        # branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
         test: ['micro_extended.csv']
         # test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
         # exclude: 
@@ -324,9 +324,9 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
-    strategy:
-      matrix: 
-        branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+    # strategy:
+    #   matrix: 
+    #     branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
         # exclude: 
         #   - branch: ${{ needs.build-and-setup.outputs.failed_build }}
 
@@ -338,8 +338,8 @@ jobs:
           # ./duckdb-old-main/build/release/duckdb -c "pragma version" > main_old_version.txt
           # ./duckdb-curr-main/build/release/duckdb -c "pragma version" > main_curr_version.txt
 
-          printf "\`\`\` \nRegressed Version: main \n$(${{ matrix.branch.new_sha }})\n\
-          OLD VERSION : main\n$(${{ matrix.branch.old_sha }}) \n \`\`\` \n" >> issue_body_main_main.txt
+          printf "\`\`\` \nRegressed Version: main \n$()\n\
+          OLD VERSION : main\n$() \n \`\`\` \n" >> issue_body_main_main.txt
 
           # collect issues on benchmarks runs
           for output in issues_main_main/regression*.txt; do
