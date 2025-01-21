@@ -116,7 +116,7 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
     result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
     if result.stderr:
-        print(result.stderr)
+        print(f"Attempt to install a non-existing extension resulted with error, as expected: { result.stderr }")
     else:
         print(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
         f.write(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
