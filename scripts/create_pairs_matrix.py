@@ -46,7 +46,7 @@ def main():
         print("`duckdb_curr_version_main.txt` or `duckdb_previous_version_pairs.json` not found")
         no_files = True
     # fetch current versions and names
-    command = [ "git", "ls-remote", "--heads" ]
+    command = [ "git", "ls-remote", "--heads", "https://github.com/duckdb/duckdb.git" ]
     try:
         branches = subprocess.run(command, capture_output=True).stdout
     except subprocess.CalledProcessError as e:

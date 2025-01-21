@@ -133,21 +133,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: scripts/create_pairs_matrix.py
-          path: ${{ env.mounted_directory_name }}/helper
-
-      - name: Checkout DuckDB
-        id: checkout
-        continue-on-error: true
-        uses: actions/checkout@v4
-        with:
-          repository: duckdb/duckdb
-          fetch-depth: 0
           path: ${{ env.mounted_directory_name }}
       
       - name: create pairs.json
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          python helper/scripts/create_pairs_matrix.py
+          python scripts/create_pairs_matrix.py
       
       - name: Read JSON and create branches matrix
         working-directory: ${{ env.mounted_directory_name }}
