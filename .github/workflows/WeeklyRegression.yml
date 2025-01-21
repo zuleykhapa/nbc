@@ -186,52 +186,52 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: ${{ matrix.branch.new_sha }}
+          ref: 'main'
           fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-curr-${{ matrix.branch.new_name }}
+          path: ${{ env.mounted_directory_name}}/duckdb-curr-main
 
       - name: checkout duckdb-old
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: ${{ matrix.branch.old_sha }}
+          ref: main
           fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.branch.old_name }}
+          path: ${{ env.mounted_directory_name}}/duckdb-old-main
 
       # - name: Checkout duckdb-old to week ago version
       #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch.old_name }}
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
       #   run: |
       #     git checkout ${{ matrix.branch.old_sha }}
 
       # - name: Store current git hash of duckdb-curr
       #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch.new_name }}
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
       #   run: |
-      #     # update duckdb_curr_version_${{ matrix.branch.new_name }}.txt
-      #     git rev-parse --verify HEAD > ../../duckdb_curr_version_${{ matrix.branch.new_name }}.txt
+      #     # update duckdb_curr_version_main.txt
+      #     git rev-parse --verify HEAD > ../../duckdb_curr_version_main.txt
 
       - name: Build old and current
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          cd duckdb-curr-${{ matrix.branch.new_name }} && make clean && make
+          cd duckdb-curr-main && make clean && make
           cd ..
-          cd duckdb-old-${{ matrix.branch.old_name }} && make clean && make
+          cd duckdb-old-main && make clean && make
 
       - name: Set up benchmarks 
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch.new_name }}
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
         run: |
           # we do this so new added benchmarks that break duckdb old
           # do not cause failures.
-          rm -rf ../duckdb-curr-${{ matrix.branch.new_name }}/benchmark
-          mkdir ../duckdb-curr-${{ matrix.branch.new_name }}/benchmark
-          cp -r benchmark ../duckdb-curr-${{ matrix.branch.new_name }}
+          rm -rf ../duckdb-curr-main/benchmark
+          mkdir ../duckdb-curr-main/benchmark
+          cp -r benchmark ../duckdb-curr-main
 
       # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
       #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.branch.new_name }}
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
       #   run: |
       #     mkdir duckdb_benchmark_data
       #     cd duckdb_benchmark_data
@@ -240,22 +240,22 @@ jobs:
     
       # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
       #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch.old_name }}
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
       #   run: |
       #     mkdir duckdb_benchmark_data
       #     cd duckdb_benchmark_data
       #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
       #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
-      - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.branch.new_name }}
+      - name: Generate micro_extended.csv and copy to duckdb-curr-main
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.branch.old_name }}
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
         run: |
           find benchmark/micro/pushdown/window_partition_pushdown.benchmark > .github/regression/micro_extended.csv
-          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch.new_name }}/.github/regression/micro_extended.csv
+          cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
 
           # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-          # cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch.new_name }}/.github/regression/micro_extended.csv
+          # cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
 
       # # - id: failed-build
       # #   shell: bash
@@ -291,8 +291,8 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          mkdir -p ${{ matrix.branch.new_name }}_${{ matrix.branch.old_name }}
-          echo "file_path=$(echo "issues_${{ matrix.branch.new_name }}_${{ matrix.branch.old_name }}/regression_output_${{ matrix.test }}_${{ matrix.branch.new_name }}_${{ matrix.branch.old_name }}.txt" | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
+          mkdir -p main_main
+          echo "file_path=$(echo "issues_main_main/regression_output_${{ matrix.test }}_main_main.txt" | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
           
       - name: Run Regression Test
         if: contains(${{ steps.create.outputs.file_path }}, 'regression')
@@ -304,10 +304,10 @@ jobs:
           if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
             disable_timeout="--disable-timeout"
           fi
-          python duckdb-curr-${{ matrix.branch.new_name }}/scripts/regression/test_runner.py \
-            --old=duckdb-old-${{ matrix.branch.old_name }}/build/release/benchmark/benchmark_runner \
-            --new=duckdb-curr-${{ matrix.branch.new_name }}/build/release/benchmark/benchmark_runner \
-            --benchmarks=duckdb-curr-${{ matrix.branch.new_name }}/.github/regression/${{ matrix.test }} $disable_timeout \
+          python duckdb-curr-main/scripts/regression/test_runner.py \
+            --old=duckdb-old-main/build/release/benchmark/benchmark_runner \
+            --new=duckdb-curr-main/build/release/benchmark/benchmark_runner \
+            --benchmarks=duckdb-curr-main/.github/regression/${{ matrix.test }} $disable_timeout \
             --verbose > ${{ steps.create.outputs.file_path }}
                   
       - name: Upload results
@@ -344,17 +344,17 @@ jobs:
         if: contains(github.ref_name, 'main')
         run: |
           # # get versions
-          # ./duckdb-old-${{ matrix.branch.old_name }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch.old_name }}_old_version.txt
-          # ./duckdb-curr-${{ matrix.branch.new_name }}/build/release/duckdb -c "pragma version" > ${{ matrix.branch.new_name }}_curr_version.txt
+          # ./duckdb-old-main/build/release/duckdb -c "pragma version" > main_old_version.txt
+          # ./duckdb-curr-main/build/release/duckdb -c "pragma version" > main_curr_version.txt
 
-          printf "\`\`\` \nRegressed Version: ${{ matrix.branch.new_name }} \n$(${{ matrix.branch.new_sha }})\n\
-          OLD VERSION : ${{ matrix.branch.old_name }}\n$(${{ matrix.branch.old_sha }}) \n \`\`\` \n" >> issue_body_${{ matrix.branch.new_name }}_${{ matrix.branch.old_name }}.txt
+          printf "\`\`\` \nRegressed Version: main \n$(${{ matrix.branch.new_sha }})\n\
+          OLD VERSION : main\n$(${{ matrix.branch.old_sha }}) \n \`\`\` \n" >> issue_body_main_main.txt
 
           # collect issues on benchmarks runs
-          for output in issues_${{ matrix.branch.new_name }}_${{ matrix.branch.old_name }}/regression*.txt; do
+          for output in issues_main_main/regression*.txt; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-              printf "[ ${{ matrix.branch.new_name }} ] [ Regression Test $output ]\n" >> issue_body_${{ matrix.branch.new_name }}_${{ matrix.branch.old_name }}.txt
-              printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_${{ matrix.branch.new_name }}_${{ matrix.branch.old_name }}.txt
+              printf "[ main ] [ Regression Test $output ]\n" >> issue_body_main_main.txt
+              printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_main_main.txt
             fi
           done
 
