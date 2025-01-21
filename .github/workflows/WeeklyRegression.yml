@@ -250,6 +250,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
         run: |
+          sed -i 's|\${BENCHMARK_DIR}/lineitem_partitioned|\${BENCHMARK_DIR}/lineitem_partitioned_for_window|g' benchmark/micro/pushdown/window_partition_pushdown.benchmark
           find benchmark/micro/pushdown/window_partition_pushdown.benchmark > .github/regression/micro_extended.csv
           cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
 
