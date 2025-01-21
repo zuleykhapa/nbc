@@ -23,18 +23,21 @@ import os
 import re
 from collections import defaultdict
 
-PAIR_FILE_PATH = "duckdb_previous_version_pairs.json"
-TXT_FILE_PATH = "duckdb_curr_version_main.txt"
+PAIR_FILE = "duckdb_previous_version_pairs.json"
+TXT_FILE = "duckdb_curr_version_main.txt"
 
 def main():
     pairs = []
     old_highest_version_sha = None
     # find a file on runner duckdb_curr_version_main.txt or duckdb_previous_version_pairs.json to get previous run SHA
-    if os.path.isfile(TXT_FILE_PATH):
-        with open(TXT_FILE_PATH, "r") as f:
+    parent_dir = os.path.dirname(os.getcwd())
+    pairs_file_path = os.path.join(parent_dir, PAIR_FILE)
+    txt_file_path = os.path.join(parent_dir, TXT_FILE)
+    if os.path.isfile(txt_file_path):
+        with open(txt_file_path, "r") as f:
             old_main_sha = f.read()
-    if os.path.isfile(PAIR_FILE_PATH):
-        with open(PAIR_FILE_PATH, "r") as f:
+    if os.path.isfile(pairs_file_path):
+        with open(pairs_file_path, "r") as f:
             data = f.read()
             parsed_data = json.loads(data)
             old_main_sha = parsed_data[1]["new_sha"]
@@ -101,7 +104,7 @@ def main():
                 })
 
     # write to json file
-    with open(PAIR_FILE_PATH, "w") as f:
+    with open(pairs_file_path, "w") as f:
         json.dump(pairs, f, indent=4)
 
 if __name__ == "__main__":

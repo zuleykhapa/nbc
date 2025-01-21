@@ -129,7 +129,13 @@ jobs:
       branches: ${{ steps.branches.outputs.branches }}
 
     steps:
-      - name: checkout DuckDB
+      - name: Sparse-checkout repo with a script
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/create_pairs_matrix.py
+          path: ${{ env.mounted_directory_name }}
+
+      - name: Checkout DuckDB
         id: checkout
         continue-on-error: true
         uses: actions/checkout@v4
@@ -137,13 +143,6 @@ jobs:
           repository: duckdb/duckdb
           fetch-depth: 0
           path: ${{ env.mounted_directory_name }}
-      
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: scripts/create_pairs_matrix.py
-          path: ${{ env.mounted_directory_name }}
-
       
       - name: create pairs.json
         working-directory: ${{ env.mounted_directory_name }}
