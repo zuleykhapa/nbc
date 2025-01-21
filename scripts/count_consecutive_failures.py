@@ -179,7 +179,7 @@ def create_build_report(nightly_build, con, url):
 
         else:
             # failures count = -1 means all runs in the json file have conclusion = 'failure' so we need to update its value
-            # we count all runs and do not add a last successfull run link to the report
+            # we count all runs and do not add a last successful run link to the report
             if failures_count == -1:
                 failures_count = con.execute(f"""
                     SELECT
@@ -209,7 +209,7 @@ def create_build_report(nightly_build, con, url):
                     LIMIT 1
                 """).fetchone()
                 latest_success_url = tmp_url[0] if tmp_url else ''
-                f.write(f"Latest successfull run: [ Run Link ]({ latest_success_url })\n")
+                f.write(f"Latest successful run: [ Run Link ]({ latest_success_url })\n")
 
             f.write(f"\n#### Failure Details\n")
             failure_details = con.execute(f"""
