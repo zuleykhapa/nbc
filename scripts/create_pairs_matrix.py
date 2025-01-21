@@ -10,9 +10,21 @@ Contents of the `duckdb_previous_version_pairs.json` should look like this:
 [
     {
         "new_name": "main",
-        "new_sha": "0024e5d4beba0185733df68642775e3f38e089cb"
+        "new_sha": "latest main SHA",
+        "old_name": "main",
+        "old_sha": "a week ago main SHA"
+    },
+    {
+        "new_name": "main",
+        "new_sha": "latest main SHA",
         "old_name": "v1.2-histrionicus",
-        "old_sha": "c4f1a4e9fa5ba021c2f3fb72afa30c1d3c5ee7b0",
+        "old_sha": "latest v1.2-histrionicus SHA"
+    },
+    {
+        "new_name": "v1.2-histrionicus",
+        "new_sha": "latest v1.2-histrionicus SHA",
+        "old_name": "v1.2-histrionicus",
+        "old_sha": "a week ago v1.2-histrionicus SHA"
     }
 ]
 '''
@@ -28,6 +40,7 @@ TXT_FILE = "duckdb_curr_version_main.txt"
 
 def main():
     pairs = []
+    no_files = False
     old_highest_version_sha = None
     # find a file on runner duckdb_curr_version_main.txt or duckdb_previous_version_pairs.json to get previous run SHA
     parent_dir = os.path.dirname(os.getcwd())
@@ -36,14 +49,22 @@ def main():
     if os.path.isfile(txt_file_path):
         with open(txt_file_path, "r") as f:
             old_main_sha = f.read()
+        subprocess.run(["bash", "rm", txt_file_path])
     if os.path.isfile(pairs_file_path):
         with open(pairs_file_path, "r") as f:
             data = f.read()
             parsed_data = json.loads(data)
-            old_main_sha = parsed_data[1]["new_sha"]
-            old_highest_version_sha = parsed_data[1]["old_sha"]   
+            # there could be from 1 to 3 json objects
+            visited = -1
+            for data in parsed_data:
+                if data["new_name"] == "main" and visited != 0:
+                    visited = 0
+                    old_main_sha = data["new_sha"]
+                if data["new_name"].startswith("v") and visited != 1:
+                    visited = 1
+                    old_highest_version_sha = data["new_sha"]
     else:
-        print("`duckdb_curr_version_main.txt` or `duckdb_previous_version_pairs.json` not found")
+        print(f"`duckdb_curr_version_main.txt` or `duckdb_previous_version_pairs.json` not found in { parent_dir }")
         no_files = True
     # fetch current versions and names
     command = [ "git", "ls-remote", "--heads", "https://github.com/duckdb/duckdb.git" ]
