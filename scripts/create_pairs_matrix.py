@@ -3,10 +3,10 @@ We would like to run benchmarks in comparison of `current main` with `a week ago
 `current main` with `current v1.2-histrionicus`,
 `current v1.2-histrionicus` with `a week ago v1.2-histrionicus`.
 
-This script creates a `duckdb_previous_version_pairs.json` file containing the values we need to run regression tests
+This script creates a `pairs.json` file containing the values we need to run regression tests
 in pairs of `--old` and `--new` passing respectful values to the `regression_runner`.
 
-Contents of the `duckdb_previous_version_pairs.json` should look like this:
+Contents of the `pairs.json` should look like this:
 [
     {
         "new_name": "main",
@@ -35,14 +35,14 @@ import os
 import re
 from collections import defaultdict
 
-PAIR_FILE = "duckdb_previous_version_pairs.json"
+PAIR_FILE = "pairs.json"
 TXT_FILE = "duckdb_curr_version_main.txt"
 
 def main():
     pairs = []
     no_files = False
     old_highest_version_sha = None
-    # find a file on runner duckdb_curr_version_main.txt or duckdb_previous_version_pairs.json to get previous run SHA
+    # find a file on runner duckdb_curr_version_main.txt or pairs.json to get previous run SHA
     parent_dir = os.path.dirname(os.getcwd())
     pairs_file_path = os.path.join(parent_dir, PAIR_FILE)
     txt_file_path = os.path.join(parent_dir, TXT_FILE)
@@ -64,7 +64,7 @@ def main():
                     visited = 1
                     old_highest_version_sha = data["new_sha"]
     else:
-        print(f"`duckdb_curr_version_main.txt` or `duckdb_previous_version_pairs.json` not found in { parent_dir }")
+        print(f"`duckdb_curr_version_main.txt` or `pairs.json` not found in { parent_dir }")
         no_files = True
     # fetch current versions and names
     command = [ "git", "ls-remote", "--heads", "https://github.com/duckdb/duckdb.git" ]
