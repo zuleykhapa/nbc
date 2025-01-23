@@ -74,6 +74,7 @@ jobs:
       - name: Set up pyenv
         uses: gabrielfalcao/pyenv-action@v18
         with:
+          versions: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13
           command: pip install duckdb pandas tabulate docker
 
       # - name: Set up QEMU for aarch64 builds
