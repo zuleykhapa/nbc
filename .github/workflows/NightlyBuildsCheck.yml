@@ -67,10 +67,14 @@ jobs:
     continue-on-error: true
     runs-on: ${{ matrix.inputs.runs_on }}
     steps:
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # - name: Set up Python
+      #   uses: actions/setup-python@v5
+      #   with:
+      #       python-version: '3.10'
+      - name: Set up pyenv
+        uses: gabrielfalcao/pyenv-action@v18
         with:
-            python-version: '3.10'
+          command: pip install duckdb pandas tabulate docker
 
       # - name: Set up QEMU for aarch64 builds
       #   if: ${{ matrix.inputs.architectures == 'linux-aarch64' }}
@@ -88,8 +92,8 @@ jobs:
       #       docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       #       docker run --rm --platform linux/aarch64 ubuntu:latest uname -m
 
-      - name: Install Python dependencies
-        run: pip install duckdb pandas tabulate docker
+      # - name: Install Python dependencies
+      #   run: pip install duckdb pandas tabulate docker
             
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
