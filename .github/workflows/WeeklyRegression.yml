@@ -191,17 +191,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: 'main'
+          ref: ${{ matrix.versions.outputs.versions.new_sha }}
           fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-curr-main
+          path: ${{ env.mounted_directory_name}}/duckdb-curr-${{ matrix.versions.outputs.versions.new_name }}
 
       - name: checkout duckdb-old
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: main
+          ref: ${{ matrix.versions.outputs.versions.old_sha }}
           fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-old-main
+          path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.versions.outputs.versions.old_name }}
 
       # - name: Checkout duckdb-old to week ago version
       #   shell: bash
@@ -220,23 +220,23 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          cd duckdb-curr-main && make clean && make
+          cd duckdb-curr-${{ matrix.versions.outputs.versions.new_name }} && make clean && make
           cd ..
-          cd duckdb-old-main && make clean && make
+          cd duckdb-old-${{ matrix.versions.outputs.versions.old_name }} && make clean && make
 
       - name: Set up benchmarks 
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.outputs.versions.old_name }}
         run: |
           # we do this so new added benchmarks that break duckdb old
           # do not cause failures.
-          rm -rf ../duckdb-curr-main/benchmark
-          mkdir ../duckdb-curr-main/benchmark
-          cp -r benchmark ../duckdb-curr-main
+          rm -rf ../duckdb-curr-${{ matrix.versions.outputs.versions.new_name }}/benchmark
+          mkdir ../duckdb-curr-${{ matrix.versions.outputs.versions.new_name }}/benchmark
+          cp -r benchmark ../duckdb-curr-${{ matrix.versions.outputs.versions.new_name }}
 
       # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
       #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.outputs.versions.new_name }}
       #   run: |
       #     mkdir duckdb_benchmark_data
       #     cd duckdb_benchmark_data
@@ -245,7 +245,7 @@ jobs:
     
       # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
       #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.outputs.versions.old_name }}
       #   run: |
       #     mkdir duckdb_benchmark_data
       #     cd duckdb_benchmark_data
@@ -254,7 +254,7 @@ jobs:
       
       - name: Generate micro_extended.csv and copy to duckdb-curr-main
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.outputs.versions.old_name }}
         run: |
           # sed -i 's|\${BENCHMARK_DIR}/lineitem_partitioned|\${BENCHMARK_DIR}/lineitem_partitioned_for_window|g' benchmark/micro/pushdown/window_partition_pushdown.benchmark
           # sed -i 's|\${BENCHMARK_DIR}/lineitem_partitioned|\${BENCHMARK_DIR}/lineitem_partitioned_for_window|g' ../duckdb-curr-main/benchmark/micro/pushdown/window_partition_pushdown.benchmark
@@ -262,14 +262,14 @@ jobs:
 
           # cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
 
-          find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-          cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
+          # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.versions.outputs.versions.new_name }}/.github/regression/micro_extended.csv
 
-      # # - id: failed-build
-      # #   shell: bash
-      # #   if: failure()
-      # #   run: |
-      # #     echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
+      # - id: failed-build
+      #   shell: bash
+      #   if: failure()
+      #   run: |
+      #     echo "failed_build=${{ matrix.versions.outputs.versions.new_name }}" >> $GITHUB_OUTPUT
     
   run-regression-tests:
     name: Run Regression Tests
@@ -300,7 +300,7 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           mkdir -p main_main
-          echo "file_path=$(echo "issues_main_main/regression_output_${{ matrix.test }}_main_main.txt" | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
+          echo "file_path=$(echo "regression_output_${{ matrix.test }}_${{ matrix.versions.outputs.new_name }}_${{ matrix.versions.outputs.old_name }}.txt" | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
           
       - name: Run Regression Test
         if: contains(${{ steps.create.outputs.file_path }}, 'regression')
@@ -341,9 +341,9 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
-    # strategy:
-    #   matrix: 
-    #     versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
+    strategy:
+      matrix: 
+        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
         # exclude: 
         #   - versions: ${{ needs.build-and-setup.outputs.failed_build }}
 
@@ -351,18 +351,15 @@ jobs:
       - name: Collect issues on Benchmarks
         if: contains(github.ref_name, 'main')
         run: |
-          # # get versions
-          # ./duckdb-old-main/build/release/duckdb -c "pragma version" > main_old_version.txt
-          # ./duckdb-curr-main/build/release/duckdb -c "pragma version" > main_curr_version.txt
-
-          printf "\`\`\` \nRegressed Version: main \n$()\n\
-          OLD VERSION : main\n$() \n \`\`\` \n" >> issue_body_main_main.txt
+          issue_body_file="issue_body_${{ matrix.versions.outputs.new_name }}_${{ matrix.versions.outputs.old_name }}.txt"
+          printf "\`\`\` \nRegressed Version: ${{ matrix.versions.outputs.new_name }} \n$()\n\
+          OLD VERSION : ${{ matrix.versions.outputs.old_name }}\n$() \n \`\`\` \n" >> $issue_body_file
 
           # collect issues on benchmarks runs
-          for output in issues_main_main/regression*.txt; do
+          for output in regression*.txt; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-              printf "[ main ] [ Regression Test $output ]\n" >> issue_body_main_main.txt
-              printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_main_main.txt
+              printf "[ main ] [ Regression Test $output ]\n" >> $issue_body_file
+              printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> $issue_body_file
             fi
           done
 
