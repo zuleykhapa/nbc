@@ -67,17 +67,22 @@ jobs:
     continue-on-error: true
     runs-on: ${{ matrix.inputs.runs_on }}
     steps:
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #       python-version: '3.10'
-      - name: Set up pyenv
-        uses: gabrielfalcao/pyenv-action@v18
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          default: 3.10
-          versions: 3.10, 3.11, 3.12, 3.13
-          command: pip install duckdb pandas tabulate docker
-
+            python-version: |
+              '3.8'
+              '3.9'
+              '3.10'
+              '3.11'
+              '3.12'
+              '3.13'
+      
+      - name: Install pipenv
+        run: |
+          curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+          pipenv install
+      
       # - name: Set up QEMU for aarch64 builds
       #   if: ${{ matrix.inputs.architectures == 'linux-aarch64' }}
       #   uses: docker/setup-qemu-action@v3
