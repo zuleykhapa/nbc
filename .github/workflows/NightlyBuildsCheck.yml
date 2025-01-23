@@ -130,6 +130,7 @@ jobs:
                 --config ext/.github/config/out_of_tree_extensions.cmake
 
       - name: Upload actions for extensions
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}
