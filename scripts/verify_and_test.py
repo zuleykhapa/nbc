@@ -312,26 +312,26 @@ def main():
     if nightly_build == 'Python':
         python_versions = list_builds_for_python_versions(run_id)
         
-        python_versions = ["3.10"]
+        # python_versions = ["3.10"]
         for version in python_versions:
             # if version not in installed_py_versions:
 ############ UNCOMMENT THIS:
-            # print(f"Installing Python version { version }...")
-            # subprocess.run([
-            #     "pyenv", "install", "--force", version
-            # ], check=True)
-            # print(f"Setting Python version { version } global.")
-            # subprocess.run([
-            #     "pyenv", "global", version
-            # ], check=True)
-            # # py_version - debug output
-            # py_version = subprocess.run([
-            #     f"python{ version }", "--version"
-            # ], capture_output=True, text=True)
-            # print(f"Installed Python version: { py_version.stdout }")
+            print(f"Installing Python version { version }...")
+            subprocess.run([
+                "pyenv", "install", "--force", version
+            ], check=True)
+            print(f"Setting Python version { version } global.")
+            subprocess.run([
+                "pyenv", "global", version
+            ], check=True)
+            # py_version - debug output
+            py_version = subprocess.run([
+                f"python{ version }", "--version"
+            ], capture_output=True, text=True)
+            print(f"Installed Python version: { py_version.stdout }")
             
-            # print(f"Ensuring pip is installed to the Python version { version }...")
-            # subprocess.run([f"python{ version }", "-m", "ensurepip", "--upgrade"])
+            print(f"Ensuring pip is installed to the Python version { version }...")
+            subprocess.run([f"python{ version }", "-m", "ensurepip", "--upgrade"])
 ############
             # install duckdb
             print(f"Installing Duckdb on Python version { version }...")
@@ -353,19 +353,20 @@ def main():
             if sha_matching(short_sha, full_sha, file_name, nightly_build):
                 print(f"Testing extensions on python{ version }...")
                 extensions = list_extensions(config)
+                # extensions = ["aws"]
                 for ext in extensions:
                     for action in ACTIONS:
                         is_installed_command = [
                             f"python{ version }", "-c",
                             textwrap.dedent(f"""
                                 import duckdb
-                                installed = duckdb.sql("SELECT { action }ed FROM duckdb_extensions() WHERE extension_name='{ ext }'").fetchone()
-                                print(installed[0] if installed else None)
+                                is_installed = duckdb.sql("SELECT install_mode FROM duckdb_extensions() WHERE extension_name='{ ext }'").fetchone()[0]
+                                print(install_mode)
                             """)
                         ]
-                        installed = subprocess.run(is_installed_command, text=True, capture_output=True).stdout.strip()
-                        # print("📌", ext, installed)
-                        if installed == 'False':
+                        is_installed = subprocess.run(is_installed_command, text=True, capture_output=True).stdout.strip()
+                        print("📌", ext, len(is_installed))
+                        if not is_installed:
                             action_command = [
                                 f"python{ version }", "-c",
                                 textwrap.dedent(f"""
@@ -373,20 +374,37 @@ def main():
                                     print(duckdb.sql("{ action } '{ ext }'"))
                                 """)
                             ]
-                            action_result = subprocess.run(action_command, text=True, capture_output=True).stdout.strip()
-                            # print("🐠", action_result)
+                            print(f"{ action }ing { ext }...")
+                            subprocess.run(action_command, text=True, capture_output=True).stdout.strip()
+                            # verify action result
+                            if action == 'INSTALL':
+                                is_installed = subprocess.run(is_installed_command, text=True, capture_output=True).stdout.strip()
+                                
+                                print("TEST RESULT FOR", action, ext, ":", is_installed)
+                                if is_installed == 'None':
+                                    with open(file_name, 'a') as f:
+                                        if counter == 0:
+                                            f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
+                                            counter += 1
+                                        f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ action }\n")
+                            else:
+                                is_loaded_command =[
+                                    f"python{ version }", "-c",
+                                    textwrap.dedent(f"""
+                                        import duckdb
+                                        is_loded = duckdb.sql("SELECT loaded FROM duckdb_extensions() WHERE extension_name='{ ext }'").fetchone()[0]
+                                        print(is_loded)
+                                    """)
+                                ]
+                                is_loaded = subprocess.run(is_loaded_command, text=True, capture_output=True).stdout.strip()
 
-                            installed = subprocess.run(is_installed_command, text=True, capture_output=True).stdout.strip()
-
-                            print("TEST RESULT:", action, ext, installed)
-
-                            if action_result != 'None' or installed == 'False':
-                                with open(file_name, 'a') as f:
-                                    if counter == 0:
-                                        f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                        counter += 1
-                                    f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ action }\n")
-
+                                print("TEST RESULT FOR", action, ext, ":", is_loaded)
+                                if is_loaded == 'False':
+                                    with open(file_name, 'a') as f:
+                                        if counter == 0:
+                                            f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
+                                            counter += 1
+                                        f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ action }\n")
 
             if runs_on == 'ubuntu-latest':
                 verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
