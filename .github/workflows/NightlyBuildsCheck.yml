@@ -93,8 +93,8 @@ jobs:
       #       docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       #       docker run --rm --platform linux/aarch64 ubuntu:latest uname -m
 
-      # - name: Install Python dependencies
-      #   run: pip install duckdb pandas tabulate docker
+      - name: Install Python dependencies
+        run: pip install duckdb pandas tabulate docker
             
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
