@@ -145,7 +145,7 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         id: pairs
         run: |
-          pairs=$(cat pairs.json | jq -c '.')
+          pairs=$(cat ../pairs.json | jq -c '.')
           echo "pairs=$pairs" >> $GITHUB_OUTPUT
           echo $pairs
       
