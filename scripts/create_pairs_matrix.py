@@ -92,7 +92,7 @@ def main():
 
     if main_sha and no_files:
         # a very first pair - if the new machine `curr-main` & `curr-main`
-        duckdb_previous_version_pairs.append({
+        pairs.append({
             "new_name": f"{ main_name }",
             "new_sha": f"{ main_sha }",
             "old_name": f"{ main_name }",
@@ -101,7 +101,7 @@ def main():
     else:
         if main_sha and old_main_sha:
             # first pair - `curr-main` & `old-main`
-            duckdb_previous_version_pairs.append({
+            pairs.append({
                 "new_name": f"{ main_name }",
                 "new_sha": f"{ main_sha }",
                 "old_name": f"{ main_name }",
@@ -109,7 +109,7 @@ def main():
             })
         if highest_version_sha:
             # second pair - `curr-main` & `curr-vx.y`
-            duckdb_previous_version_pairs.append({
+            pairs.append({
                 "new_name": f"{ main_name }",
                 "new_sha": f"{ main_sha }",
                 "old_name": f"{ highest_version_name }",
@@ -117,7 +117,7 @@ def main():
             })
             if old_highest_version_sha:
                 # third pair - `curr-vx.y` & `old-vx.y`
-                duckdb_previous_version_pairs.append({
+                pairs.append({
                     "new_name": f"{ highest_version_name }",
                     "new_sha": f"{ highest_version_sha }",
                     "old_name": f"{ highest_version_name }",
