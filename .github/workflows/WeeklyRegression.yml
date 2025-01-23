@@ -299,8 +299,13 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          mkdir -p main_main
-          echo "file_path=$(echo "regression_output_${{ matrix.test }}_${{ matrix.versions.outputs.new_name }}_${{ matrix.versions.outputs.old_name }}.txt" | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
+          test=$(echo "${{ matrix.test }}" | sed -e 's/\//_/g' -e 's/\.csv//'))
+          new_name=${{ matrix.versions.outputs.new_name }}
+          old_name=${{ matrix.versions.outputs.old_name }}
+          file_path=regression_output_$test_$new_name_$old_name.txt"
+          
+          echo $file_path
+          echo "file_path=$file_path">> $GITHUB_OUTPUT
           
       - name: Run Regression Test
         if: contains(${{ steps.create.outputs.file_path }}, 'regression')
