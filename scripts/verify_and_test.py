@@ -364,7 +364,7 @@ def main():
                             """)
                         ]
                         installed = subprocess.run(is_installed_command, text=True, capture_output=True).stdout.strip()
-                        print("📌", ext, installed)
+                        # print("📌", ext, installed)
                         if installed == 'False':
                             action_command = [
                                 f"python{ version }", "-c",
@@ -373,12 +373,12 @@ def main():
                                     print(duckdb.sql("{ action } '{ ext }'"))
                                 """)
                             ]
-                            action_result = subprocess.run(action_command, text=True, capture_output=True)
-                            print("🐠", action_result)
+                            action_result = subprocess.run(action_command, text=True, capture_output=True).stdout.strip()
+                            # print("🐠", action_result)
 
-                            installed = subprocess.run(is_installed_command, text=True, capture_output=True)
+                            installed = subprocess.run(is_installed_command, text=True, capture_output=True).stdout.strip()
 
-                            print("🦑", action, ext, installed)
+                            print("TEST RESULT:", action, ext, installed)
 
                             if action_result != 'None' or installed == 'False':
                                 with open(file_name, 'a') as f:

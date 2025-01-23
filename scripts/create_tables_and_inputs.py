@@ -103,18 +103,19 @@ def create_tables_for_report(nightly_build, con, build_info, url):
     Using 'steps' and 'artifacts' tables creates 'artifacts_per_jobs_{ nightly_build }' table 
         for the final report.
     '''
+    
+    con.execute(f"""
+        CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
+            SELECT *
+            FROM '{ nightly_build }.json')
+            ORDER BY createdAt DESC
+    """)
+    con.execute(f"""
+        CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
+            SELECT * FROM read_json('{ nightly_build }_jobs.json')
+        )
+    """)
     if nightly_build not in HAS_NO_ARTIFACTS:
-        con.execute(f"""
-            CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
-                SELECT *
-                FROM '{ nightly_build }.json')
-                ORDER BY createdAt DESC
-        """)
-        con.execute(f"""
-            CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
-                SELECT * FROM read_json('{ nightly_build }_jobs.json')
-            )
-        """)
         con.execute(f"""
                 CREATE OR REPLACE TABLE 'artifacts_{ nightly_build }' AS (
                     SELECT * FROM read_json('{ nightly_build }_artifacts.json')
@@ -170,20 +171,20 @@ def create_tables_for_report(nightly_build, con, build_info, url):
                         ) as t2
                     );
                 """)
-        else:
-            con.execute(f"""
-                CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
-                    SELECT job_name, conclusion 
+    else:
+        con.execute(f"""
+            CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
+                SELECT job_name, conclusion 
+                FROM (
+                    SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
                     FROM (
-                        SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
-                        FROM (
-                            SELECT unnest(jobs) j 
-                            FROM 'steps_{ nightly_build }'
-                            )
-                        ) 
-                    WHERE steps['name'] LIKE '%upload-artifact%'
-                    )
-                """)
+                        SELECT unnest(jobs) j 
+                        FROM 'steps_{ nightly_build }'
+                        )
+                    ) 
+                WHERE steps['name'] LIKE '%upload-artifact%'
+                )
+            """)
 
 def get_binaries_count(nightly_build, con):
     binaries_count = [0]
