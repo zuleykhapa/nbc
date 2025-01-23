@@ -159,7 +159,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - run: |
-        echo ${{ matrix.versions.new_name }}
+          echo ${{ matrix.versions.new_name }}
 
   build-and-setup:
     name: Build DuckDB versions and link the benchmarks
