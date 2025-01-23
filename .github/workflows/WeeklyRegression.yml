@@ -299,7 +299,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          test=$(echo "${{ matrix.test }}" | sed -e 's/\//_/g' -e 's/\.csv//'))
+          test=$(echo "${{ matrix.test }}" | sed -e 's/\//_/g' -e 's/\.csv//')
           new_name=${{ matrix.versions.new_name }}
           old_name=${{ matrix.versions.old_name }}
           file_path=regression_output_$test_$new_name_$old_name.txt"
