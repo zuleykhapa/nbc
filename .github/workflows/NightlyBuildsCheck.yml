@@ -109,17 +109,20 @@ jobs:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
             uname -m
-            echo "Downloading duckdb-binaries-$name artifact..."
-            if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-${{ matrix.inputs.name }}; then
-                echo "Artifact duckdb-binaries-$name is successfuly downloaded."
-                unzip duckdb_cli-*.zip -d duckdb_path
-
-                echo "Verifying version and testing extensions..."
-                python scripts/verify_and_test.py \
-                    --nightly_build ${{ matrix.inputs.nightly_build }} \
-                    --architecture ${{ matrix.inputs.architectures }} --run_id ${{ matrix.inputs.run_id }} \
-                    --runs_on ${{ matrix.inputs.runs_on }} --config ext/.github/config/out_of_tree_extensions.cmake
+            if [[ ${{ matrix.inputs.nightly_build != 'Python' }} ]]; then
+              echo "Downloading duckdb-binaries-$name artifact..."
+              if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-${{ matrix.inputs.name }}; then
+                  echo "Artifact duckdb-binaries-$name is successfuly downloaded."
+                  unzip duckdb_cli-*.zip -d duckdb_path
+              fi
             fi
+            echo "Verifying version and testing extensions..."
+            python scripts/verify_and_test.py \
+                --nightly_build ${{ matrix.inputs.nightly_build }} \
+                --architecture ${{ matrix.inputs.architectures }} \
+                --run_id ${{ matrix.inputs.run_id }} \
+                --runs_on ${{ matrix.inputs.runs_on }} \
+                --config ext/.github/config/out_of_tree_extensions.cmake
 
       - name: Upload actions for extensions
         uses: actions/upload-artifact@v4
