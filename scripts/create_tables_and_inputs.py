@@ -201,10 +201,10 @@ def get_binaries_count(nightly_build, con):
 
 def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
     if nightly_build in HAS_NO_ARTIFACTS:
-        print("nightly_build", nightly_build)
+        # print("nightly_build", nightly_build)
         platform = str(nightly_build).lower()
-        print("platform", platform)
-        architectures = ['amd64', 'x86_64'] if nightly_build == 'Python' else ['x64']
+        # print("platform", platform)
+        architectures = ['amd64', 'aarch64', 'x86_64', 'arm64'] if nightly_build == 'Python' else ['x64']
     else:
         '''
         From artifact names in 'artifacts_per_jobs_{ nightly_build }' table create a list of 'items'.
@@ -243,8 +243,19 @@ def get_runner(platform, architecture):
             return "windows-2019"
         case 'linux':
             return "ubuntu-22.04-arm" if architecture == 'linux-aarch64' else "ubuntu-latest"
+        case 'python':
+            match architecture:
+                case 'aarch64':
+                    return "ubuntu-22.04-arm"
+                case 'x86_64':
+                    return "macos-latest"
+                case 'arm64':
+                    return "macos-13"
+                case _:
+                    return "ubuntu-latest"
         case _:
             return "ubuntu-latest"
+        
 
 def main():
     matrix_data = []

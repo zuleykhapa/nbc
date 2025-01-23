@@ -89,7 +89,7 @@ jobs:
       #       docker run --rm --platform linux/aarch64 ubuntu:latest uname -m
 
       - name: Install Python dependencies
-        run: pip install duckdb pandas tabulate docker
+        run: pip install pyenv duckdb pandas tabulate docker
             
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
