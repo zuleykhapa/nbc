@@ -3,10 +3,10 @@ We would like to run benchmarks in comparison of `current main` with `a week ago
 `current main` with `current v1.2-histrionicus`,
 `current v1.2-histrionicus` with `a week ago v1.2-histrionicus`.
 
-This script creates a `pairs.json` file containing the values we need to run regression tests
+This script creates a `duckdb_previous_version_pairs.json` file containing the values we need to run regression tests
 in pairs of `--old` and `--new` passing respectful values to the `regression_runner`.
 
-Contents of the `pairs.json` should look like this:
+Contents of the `duckdb_previous_version_pairs.json` should look like this:
 [
     {
         "new_name": "main",
@@ -35,14 +35,14 @@ import os
 import re
 from collections import defaultdict
 
-PAIR_FILE = "pairs.json"
+PAIR_FILE = "duckdb_previous_version_pairs.json"
 TXT_FILE = "duckdb_curr_version_main.txt"
 
 def main():
     pairs = []
     no_files = False
     old_highest_version_sha = None
-    # find a file on runner duckdb_curr_version_main.txt or pairs.json to get previous run SHA
+    # find a file on runner duckdb_curr_version_main.txt or duckdb_previous_version_pairs.json to get previous run SHA
     parent_dir = os.path.dirname(os.getcwd())
     pairs_file_path = os.path.join(parent_dir, PAIR_FILE)
     txt_file_path = os.path.join(parent_dir, TXT_FILE)
@@ -64,7 +64,7 @@ def main():
                     visited = 1
                     old_highest_version_sha = data["new_sha"]
     else:
-        print(f"`duckdb_curr_version_main.txt` or `pairs.json` not found in { parent_dir }")
+        print(f"`duckdb_curr_version_main.txt` or `duckdb_previous_version_pairs.json` not found in { parent_dir }")
         no_files = True
     # fetch current versions and names
     command = [ "git", "ls-remote", "--heads", "https://github.com/duckdb/duckdb.git" ]
@@ -92,7 +92,7 @@ def main():
 
     if main_sha and no_files:
         # a very first pair - if the new machine `curr-main` & `curr-main`
-        pairs.append({
+        duckdb_previous_version_pairs.append({
             "new_name": f"{ main_name }",
             "new_sha": f"{ main_sha }",
             "old_name": f"{ main_name }",
@@ -101,7 +101,7 @@ def main():
     else:
         if main_sha and old_main_sha:
             # first pair - `curr-main` & `old-main`
-            pairs.append({
+            duckdb_previous_version_pairs.append({
                 "new_name": f"{ main_name }",
                 "new_sha": f"{ main_sha }",
                 "old_name": f"{ main_name }",
@@ -109,7 +109,7 @@ def main():
             })
         if highest_version_sha:
             # second pair - `curr-main` & `curr-vx.y`
-            pairs.append({
+            duckdb_previous_version_pairs.append({
                 "new_name": f"{ main_name }",
                 "new_sha": f"{ main_sha }",
                 "old_name": f"{ highest_version_name }",
@@ -117,7 +117,7 @@ def main():
             })
             if old_highest_version_sha:
                 # third pair - `curr-vx.y` & `old-vx.y`
-                pairs.append({
+                duckdb_previous_version_pairs.append({
                     "new_name": f"{ highest_version_name }",
                     "new_sha": f"{ highest_version_sha }",
                     "old_name": f"{ highest_version_name }",
