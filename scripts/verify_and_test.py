@@ -168,9 +168,9 @@ def verify_and_test_python_macos(version, full_sha, file_name, architecture, cou
 
 def verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
-    # arch = architecture.replace("/", "-")
+    architecture = architecture.replace("/", "-")
+    arch = f"linux/{ arch }"
     docker_image = f"python:{ version }"
-    architecture = f"linux/{ architecture }"
     container_name = f"python-test-{ runs_on }-{ architecture }-python-{ version.replace('.', '-') }"
     
     print(docker_image, architecture, container_name)
