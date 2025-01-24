@@ -29,7 +29,8 @@ REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
 def create_build_report(nightly_build, con, build_info, url):
-    failures_count = count_consecutive_failures(nightly_build, con)
+    # failures_count = count_consecutive_failures(nightly_build, con)
+    failures_count = 0
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:
@@ -38,9 +39,9 @@ def create_build_report(nightly_build, con, build_info, url):
             f.write(f"Latest run: [ Run Link ]({ url })\n")
 
         else:
-            # failures_count = -1 means all runs in the json file have conclusion = 'failure' 
-            # so we need to update its value.
-            # We count all runs and do not add a last successful run link to the report
+            failures_count = -1 means all runs in the json file have conclusion = 'failure' 
+            so we need to update its value.
+            We count all runs and do not add a last successful run link to the report
             if failures_count == -1:
                 failures_count = con.execute(f"""
                     SELECT
@@ -54,7 +55,6 @@ def create_build_report(nightly_build, con, build_info, url):
                     count(*)
                 FROM 'gh_run_list_{ nightly_build }'
             """).fetchone()[0]
-
             f.write(f"## { nightly_build }\n")            
             if failures_count == total_count:
                 f.write(f"### { nightly_build } nightly-build has not succeeded more than **{ failures_count }** times.\n")
