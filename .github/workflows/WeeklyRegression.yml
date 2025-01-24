@@ -360,14 +360,14 @@ jobs:
           printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n
           Hash info:\n**new (${{ matrix.versions.new_name }})** \`${{ matrix.versions.new_sha }}\`\n
           **old (${{ matrix.versions.old_name }})** \`${{ matrix.versions.old_sha }}\`\n
-          #### List of regressing tests\n" >> $issue_body_file
+          #### List of regressing tests\n" >> "$issue_body_file"
           
           # collect issues on benchmarks runs
           for output in regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-              test_name=$(echo $output | awk -F'_' '{print $3,$4}')
-              printf "- **$test_name**\n" >> $issue_body_file
-              printf "\`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> $issue_body_file
+              test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
+              printf -- "- **%s**\n" "$test_name" >> "$issue_body_file"
+              printf -- "```\n%s\n```\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "$issue_body_file"
             fi
           done
 
