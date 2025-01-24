@@ -179,7 +179,7 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, cou
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
         print("🦑", container.exec_run("cat /etc/os-release", stdout=True, stderr=True).output.decode())
-        print("🦑", container.exec_run("architecture", stdout=True, stderr=True).output.decode())
+        print("🫡", container.exec_run("uname -m", stdout=True, stderr=True).output.decode())
         print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
         result = container.exec_run(
@@ -326,16 +326,21 @@ def main():
         full_sha = get_full_sha(run_id)
         
         # python_versions = ["3.10"]
-        for version in python_versions:
-            print(f"Installing Python version { version }...")
-            if runs_on.startswith("ubuntu"):
+        if runs_on.startswith("ubuntu"):
+            for version in python_versions:
                 verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
-            else:
-############ UNCOMMENT THIS:
-                init_pyenv()
-                subprocess.run([
-                    "pyenv", "install", "-s", version
-                ], check=True)
+        else:
+            init_pyenv()
+            for version in python_versions:
+                print(f"Installing Python version { version }...")
+                try: 
+                    subprocess.run([
+                        "pyenv", "install", "-s", version
+                    ], check=True)
+                except subprocess.CalledProcessError as e:
+                    print(f"Error installing Python version { version }: { e }")
+                    print(f"stderr: { e.stderr }")
+                
                 print(f"Setting Python version { version } global.")
                 subprocess.run([
                     "pyenv", "global", version
@@ -348,7 +353,6 @@ def main():
                 
                 print(f"Ensuring pip is installed to the Python version { version }...")
                 subprocess.run([f"python{ version }", "-m", "ensurepip", "--upgrade"])
-    ############
                 # install duckdb
                 print(f"Installing Duckdb on Python version { version }...")
                 subprocess.run([
