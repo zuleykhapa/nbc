@@ -411,7 +411,7 @@ jobs:
         run: |
           if grep -q "nightly-build" nightly_build*.md; then
             echo "Adding nightly-build report to GitHub issue."
-            echo "## Nighly-Builds status on main" >> report.txt
+            echo "# Nighly-Builds status on main" >> report.txt
             cat nightly_build*.md >> report.txt
           fi
 
