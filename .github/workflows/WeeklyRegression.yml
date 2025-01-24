@@ -367,7 +367,7 @@ jobs:
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
               test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
               printf -- "- **%s**\n" "$test_name" >> "$issue_body_file"
-              printf -- "```\n%s\n```\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "$issue_body_file"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "$issue_body_file"
             fi
           done
 
