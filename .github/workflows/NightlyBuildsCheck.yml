@@ -135,6 +135,7 @@ jobs:
               .venv/Scripts/activate
             elif [[ ${{ matrix.inputs.runs_on }} == 'macos-13' || ${{ matrix.inputs.runs_on }} == 'macos-latest' ]]; then
               source .venv/bin/activate
+            fi
               
             if [[ ${{ matrix.inputs.nightly_build != 'Python' }} ]]; then
               echo "Downloading duckdb-binaries-$name artifact..."
