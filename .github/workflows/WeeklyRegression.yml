@@ -359,10 +359,10 @@ jobs:
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n
           Hash info:\n
-          |  | Branch | SHA |\n
-          |:-|:-------|:----|\n
-          | **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n
-          | **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n
+          |  | Branch | SHA |
+          |:-|:-------|:----|
+          | **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |
+          | **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |
           #### List of regressing tests\n" >> "$issue_body_file"
           
           # collect issues on benchmarks runs
