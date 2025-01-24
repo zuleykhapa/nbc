@@ -310,16 +310,11 @@ def test_extensions(tested_binary, file_name):
         print(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
         f.write(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
 
-def initialize_pyenv():
-    """Initializes pyenv environment variables."""
+def init_pyenv():
     pyenv_root = os.path.expanduser("~/.pyenv")
     os.environ["PYENV_ROOT"] = pyenv_root
     os.environ["PATH"] = f"{pyenv_root}/bin:{os.environ['PATH']}"
-
-    # Initialize pyenv in the shell
     subprocess.run(["bash", "-c", "eval \"$(pyenv init --path)\""], check=True)
-
-
 
 
 
@@ -327,8 +322,6 @@ def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
     counter = 0 # to write only one header per table
     if nightly_build == 'Python':
-        # Initialize pyenv
-        initialize_pyenv()
         python_versions = list_builds_for_python_versions(run_id)
         full_sha = get_full_sha(run_id)
         
@@ -339,8 +332,9 @@ def main():
                 verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
             else:
 ############ UNCOMMENT THIS:
+                init_pyenv()
                 subprocess.run([
-                    "pyenv", "install", "--force", version
+                    "pyenv", "install", "-s", version
                 ], check=True)
                 print(f"Setting Python version { version } global.")
                 subprocess.run([
