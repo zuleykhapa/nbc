@@ -113,7 +113,7 @@ jobs:
       #       echo 'eval "$(pyenv virtualenv-init -)"' >> $GITHUB_ENV
         
       - name: Install Pyenv on MacOS
-        if: contains(${{ matrix.inputs.runs_on }}, 'macos')
+        if: ${{ matrix.inputs.runs_on == 'macos-13' }} || ${{ matrix.inputs.runs_on == 'macos-latest' }}
         shell: bash
         run: |
           curl https://pyenv.run | bash
@@ -129,7 +129,7 @@ jobs:
       
       - name: Install Pyenv on Windows
         shell: bash
-        if: contains(${{ matrix.inputs.nightly_build }}, 'windows')
+        if: ${{ matrix.inputs.runs_on == 'windows-amd64' }}
         run: |
           git clone https://github.com/pyenv-win/pyenv-win.git "$HOME/.pyenv"
           echo 'export PYENV="$HOME/.pyenv"' >> $HOME/.bashrc
