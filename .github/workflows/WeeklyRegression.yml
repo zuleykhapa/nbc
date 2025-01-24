@@ -302,7 +302,7 @@ jobs:
           test=$(echo "${{ matrix.test }}" | sed -e 's/\//_/g' -e 's/\.csv//')
           new_name=${{ matrix.versions.new_name }}
           old_name=${{ matrix.versions.old_name }}
-          file_path=regression_output_$test_$new_name_$old_name.txt
+          file_path=regression_output_${test}_${new_name}_${old_name}.txt
           
           echo $file_path
           echo "file_path=$file_path">> $GITHUB_OUTPUT
