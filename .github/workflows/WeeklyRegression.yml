@@ -412,6 +412,7 @@ jobs:
             echo "Regressions detected, GitHub issue will be filed."
             echo "# Regression tests" >> report.txt
             cat issue_body*.txt >> report.txt
+            echo "Latest WeeklyRegression run: [Run Link](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }})" >> report.txt
           fi
 
       - name: Add Nightly-Build Failures to Report
