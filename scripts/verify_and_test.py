@@ -171,7 +171,7 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, cou
     # arch = architecture.replace("/", "-")
     docker_image = f"python:{ version }"
     architecture = f"linux/{ architecture }"
-    container_name = f"python-test-{ runs_on }-{ arch }-python-{ version.replace('.', '-') }"
+    container_name = f"python-test-{ runs_on }-{ architecture }-python-{ version.replace('.', '-') }"
     
     print(docker_image, architecture, container_name)
     
@@ -179,7 +179,7 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, cou
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
         print("🦑", container.exec_run("cat /etc/os-release", stdout=True, stderr=True).output.decode())
-        print("🦑", container.exec_run("arch", stdout=True, stderr=True).output.decode())
+        print("🦑", container.exec_run("architecture", stdout=True, stderr=True).output.decode())
         print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
         result = container.exec_run(
