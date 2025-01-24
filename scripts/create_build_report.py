@@ -120,11 +120,13 @@ def main():
     # create complete report
     for nightly_build in nightly_builds:
         build_info = {}
-        url = con.execute(f"""
-            SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
-            """).fetchone()[0]
+        # url = con.execute(f"""
+        #     SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
+        #     """).fetchone()[0]
+        url = ""
         create_build_report(nightly_build, con, build_info, url)    
     con.close()
+    
     
 if __name__ == "__main__":
     main()
