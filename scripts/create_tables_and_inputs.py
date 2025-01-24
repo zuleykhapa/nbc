@@ -313,13 +313,13 @@ def main():
         "run_id": "12919733489",
         "name": "x86_64"
     })
-    # matrix_data.append({
-    #     "nightly_build": "OSX",
-    #     "architectures": "arm64",
-    #     "runs_on": "macos-13",
-    #     "run_id": "12642824816",
-    #     "name": "osx"
-    # })
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "amd64",
+        "runs_on": "wondows-2019",
+        "run_id": "12919733489",
+        "name": "amd64"
+    })
 
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)

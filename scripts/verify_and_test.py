@@ -117,55 +117,6 @@ Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
         """)
         return True
 
-def verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on):
-    # install passed version of python and pull duckdb
-    print(version)
-    # if version != '3.10':
-    subprocess.run([
-        "pyenv", "install", version
-    ], check=True)
-    subprocess.run([
-        "pyenv", "global", version
-    ], check=True)
-    py_version = subprocess.run([
-        f"python{ version }", "--version"
-    ], capture_output=True, text=True)
-    print(f"Installed Python version: { py_version.stdout }")
-    # else:
-    #     subprocess.run([
-    #         "pyenv", "global", version
-    #     ], check=True)
-    #     print(subprocess.run(["python --version"], capture_output=True, text=True).stdout)
-    # subprocess.run([
-    #     "pip", "install",
-    #     "-v", "duckdb",
-    #     "--pre", "--upgrade"
-    # ])
-    # verify
-    short_sha = duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0]
-    if sha_matching(short_sha, full_sha, file_name, "Python"):
-    # test
-        print(f"TESTING EXTENSIONS ON python{ version }")
-        extensions = list_extensions(config)
-        action=["INSTALL", "LOAD"]
-        for ext in extensions:
-            res = duckdb.sql(f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }'").fetchone()
-            installed = res[0] if res else None
-            print( f"Is { ext } already installed: { installed }")
-
-            if installed == False:
-                for act in action:
-                    print(f"{ act }ing { ext }...")
-                    action_result_ouput = duckdb.sql(f"{ act } '{ ext }'")
-                    res = duckdb.sql(f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }'").fetchone()
-                    installed = res[0] if res else None
-                    if installed != "None":
-                        with open(file_name, 'a') as f:
-                            if counter == 0:
-                                f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                counter += 1
-                            f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
-
 def verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
     architecture = architecture.replace("/", "-")

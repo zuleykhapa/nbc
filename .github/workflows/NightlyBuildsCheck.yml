@@ -100,43 +100,24 @@ jobs:
       #       docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       #       docker run --rm --platform linux/aarch64 ubuntu:latest uname -m
 
-      - name: Install Python dependencies
-        run: pip install duckdb pandas tabulate docker
+      # - name: Install Python dependencies
+      #   run: pip install duckdb pandas tabulate docker
       
-      # - name: Install Pyenv on Linux
-      #   if: contains(${{ matrix.inputs.runs_on }}, 'ubuntu')
-      #   run: |
-      #       curl https://pyenv.run | bash
-      #       echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $GITHUB_ENV
-      #       echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> $GITHUB_ENV
-      #       echo 'eval "$(pyenv init --path)"' >> $GITHUB_ENV
-      #       echo 'eval "$(pyenv virtualenv-init -)"' >> $GITHUB_ENV
-        
-      - name: Install Pyenv on MacOS
-        if: ${{ matrix.inputs.runs_on == 'macos-13' }} || ${{ matrix.inputs.runs_on == 'macos-latest' }}
+      - name: Setup venv and Install requirements
         shell: bash
-        run: |
-          curl https://pyenv.run | bash
-          echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $HOME/.bashrc
-          echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> $HOME/.bashrc
-          echo 'eval "$(pyenv init --path)"' >> $HOME/.bashrc
-          echo 'eval "$(pyenv virtualenv-init -)"' >> $HOME/.bashrc
-          export PYENV_ROOT="$HOME/.pyenv"
-          export PATH="$PYENV_ROOT/bin:$PATH"
-          eval "$(pyenv init --path)"
-          eval "$(pyenv init -)"
-          eval "$(pyenv virtualenv-init -)"
-      
-      - name: Install Pyenv on Windows
-        shell: bash
-        if: ${{ matrix.inputs.runs_on == 'windows-amd64' }}
-        run: |
-          git clone https://github.com/pyenv-win/pyenv-win.git "$HOME/.pyenv"
-          echo 'export PYENV="$HOME/.pyenv"' >> $HOME/.bashrc
-          echo 'export PATH="$PYENV/bin:$PYENV/shims:$PATH"' >> $HOME/.bashrc
-          export PYENV="$HOME/.pyenv"
-          export PATH="$PYENV/bin:$PYENV/shims:$PATH"
-          pyenv --version
+        run: | 
+          mkdir -p .venv
+          python -m venv .venv
+          if [[ ${{ matrix.inputs.runs_on }} == 'windows-2019' || ${{ matrix.inputs.runs_on }} == 'windows-latest' ]]; then
+            # Install pyenv-win on Windows
+            git clone https://github.com/pyenv-win/pyenv-win.git $HOME/.pyenv
+            .venv/Scripts/activate
+          elif [[ ${{ matrix.inputs.runs_on }} == 'macos-13' || ${{ matrix.inputs.runs_on }} == 'macos-latest' ]]; then
+            curl https://pyenv.run | bash
+            source .venv/bin/activate
+          fi
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
