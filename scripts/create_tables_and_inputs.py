@@ -316,7 +316,7 @@ def main():
     matrix_data.append({
         "nightly_build": "Python",
         "architectures": "amd64",
-        "runs_on": "wondows-2019",
+        "runs_on": "windows-2019",
         "run_id": "12919733489",
         "name": "amd64"
     })
