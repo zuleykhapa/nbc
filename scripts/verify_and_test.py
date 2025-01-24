@@ -332,6 +332,8 @@ def main():
         else:
             init_pyenv()
             for version in python_versions:
+                if version == '3.7':
+                    continue
                 print(f"Installing Python version { version }...")
                 try: 
                     subprocess.run([
