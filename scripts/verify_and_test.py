@@ -328,6 +328,8 @@ def main():
         for version in python_versions:
             print(f"Installing Python version { version }...")
             if runs_on.startswith("ubuntu"):
+                docker_image = f"python:{ version }"
+                architecture = f"linux/{ architecture }"
                 verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
             else:
 ############ UNCOMMENT THIS:
