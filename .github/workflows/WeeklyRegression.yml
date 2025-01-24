@@ -357,11 +357,11 @@ jobs:
         if: contains(github.ref_name, 'main')
         run: |
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
-          printf "\`\`\` \nRegressed Version: ${{ matrix.versions.new_name }} \n$()\n\
-          OLD VERSION : ${{ matrix.versions.old_name }}\n$() \n \`\`\` \n" >> $issue_body_file
+          printf "\`\`\` \nRegressed Version: ${{ matrix.versions.new_name }} (${{ matrix.versions.new_sha }})\n$()\n\
+          OLD VERSION : ${{ matrix.versions.old_name }} (${{ matrix.versions.old_sha }})\n \n \`\`\` \n" >> $issue_body_file
 
           # collect issues on benchmarks runs
-          for output in regression*.txt; do
+          for output in regression_output_${{ matrix.versions.new_name }}.txt; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
               printf "[ main ] [ Regression Test $output ]\n" >> $issue_body_file
               printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> $issue_body_file
