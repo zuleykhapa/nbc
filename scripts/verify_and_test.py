@@ -168,9 +168,13 @@ def verify_and_test_python_macos(version, full_sha, file_name, architecture, cou
 
 def verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
-    arch = architecture.replace("/", "-")
+    # arch = architecture.replace("/", "-")
+    docker_image = f"python:{ version }"
+    architecture = f"linux/{ architecture }"
     container_name = f"python-test-{ runs_on }-{ arch }-python-{ version.replace('.', '-') }"
-    print(container_name)
+    
+    print(docker_image, architecture, container_name)
+    
     container = create_container(client, container_name, docker_image, architecture, None)
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
@@ -332,9 +336,7 @@ def main():
         for version in python_versions:
             print(f"Installing Python version { version }...")
             if runs_on.startswith("ubuntu"):
-                docker_image = f"python:{ version }"
-                # architecture = f"linux/{ architecture }"
-                verify_and_test_python_linux(version, full_sha, file_name, f"linux/{ architecture }", counter, config, nightly_build, runs_on)
+                verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
             else:
 ############ UNCOMMENT THIS:
                 subprocess.run([
