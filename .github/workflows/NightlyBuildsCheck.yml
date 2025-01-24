@@ -51,17 +51,12 @@ jobs:
           name: run_info_tables.duckdb
           path: run_info_tables.duckdb
       
-      - name: Upload inputs.json file
-        uses: actions/upload-artifact@v4
-        with:
-          name: inputs.json
-          path: inputs
-      
       - name: Read JSON and create matrix
         id: set-outputs
         run: |
           matrix=$(cat inputs.json | jq -c '.')
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
+          cat inputs.json
 
   run-tests:
     name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.architectures }} (${{ matrix.inputs.runs_on }})
