@@ -322,6 +322,7 @@ def main():
         # Initialize pyenv
         initialize_pyenv()
         python_versions = list_builds_for_python_versions(run_id)
+        full_sha = get_full_sha(run_id)
         
         # python_versions = ["3.10"]
         for version in python_versions:
@@ -356,7 +357,6 @@ def main():
                 ])
                 # verify
                 print("VERIFY BUILD SHA")
-                full_sha = get_full_sha(run_id)
                 py_version_command = [
                     f"python{ version }", "-c",
                     "import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])"
