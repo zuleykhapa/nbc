@@ -285,20 +285,20 @@ def main():
         #                 "name": get_binary_name(nightly_build, platform, architecture)
         #             })
 
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "aarch64",
-        "runs_on": "ubuntu-22.04-arm",
-        "run_id": "12919733489",
-        "name": "aarch64"
-    })
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "amd64",
-        "runs_on": "ubuntu-latest",
-        "run_id": "12919733489",
-        "name": "amd64"
-    })
+    # matrix_data.append({
+    #     "nightly_build": "Python",
+    #     "architectures": "aarch64",
+    #     "runs_on": "ubuntu-22.04-arm",
+    #     "run_id": "12919733489",
+    #     "name": "aarch64"
+    # })
+    # matrix_data.append({
+    #     "nightly_build": "Python",
+    #     "architectures": "amd64",
+    #     "runs_on": "ubuntu-latest",
+    #     "run_id": "12919733489",
+    #     "name": "amd64"
+    # })
     matrix_data.append({
         "nightly_build": "Python",
         "architectures": "arm64",
@@ -313,13 +313,13 @@ def main():
         "run_id": "12919733489",
         "name": "x86_64"
     })
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "amd64",
-        "runs_on": "windows-2019",
-        "run_id": "12919733489",
-        "name": "amd64"
-    })
+    # matrix_data.append({
+    #     "nightly_build": "Python",
+    #     "architectures": "amd64",
+    #     "runs_on": "windows-2019",
+    #     "run_id": "12919733489",
+    #     "name": "amd64"
+    # })
 
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)
