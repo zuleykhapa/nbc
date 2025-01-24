@@ -315,6 +315,10 @@ def initialize_pyenv():
     # Initialize pyenv in the shell
     subprocess.run(["bash", "-c", "eval \"$(pyenv init --path)\""], check=True)
 
+
+
+
+
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
     counter = 0 # to write only one header per table
@@ -329,8 +333,8 @@ def main():
             print(f"Installing Python version { version }...")
             if runs_on.startswith("ubuntu"):
                 docker_image = f"python:{ version }"
-                architecture = f"linux/{ architecture }"
-                verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
+                # architecture = f"linux/{ architecture }"
+                verify_and_test_python_linux(version, full_sha, file_name, f"linux/{ architecture }", counter, config, nightly_build, runs_on)
             else:
 ############ UNCOMMENT THIS:
                 subprocess.run([
