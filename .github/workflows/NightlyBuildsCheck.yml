@@ -137,7 +137,7 @@ jobs:
               source .venv/bin/activate
             fi
               
-            if [[ ${{ matrix.inputs.nightly_build != 'Python' }} ]]; then
+            if [[ ${{ matrix.inputs.nightly_build }} != 'Python' ]]; then
               echo "Downloading duckdb-binaries-$name artifact..."
               if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-${{ matrix.inputs.name }}; then
                   echo "Artifact duckdb-binaries-$name is successfuly downloaded."
