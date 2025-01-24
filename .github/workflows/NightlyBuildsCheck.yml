@@ -101,9 +101,7 @@ jobs:
       #       docker run --rm --platform linux/aarch64 ubuntu:latest uname -m
 
       - name: Install Python dependencies
-        run: |
-          pip install duckdb pandas tabulate docker
-          pyenv --version
+        run: pip install duckdb pandas tabulate docker
       
       # - name: Install Pyenv on Linux
       #   if: contains(${{ matrix.inputs.runs_on }}, 'ubuntu')
@@ -114,21 +112,31 @@ jobs:
       #       echo 'eval "$(pyenv init --path)"' >> $GITHUB_ENV
       #       echo 'eval "$(pyenv virtualenv-init -)"' >> $GITHUB_ENV
         
-      # - name: Install Pyenv on MacOS
-      #   if: contains(${{ matrix.inputs.runs_on }}, 'macos')
-      #   run: |
-      #     curl https://pyenv.run | bash
-      #     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
-      #     echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
-      #     echo 'eval "$(pyenv init --path)"' >> ~/.zshrc
-      #     echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
+      - name: Install Pyenv on MacOS
+        if: contains(${{ matrix.inputs.runs_on }}, 'macos')
+        shell: bash
+        run: |
+          curl https://pyenv.run | bash
+          echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $HOME/.bashrc
+          echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> $HOME/.bashrc
+          echo 'eval "$(pyenv init --path)"' >> $HOME/.bashrc
+          echo 'eval "$(pyenv virtualenv-init -)"' >> $HOME/.bashrc
+          export PYENV_ROOT="$HOME/.pyenv"
+          export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init --path)"
+          eval "$(pyenv init -)"
+          eval "$(pyenv virtualenv-init -)"
       
-      # - name: Install Pyenv on Windows
-      #   if: contains(${{ matrix.inputs.nightly_build }}, 'windows')
-      #   run: |
-      #     git clone https://github.com/pyenv-win/pyenv-win.git $HOME/.pyenv
-      #     echo 'export PYENV=$HOME/.pyenv' >> $GITHUB_ENV
-      #     echo 'export PATH=$PYENV/bin;$PYENV/shims;$PATH' >> $GITHUB_ENV
+      - name: Install Pyenv on Windows
+        shell: bash
+        if: contains(${{ matrix.inputs.nightly_build }}, 'windows')
+        run: |
+          git clone https://github.com/pyenv-win/pyenv-win.git "$HOME/.pyenv"
+          echo 'export PYENV="$HOME/.pyenv"' >> $HOME/.bashrc
+          echo 'export PATH="$PYENV/bin:$PYENV/shims:$PATH"' >> $HOME/.bashrc
+          export PYENV="$HOME/.pyenv"
+          export PATH="$PYENV/bin:$PYENV/shims:$PATH"
+          pyenv --version
 
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
