@@ -263,9 +263,13 @@ def test_extensions(tested_binary, file_name):
 
 def init_pyenv():
     pyenv_root = os.path.expanduser("~/.pyenv")
-    os.environ["PYENV_ROOT"] = pyenv_root
-    os.environ["PATH"] = f"{pyenv_root}/bin:{os.environ['PATH']}"
-    subprocess.run(["bash", "-c", "eval \"$(pyenv init --path)\""], check=True)
+    env = os.environ.copy()
+    env["PYENV_ROOT"] = pyenv_root
+    env["PATH"] = f"{pyenv_root}/bin:{env['PATH']}"
+
+    subprocess.run("eval \"$(pyenv init --path)\"", shell=True, check=True, executable="/bin/bash", env=env)
+    print("INSTALLED")
+    # subprocess.run(["bash", "-c", "eval \"$(pyenv init --path)\""], check=True)
 
 
 
@@ -283,25 +287,22 @@ def main():
         else:
             init_pyenv()
             for version in python_versions:
-                if version in ('3.7', '3.8'):
+                if version in ('3.7', '3.8', '3.9'):
                     continue
                 print(f"Installing Python version { version }...")
                 try: 
                     subprocess.run([
                         "pyenv", "install", "-s", version
-                    ], check=True)
+                    ], shell=True, check=True, executable="/bin/bash", env=env)
                 except subprocess.CalledProcessError as e:
                     print(f"Error installing Python version { version }: { e }")
                     print(f"stderr: { e.stderr }")
                 
                 print(f"Setting Python version { version } global.")
-                subprocess.run([
-                    "pyenv", "global", version
-                ], check=True)
+                subprocess.run(
+                    f"pyenv local { version }", shell=True, check=True, executable="/bin/bash", env=env)
                 # py_version - debug output
-                py_version = subprocess.run([
-                    f"python{ version }", "--version"
-                ], capture_output=True, text=True)
+                py_version = subprocess.run(f"python{ version } --version", capture_output=True, text=True)
                 print(f"Installed Python version: { py_version.stdout }")
                 
                 print(f"Ensuring pip is installed to the Python version { version }...")
