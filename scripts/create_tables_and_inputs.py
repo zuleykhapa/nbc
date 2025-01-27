@@ -264,7 +264,7 @@ def main():
             platform = str(build_info.get("platform"))
             architectures = build_info.get('architectures')
             for architecture in architectures:
-                if architecture != 'windows-arm64':
+                if architecture not in EXCLUDED_ARCHITECTURES:
                     matrix_data.append({
                         "nightly_build": nightly_build,
                         "architectures": architecture,
