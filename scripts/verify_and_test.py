@@ -3,7 +3,6 @@ We would like to know if extensions can be installed and loaded on fresh builds.
 
 '''
 import argparse
-import docker
 import duckdb
 import glob
 import os
@@ -59,18 +58,21 @@ def verify_version(tested_binary, file_name):
     short_sha = subprocess.run(pragma_version, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"""
-        Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n
-        - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+        Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+        - Version triggered the build: { full_sha }
+        - Downloaded build version: { short_sha }
         """)
         with open(file_name, 'w') as f:
             f.write(f"""
-            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n
-            - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+            - Version triggered the build: { full_sha }
+            - Downloaded build version: { short_sha }
             """)
         return False
     print(f"""
-    Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).\n
-    - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+    Versions of { nightly_build } build match:
+    - Version triggered the build: { full_sha }
+    - Downloaded build version: { short_sha }
     """)
     return True
 
@@ -93,8 +95,7 @@ def test_extensions(tested_binary, file_name):
             for action in ACTIONS:
                 print(f"{ action }ing { ext }...")
                 install_ext = [
-                    tested_binary,
-                    "-c",
+                    tested_binary, "-c",
                     f"{ action } '{ ext }';"
                 ]
                 try:
