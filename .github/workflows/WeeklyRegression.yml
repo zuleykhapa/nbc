@@ -290,7 +290,7 @@ jobs:
         # exclude: 
         #   - versions: ${{ needs.build-and-setup.outputs.failed_build }}
     outputs:
-      file_path: ${{ steps.create.outputs.file_path }}
+      file_name: ${{ steps.create.outputs.file_name }}
         
     steps:
       - name: Create a File Name 
@@ -302,13 +302,13 @@ jobs:
           test=$(echo "${{ matrix.test }}" | sed -e 's/\//_/g' -e 's/\.csv//')
           new_name=${{ matrix.versions.new_name }}
           old_name=${{ matrix.versions.old_name }}
-          file_path=regression_output_${test}_${new_name}_${old_name}.txt
+          file_name=regression_output_${test}_${new_name}_${old_name}.txt
           
-          echo $file_path
-          echo "file_path=$file_path">> $GITHUB_OUTPUT
+          echo $file_name
+          echo "file_name=$file_name">> $GITHUB_OUTPUT
           
       - name: Run Regression Test
-        if: contains(${{ steps.create.outputs.file_path }}, 'regression')
+        if: contains(${{ steps.create.outputs.file_name }}, 'regression')
         continue-on-error: true
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
@@ -321,14 +321,14 @@ jobs:
             --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
             --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
             --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/${{ matrix.test }} $disable_timeout \
-            --verbose > ${{ steps.create.outputs.file_path }}
+            --verbose > ${{ steps.create.outputs.file_name }}
                   
       - name: Upload results
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: ${{ steps.create.outputs.file_path }}
-          path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_path }}
+          name: ${{ steps.create.outputs.file_name }}
+          path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_name }}
           if-no-files-found: error
   
   collect-issues:
