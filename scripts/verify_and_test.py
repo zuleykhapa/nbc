@@ -38,7 +38,7 @@ def list_extensions(config) :
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     matches = re.findall(pattern, content)
     return matches
-
+    
 def get_full_sha(run_id):
     gh_headSha_command = [
         "gh", "run", "view",
@@ -76,9 +76,6 @@ def verify_version(tested_binary, file_name):
 
 def test_extensions(tested_binary, file_name):
     extensions = list_extensions(config)
-    with open(file_name, "a") as f:
-        print(extensions)
-        f.write(f"List of tested extensions: { extensions }\n")
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
