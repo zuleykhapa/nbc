@@ -6,7 +6,6 @@ import argparse
 import duckdb
 import glob
 import os
-import pandas
 import random
 import re
 import subprocess
