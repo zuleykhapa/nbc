@@ -115,6 +115,7 @@ def test_extensions(tested_binary, file_name):
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
+    print(f"Trying to install a non-ecisting extension in {nightly_build}...")
     result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
     if result.stderr:
         print(f"Attempt to install a non-existing extension resulted with error, as expected: { result.stderr }")
