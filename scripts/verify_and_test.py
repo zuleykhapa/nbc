@@ -76,6 +76,9 @@ def verify_version(tested_binary, file_name):
 
 def test_extensions(tested_binary, file_name):
     extensions = list_extensions(config)
+    with open(file_name, "a") as f:
+        print(extensions)
+        f.write(f"List of tested extensions: { extensions }\n")
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
@@ -87,7 +90,6 @@ def test_extensions(tested_binary, file_name):
             f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
         ]
         result=subprocess.run(select_installed, text=True, capture_output=True)
-
         is_installed = result.stdout.strip()
         if is_installed == 'false':
             for action in ACTIONS:
