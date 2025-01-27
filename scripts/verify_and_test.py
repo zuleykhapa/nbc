@@ -1,6 +1,16 @@
 '''
-We would like to know if extensions can be installed and loaded on fresh builds.
+We would like to know if extensions can be installed and loaded on nightly-builds.
+Nightly-builds for platforms Windows, OSX, Linux, WASM, Android, R upload artifacts, but we test only
+Windows, OSX, Linux platforms binaries.
+There are nightly-builds which don't upload artifacts on GitHub: Python, Julia, Swift, SwiftRelease.
+Python builds are uploaded to Pypy so Python builds can be tested as well.
 
+This script makes sure that tested version and nightly-build version are the same by comparing their SHA.
+Then it runs INSTALL and LOAD statements for each extension. In case of `stderr` in an output, it collects failure
+information to a .csv file (later the file will be used to create a report).
+
+A list of extensions comes from the `ext/.github/config/out_of_tree_extensions.cmake` file from `duckdb/duckdb` repo.
+Also this script tries to INSTALL a non-existing extension to make sure the whole test results are not false-positive.
 '''
 import argparse
 import duckdb
@@ -38,7 +48,7 @@ def list_extensions(config) :
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     matches = re.findall(pattern, content)
     return matches
-    
+
 def get_full_sha(run_id):
     gh_headSha_command = [
         "gh", "run", "view",
