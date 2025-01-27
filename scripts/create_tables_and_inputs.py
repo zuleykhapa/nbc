@@ -50,7 +50,6 @@ from shared_functions import count_consecutive_failures
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
-EXCLUDED_ARCHITECTURES = ('windows-arm64', 'arm64')
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
 def get_value_for_key(key, nightly_build):
@@ -264,7 +263,7 @@ def main():
             platform = str(build_info.get("platform"))
             architectures = build_info.get('architectures')
             for architecture in architectures:
-                if architecture not in EXCLUDED_ARCHITECTURES:
+                if architecture != 'windows-arm64':
                     matrix_data.append({
                         "nightly_build": nightly_build,
                         "architectures": architecture,
