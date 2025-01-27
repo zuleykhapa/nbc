@@ -10,7 +10,6 @@ import random
 import re
 import subprocess
 import sys
-import tabulate
 from shared_functions import fetch_data
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
