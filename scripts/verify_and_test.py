@@ -4,6 +4,7 @@ We would like to know if extensions can be installed and loaded on fresh builds.
 '''
 import argparse
 import docker
+import duckdb
 import glob
 import os
 import pandas
