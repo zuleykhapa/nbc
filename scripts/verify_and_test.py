@@ -100,7 +100,7 @@ def test_extensions(tested_binary, file_name):
                 ]
                 try:
                     result = subprocess.run(install_ext, text=True, capture_output=True)
-                    print(result)
+                    print(result.stderr.strip())
                     if result.stderr:
                         with open(file_name, "a") as f:
                             if counter == 0:
