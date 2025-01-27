@@ -290,15 +290,15 @@ def main():
             for version in python_versions:
                 verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
         else:
-            init_pyenv()
+            # init_pyenv()
             for version in python_versions:
-                if version in ('3.7', '3.8', '3.9'):
-                    continue
+                # if version in ('3.7', '3.8', '3.9'):
+                #     continue
                 print(f"Installing Python version { version }...")
                 try: 
-                    subprocess.run([
-                        "pyenv", "install", "-s", version
-                    ], shell=True, check=True, executable="/bin/bash", env=env)
+                    subprocess.check_call([
+                        sys.executable, "-m", "pip", "install", "-s", f"python{ version }"
+                    ])
                 except subprocess.CalledProcessError as e:
                     print(f"Error installing Python version { version }: { e }")
                     print(f"stderr: { e.stderr }")

@@ -261,63 +261,63 @@ def main():
     # list all nightly-build runs on current date to get all nightly-build names
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
-    for nightly_build in nightly_builds:
-        build_info = {}
-        save_run_data_to_json_files(nightly_build, con, build_info)
-        url = con.execute(f"""
-            SELECT url FROM '{ nightly_build }.json'
-            """).fetchone()[0]
-        create_tables_for_report(nightly_build, con, build_info, url)
+    # for nightly_build in nightly_builds:
+    #     build_info = {}
+    #     save_run_data_to_json_files(nightly_build, con, build_info)
+    #     url = con.execute(f"""
+    #         SELECT url FROM '{ nightly_build }.json'
+    #         """).fetchone()[0]
+    #     create_tables_for_report(nightly_build, con, build_info, url)
         
-        if count_consecutive_failures(nightly_build, con) == 0 or get_binaries_count(nightly_build, con):
-            get_platform_arch_from_artifact_name(nightly_build, con, build_info)
-            platform = str(build_info.get("platform"))
-            architectures = build_info.get('architectures')
-            for architecture in architectures:
-                if architecture != 'windows-arm64':
-                    matrix_data.append({
-                        "nightly_build": nightly_build,
-                        "architectures": architecture,
-                        "runs_on": get_runner(platform,architecture),
-                        "run_id": build_info.get('nightly_build_run_id'),
-                        "name": get_binary_name(nightly_build, platform, architecture)
-                    })
+    #     if count_consecutive_failures(nightly_build, con) == 0 or get_binaries_count(nightly_build, con):
+    #         get_platform_arch_from_artifact_name(nightly_build, con, build_info)
+    #         platform = str(build_info.get("platform"))
+    #         architectures = build_info.get('architectures')
+    #         for architecture in architectures:
+    #             if architecture != 'windows-arm64':
+    #                 matrix_data.append({
+    #                     "nightly_build": nightly_build,
+    #                     "architectures": architecture,
+    #                     "runs_on": get_runner(platform,architecture),
+    #                     "run_id": build_info.get('nightly_build_run_id'),
+    #                     "name": get_binary_name(nightly_build, platform, architecture)
+    #                 })
 
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "aarch64",
-    #     "runs_on": "ubuntu-22.04-arm",
-    #     "run_id": "12919733489",
-    #     "name": "aarch64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "amd64",
-    #     "runs_on": "ubuntu-latest",
-    #     "run_id": "12919733489",
-    #     "name": "amd64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "arm64",
-    #     "runs_on": "macos-13",
-    #     "run_id": "12919733489",
-    #     "name": "arm64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "x86_64",
-    #     "runs_on": "macos-latest",
-    #     "run_id": "12919733489",
-    #     "name": "x86_64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "amd64",
-    #     "runs_on": "windows-2019",
-    #     "run_id": "12919733489",
-    #     "name": "amd64"
-    # })
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "aarch64",
+        "runs_on": "ubuntu-22.04-arm",
+        "run_id": "12919733489",
+        "name": "aarch64"
+    })
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "amd64",
+        "runs_on": "ubuntu-latest",
+        "run_id": "12919733489",
+        "name": "amd64"
+    })
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "arm64",
+        "runs_on": "macos-13",
+        "run_id": "12919733489",
+        "name": "arm64"
+    })
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "x86_64",
+        "runs_on": "macos-latest",
+        "run_id": "12919733489",
+        "name": "x86_64"
+    })
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "amd64",
+        "runs_on": "windows-2019",
+        "run_id": "12919733489",
+        "name": "amd64"
+    })
 
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)
