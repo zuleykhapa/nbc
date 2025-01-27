@@ -220,9 +220,11 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
                 if match:
                     platform = match.group(1)
                     arch_suffix = match.group(2)
+                    if platform == 'linux' and not arch_suffix:
+                        arch_suffix = 'amd64'
                     if arch_suffix:
                         architectures.append(f"{ platform }-{ arch_suffix }")
-    build_info["architectures"] = [ 'x86_64', 'arm64' ] if nightly_build == 'OSX' else architectures
+    build_info["architectures"] = [ 'arm64', 'amd64' ] if nightly_build == 'OSX' else architectures
     build_info["platform"] = platform
 
 def get_binary_name(nightly_build, platform, architecture):
