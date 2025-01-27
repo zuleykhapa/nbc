@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip
-          pip install duckdb pandas tabulate requests
+          pip install duckdb
       
       - name: Create Tables and Generate inputs.json
         shell: bash
@@ -56,6 +56,7 @@ jobs:
         run: |
           matrix=$(cat inputs.json | jq -c '.')
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
+          echo "***"
           cat inputs.json
 
   run-tests:
@@ -95,8 +96,8 @@ jobs:
       #       docker run --rm --platform linux/aarch64 ubuntu:latest uname -m
 
       - name: Install Python dependencies
-        run: pip install duckdb pandas tabulate docker
-      
+        run: pip install duckdb
+            
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
 

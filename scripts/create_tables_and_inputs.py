@@ -35,12 +35,9 @@ Can be tested locally running 'python scripts/create_tables_and_inputs.py'.
 import duckdb
 import datetime
 import argparse
-import pandas as pd
-import tabulate
 import subprocess
 import json
 import os
-import glob
 import re
 from collections import defaultdict
 from shared_functions import fetch_data
@@ -50,7 +47,6 @@ from shared_functions import count_consecutive_failures
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
-EXCLUDED_ARCHITECTURES = ('windows-arm64', 'arm64')
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
 def get_value_for_key(key, nightly_build):
@@ -222,9 +218,11 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
                 if match:
                     platform = match.group(1)
                     arch_suffix = match.group(2)
+                    if platform == 'linux' and not arch_suffix:
+                        arch_suffix = 'amd64'
                     if arch_suffix:
                         architectures.append(f"{ platform }-{ arch_suffix }")
-    build_info["architectures"] = [ 'x86_64', 'arm64' ] if nightly_build == 'OSX' else architectures
+    build_info["architectures"] = [ 'arm64', 'amd64' ] if nightly_build == 'OSX' else architectures
     build_info["platform"] = platform
 
 def get_binary_name(nightly_build, platform, architecture):

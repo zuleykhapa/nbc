@@ -126,7 +126,7 @@ jobs:
     needs: configure-mount-and-download-benchmark-data
     runs-on: self-hosted
     outputs:
-      branches: ${{ steps.branches.outputs.branches }}
+      versions: ${{ steps.create-version-pairs.outputs.pairs }}
 
     steps:
       - name: Sparse-checkout repo with a script
@@ -140,23 +140,38 @@ jobs:
         run: |
           python scripts/create_pairs_matrix.py
       
-      - name: Read JSON and create branches matrix
+      - name: Read JSON and create version pairs matrix
         working-directory: ${{ env.mounted_directory_name }}
-        id: branches
+        id: create-version-pairs
         run: |
-          branches=$(cat duckdb_previous_version_pairs.json | jq -c '.')
-          echo "branches=$branches" >> $GITHUB_OUTPUT
+          pairs=$(cat ../duckdb_previous_version_pairs.json | jq -c '.')
+          echo "pairs=$pairs" >> $GITHUB_OUTPUT
       
-  build-and-setup:
-    name: Build DuckDB versions and link the benchmarks
+  check-matrix:
     needs: 
       - define-matrix
       - configure-mount-and-download-benchmark-data
-    if: ${{ needs.define-matrix.outputs.branches != '[]' }}
-    # strategy:
-    #   matrix:
-    #     branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
-      # fail-fast: false
+    if: ${{ needs.define-matrix.outputs.versions != '[]' }}
+    strategy:
+      matrix:
+        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
+      fail-fast: false
+    runs-on: self-hosted
+    steps:
+      - run: |
+          echo ${{ matrix.versions.new_name }}
+
+  build-and-setup:
+    name: Build DuckDB versions and link the benchmarks
+    needs:
+      - check-matrix 
+      - define-matrix
+      - configure-mount-and-download-benchmark-data
+    if: ${{ needs.define-matrix.outputs.versions != '[]' }}
+    strategy:
+      matrix:
+        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
+      fail-fast: false
     runs-on: self-hosted
     env:
       GEN: ninja
@@ -176,23 +191,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: 'main'
+          ref: ${{ matrix.versions.new_sha }}
           fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-curr-main
+          path: ${{ env.mounted_directory_name}}/duckdb-curr-${{ matrix.versions.new_name }}
 
       - name: checkout duckdb-old
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: main
+          ref: ${{ matrix.versions.old_sha }}
           fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/duckdb-old-main
+          path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.versions.old_name }}
 
       # - name: Checkout duckdb-old to week ago version
       #   shell: bash
       #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
       #   run: |
-      #     git checkout ${{ matrix.branch.old_sha }}
+      #     git checkout ${{ matrix.versions.old_sha }}
 
       # - name: Store current git hash of duckdb-curr
       #   shell: bash
@@ -205,23 +220,23 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          cd duckdb-curr-main && make clean && make
+          cd duckdb-curr-${{ matrix.versions.new_name }} && make clean && make
           cd ..
-          cd duckdb-old-main && make clean && make
+          cd duckdb-old-${{ matrix.versions.old_name }} && make clean && make
 
       - name: Set up benchmarks 
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
         run: |
           # we do this so new added benchmarks that break duckdb old
           # do not cause failures.
-          rm -rf ../duckdb-curr-main/benchmark
-          mkdir ../duckdb-curr-main/benchmark
-          cp -r benchmark ../duckdb-curr-main
+          rm -rf ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
+          mkdir ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
+          cp -r benchmark ../duckdb-curr-${{ matrix.versions.new_name }}
 
       # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
       #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
       #   run: |
       #     mkdir duckdb_benchmark_data
       #     cd duckdb_benchmark_data
@@ -230,7 +245,7 @@ jobs:
     
       # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
       #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
       #   run: |
       #     mkdir duckdb_benchmark_data
       #     cd duckdb_benchmark_data
@@ -239,7 +254,7 @@ jobs:
       
       - name: Generate micro_extended.csv and copy to duckdb-curr-main
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
         run: |
           # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
           echo benchmark/micro/index/insert/insert_pk_fk.benchmark >> .github/regression/micro_extended.csv
@@ -248,14 +263,14 @@ jobs:
 
           # cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
 
-          find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-          cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
+          # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/micro_extended.csv
 
-      # # - id: failed-build
-      # #   shell: bash
-      # #   if: failure()
-      # #   run: |
-      # #     echo "failed_build=${{ matrix.branch }}" >> $GITHUB_OUTPUT
+      # - id: failed-build
+      #   shell: bash
+      #   if: failure()
+      #   run: |
+      #     echo "failed_build=${{ matrix.versions.new_name }}" >> $GITHUB_OUTPUT
     
   run-regression-tests:
     name: Run Regression Tests
@@ -270,13 +285,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
         test: ['micro_extended.csv']
         # test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
         # exclude: 
-        #   - branch: ${{ needs.build-and-setup.outputs.failed_build }}
+        #   - versions: ${{ needs.build-and-setup.outputs.failed_build }}
     outputs:
-      file_path: ${{ steps.create.outputs.file_path }}
+      file_name: ${{ steps.create.outputs.file_name }}
         
     steps:
       - name: Create a File Name 
@@ -285,11 +300,16 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          mkdir -p main_main
-          echo "file_path=$(echo "issues_main_main/regression_output_${{ matrix.test }}_main_main.txt" | sed -e 's/\//_/g' -e 's/\.csv//')" >> $GITHUB_OUTPUT
+          test=$(echo "${{ matrix.test }}" | sed -e 's/\//_/g' -e 's/\.csv//')
+          new_name=${{ matrix.versions.new_name }}
+          old_name=${{ matrix.versions.old_name }}
+          file_name=regression_output_${test}_${new_name}_${old_name}.txt
+          
+          echo $file_name
+          echo "file_name=$file_name">> $GITHUB_OUTPUT
           
       - name: Run Regression Test
-        if: contains(${{ steps.create.outputs.file_path }}, 'regression')
+        if: contains(${{ steps.create.outputs.file_name }}, 'regression')
         continue-on-error: true
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
@@ -298,18 +318,18 @@ jobs:
           if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
             disable_timeout="--disable-timeout"
           fi
-          python duckdb-curr-main/scripts/regression/test_runner.py \
-            --old=duckdb-old-main/build/release/benchmark/benchmark_runner \
-            --new=duckdb-curr-main/build/release/benchmark/benchmark_runner \
-            --benchmarks=duckdb-curr-main/.github/regression/${{ matrix.test }} $disable_timeout \
-            --verbose > ${{ steps.create.outputs.file_path }}
+          python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
+            --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
+            --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
+            --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/${{ matrix.test }} $disable_timeout \
+            --verbose > ${{ steps.create.outputs.file_name }}
                   
       - name: Upload results
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: ${{ steps.create.outputs.file_path }}
-          path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_path }}
+          name: ${{ steps.create.outputs.file_name }}
+          path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_name }}
           if-no-files-found: error
   
   collect-issues:
@@ -327,28 +347,31 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
-    # strategy:
-    #   matrix: 
-    #     branch: ${{ fromJSON(needs.define-matrix.outputs.branches) }}
+    strategy:
+      matrix: 
+        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
         # exclude: 
-        #   - branch: ${{ needs.build-and-setup.outputs.failed_build }}
+        #   - versions: ${{ needs.build-and-setup.outputs.failed_build }}
 
     steps:
       - name: Collect issues on Benchmarks
         if: contains(github.ref_name, 'main')
         run: |
-          # # get versions
-          # ./duckdb-old-main/build/release/duckdb -c "pragma version" > main_old_version.txt
-          # ./duckdb-curr-main/build/release/duckdb -c "pragma version" > main_curr_version.txt
-
-          printf "\`\`\` \nRegressed Version: main \n$()\n\
-          OLD VERSION : main\n$() \n \`\`\` \n" >> issue_body_main_main.txt
-
+          issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
+          printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n
+          Hash info:\n
+          |  | Branch | SHA |
+          |:-|:-------|:----|
+          | **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |
+          | **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |
+          #### List of regressing tests\n" >> "$issue_body_file"
+          
           # collect issues on benchmarks runs
-          for output in issues_main_main/regression*.txt; do
+          for output in regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-              printf "[ main ] [ Regression Test $output ]\n" >> issue_body_main_main.txt
-              printf "Regression Output \n \`\`\` \n $(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output) \n \`\`\` \n"  >> issue_body_main_main.txt
+              test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
+              printf -- "- **%s**\n" "$test_name" >> "$issue_body_file"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "$issue_body_file"
             fi
           done
 
@@ -388,13 +411,16 @@ jobs:
         run: |
           if grep -q "REGRESSIONS DETECTED" issue_body*.txt; then
             echo "Regressions detected, GitHub issue will be filed."
+            echo "# Regression tests" >> report.txt
             cat issue_body*.txt >> report.txt
+            echo "Latest WeeklyRegression run: [Run Link](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }})" >> report.txt
           fi
 
       - name: Add Nightly-Build Failures to Report
         run: |
           if grep -q "nightly-build" nightly_build*.md; then
             echo "Adding nightly-build report to GitHub issue."
+            echo "# Nighly-Builds status on main" >> report.txt
             cat nightly_build*.md >> report.txt
           fi
 
@@ -411,29 +437,16 @@ jobs:
           name: REPORT
           path: ${{ env.mounted_directory_name }}/report.txt
           if-no-files-found: error
-          
 
-<<<<<<< HEAD
   shutdown:
     name: shut down
     if: always()
     runs-on: self-hosted
     needs:
       - start-runner
-      - check-nightly-builds
+      -   check-nightly-builds
       - file-issue
-=======
-  # shutdown:
-  #   name: shut down
-  #   if: always()
-  #   runs-on: self-hosted
-  #   needs:
-  #     - start-runner
-  #     -   check-nightly-builds
-  #     - file-issue
->>>>>>> main
-
-  #   steps:
-  #     - name: shutdown
-  #       shell: bash
-  #       run: sudo shutdown
+    steps:
+      - name: shutdown
+        shell: bash
+        run: sudo shutdown

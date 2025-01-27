@@ -1,19 +1,27 @@
 '''
-We would like to know if extensions can be installed and loaded on fresh builds.
+We would like to know if extensions can be installed and loaded on nightly-builds.
+Nightly-builds for platforms Windows, OSX, Linux, WASM, Android, R upload artifacts, but we test only
+Windows, OSX, Linux platforms binaries.
+There are nightly-builds which don't upload artifacts on GitHub: Python, Julia, Swift, SwiftRelease.
+Python builds are uploaded to Pypy so Python builds can be tested as well.
 
+This script makes sure that tested version and nightly-build version are the same by comparing their SHA.
+Then it runs INSTALL and LOAD statements for each extension. In case of `stderr` in an output, it collects failure
+information to a .csv file (later the file will be used to create a report).
+
+A list of extensions comes from the `ext/.github/config/out_of_tree_extensions.cmake` file from `duckdb/duckdb` repo.
+Also this script tries to INSTALL a non-existing extension to make sure the whole test results are not false-positive.
 '''
 import duckdb
 import argparse
-import docker
+import duckdb
 import glob
 import os
-import pandas
 import random
 import re
 import subprocess
 import textwrap
 import sys
-import tabulate
 from shared_functions import fetch_data
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
@@ -198,18 +206,21 @@ def verify_version(tested_binary, file_name):
     short_sha = subprocess.run(pragma_version, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
         print(f"""
-        Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n
-        - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+        Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+        - Version triggered the build: { full_sha }
+        - Downloaded build version: { short_sha }
         """)
         with open(file_name, 'w') as f:
             f.write(f"""
-            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.\n
-            - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+            - Version triggered the build: { full_sha }
+            - Downloaded build version: { short_sha }
             """)
         return False
     print(f"""
-    Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).\n
-    - Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
+    Versions of { nightly_build } build match:
+    - Version triggered the build: { full_sha }
+    - Downloaded build version: { short_sha }
     """)
     return True
 
@@ -226,20 +237,18 @@ def test_extensions(tested_binary, file_name):
             f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
         ]
         result=subprocess.run(select_installed, text=True, capture_output=True)
-
         is_installed = result.stdout.strip()
         if is_installed == 'false':
             for action in ACTIONS:
                 print(f"{ action }ing { ext }...")
                 install_ext = [
-                    tested_binary,
-                    "-c",
+                    tested_binary, "-c",
                     f"{ action } '{ ext }';"
                 ]
                 try:
                     result = subprocess.run(install_ext, text=True, capture_output=True)
-                    print(result)
                     if result.stderr:
+                        print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
                         with open(file_name, "a") as f:
                             if counter == 0:
                                 f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
@@ -247,13 +256,9 @@ def test_extensions(tested_binary, file_name):
                             f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
-                    with open(file_name, 'a') as f:
-                        if counter == 0:
-                            f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                            counter += 1
-                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
+    print(f"Trying to install a non-ecisting extension in {nightly_build}...")
     result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
     if result.stderr:
         print(f"Attempted to install a non-existing extension resulted with error, as expected: { result.stderr }")
