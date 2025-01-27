@@ -99,7 +99,7 @@ def test_extensions(tested_binary, file_name):
                 try:
                     result = subprocess.run(install_ext, text=True, capture_output=True)
                     if result.stderr:
-                        print(f"{ action } had failed with following error:\n{ result.stderr.strip() }")
+                        print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
                         with open(file_name, "a") as f:
                             if counter == 0:
                                 f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
