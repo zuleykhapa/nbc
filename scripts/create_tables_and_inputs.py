@@ -35,12 +35,9 @@ Can be tested locally running 'python scripts/create_tables_and_inputs.py'.
 import duckdb
 import datetime
 import argparse
-import pandas as pd
-import tabulate
 import subprocess
 import json
 import os
-import glob
 import re
 from collections import defaultdict
 from shared_functions import fetch_data
