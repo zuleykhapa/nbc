@@ -109,6 +109,7 @@ def test_extensions(tested_binary, file_name):
                             f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
+                    print("HERE?")
                     with open(file_name, 'a') as f:
                         if counter == 0:
                             f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
