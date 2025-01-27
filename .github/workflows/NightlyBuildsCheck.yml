@@ -99,8 +99,8 @@ jobs:
       #       docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       #       docker run --rm --platform linux/aarch64 ubuntu:latest uname -m
 
-      # - name: Install Python dependencies
-      #   run: pip install duckdb pandas tabulate docker
+      - name: Install Python dependencies
+        run: pip install duckdb pandas tabulate docker
       
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
@@ -116,8 +116,8 @@ jobs:
           elif [[ ${{ matrix.inputs.runs_on }} == 'macos-13' || ${{ matrix.inputs.runs_on }} == 'macos-latest' ]]; then
             curl https://pyenv.run | bash
           fi
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          # pip install --upgrade pip
+          # pip install -r requirements.txt
 
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
