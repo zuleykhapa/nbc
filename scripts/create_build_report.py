@@ -86,14 +86,14 @@ def create_build_report(nightly_build, con, build_info, url):
             f.write(failure_details.to_markdown(index=False) + "\n")
             
         # check if the artifatcs table is not empty
-        # if nightly_build not in HAS_NO_ARTIFACTS:
-        #     f.write(f"\n#### Workflow Artifacts\n")
-        #     artifacts_per_job = con.execute(f"""
-        #         SELECT * FROM 'artifacts_per_jobs_{ nightly_build }';
-        #         """).df()
-        #     f.write(artifacts_per_job.to_markdown(index=False) + "\n")
-        # else:
-        #     f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
+        if nightly_build not in HAS_NO_ARTIFACTS:
+            f.write(f"\n#### Workflow Artifacts\n")
+            artifacts_per_job = con.execute(f"""
+                SELECT * FROM 'artifacts_per_jobs_{ nightly_build }';
+                """).df()
+            f.write(artifacts_per_job.to_markdown(index=False) + "\n")
+        else:
+            f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
         
         # add extensions
         file_name_pattern = f"failed_ext/ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
