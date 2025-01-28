@@ -127,6 +127,7 @@ Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
         return True
 
 def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on):
+    global COUNTER
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
     architecture = architecture.replace("/", "-")
     arch = f"linux/{ architecture }"
@@ -169,9 +170,9 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
                         print( f"Is { ext } { act }ed: { installed.output.decode() }")
                         if action_result_ouput != "None":
                             with open(file_name, 'a') as f:
-                                if global COUNTER == 0:
+                                if COUNTER == 0:
                                     f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                    global COUNTER += 1
+                                    COUNTER += 1
                                 f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
     finally:
         print("FINISH")
