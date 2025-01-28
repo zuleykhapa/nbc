@@ -205,7 +205,8 @@ def verify_version(tested_binary, file_name):
     """)
     return True
 
-def test_extensions(tested_binary, counter, file_name):
+def test_extensions(tested_binary, file_name):
+    global COUNTER
     extensions = list_extensions(config)
     for ext in extensions:
         select_installed = [
@@ -229,9 +230,9 @@ def test_extensions(tested_binary, counter, file_name):
                     if result.stderr:
                         print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
                         with open(file_name, "a") as f:
-                            if counter == 0:
+                            if COUNTER == 0:
                                 f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                counter += 1
+                                COUNTER += 1
                             f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
@@ -380,7 +381,7 @@ def main():
         print("VERIFY BUILD SHA")
         if verify_version(tested_binary, file_name):
             print("TEST EXTENSIONS")
-            test_extensions(tested_binary, COUNTER, file_name)
+            test_extensions(tested_binary, file_name)
         print("FINISH")
 
 if __name__ == "__main__":
