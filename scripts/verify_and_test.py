@@ -276,6 +276,10 @@ def init_pyenv():
     print("INSTALLED")
     # subprocess.run(["bash", "-c", "eval \"$(pyenv init --path)\""], check=True)
 
+# Install pyenv and specific Python versions dynamically (if necessary)
+def install_python_with_pyenv():
+    print(f"Installing pyenv...")
+    subprocess.run(f"curl https://pyenv.run | bash", shell=True, check=True)
 
 
 def main():
@@ -291,24 +295,26 @@ def main():
                 verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
         else:
             # init_pyenv()
+            install_python_with_pyenv()
             for version in python_versions:
-                # if version in ('3.7', '3.8', '3.9'):
-                #     continue
-                print(f"Installing Python version { version }...")
-                try: 
-                    subprocess.check_call([
-                        sys.executable, "-m", "pip", "install", "-s", f"python{ version }"
-                    ])
-                except subprocess.CalledProcessError as e:
-                    print(f"Error installing Python version { version }: { e }")
-                    print(f"stderr: { e.stderr }")
+                print(f"Setting up Python {version}...")
+                subprocess.run(f"pyenv install {version}", shell=True, check=True)
+                subprocess.run(f"pyenv global {version}", shell=True, check=True)
+                # print(f"Installing Python version { version }...")
+                # try: 
+                #     subprocess.check_call([
+                #         sys.executable, "-m", "pip", "install", "-s", f"python{ version }"
+                #     ])
+                # except subprocess.CalledProcessError as e:
+                #     print(f"Error installing Python version { version }: { e }")
+                #     print(f"stderr: { e.stderr }")
                 
-                print(f"Setting Python version { version } global.")
-                subprocess.run(
-                    f"pyenv local { version }", shell=True, check=True, executable="/bin/bash", env=env)
-                # py_version - debug output
-                py_version = subprocess.run(f"python{ version } --version", capture_output=True, text=True)
-                print(f"Installed Python version: { py_version.stdout }")
+                # print(f"Setting Python version { version } global.")
+                # subprocess.run(
+                #     f"pyenv local { version }", shell=True, check=True, executable="/bin/bash", env=env)
+                # # py_version - debug output
+                # py_version = subprocess.run(f"python{ version } --version", capture_output=True, text=True)
+                # print(f"Installed Python version: { py_version.stdout }")
                 
                 print(f"Ensuring pip is installed to the Python version { version }...")
                 subprocess.run([f"python{ version }", "-m", "ensurepip", "--upgrade"])

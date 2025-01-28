@@ -101,17 +101,17 @@ jobs:
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
 
-      - name: Setup venv and Install requirements
-        shell: bash
-        run: | 
-          mkdir -p .venv
-          python -m venv .venv
-          if [[ ${{ matrix.inputs.runs_on }} == 'windows-2019' || ${{ matrix.inputs.runs_on }} == 'windows-latest' ]]; then
-            # Install pyenv-win on Windows
-            git clone https://github.com/pyenv-win/pyenv-win.git $HOME/.pyenv
-          elif [[ ${{ matrix.inputs.runs_on }} == 'macos-13' || ${{ matrix.inputs.runs_on }} == 'macos-latest' ]]; then
-            curl https://pyenv.run | bash
-          fi
+      # - name: Setup venv and Install requirements
+      #   shell: bash
+      #   run: | 
+      #     mkdir -p .venv
+      #     python -m venv .venv
+      #     if [[ ${{ matrix.inputs.runs_on }} == 'windows-2019' || ${{ matrix.inputs.runs_on }} == 'windows-latest' ]]; then
+      #       # Install pyenv-win on Windows
+      #       git clone https://github.com/pyenv-win/pyenv-win.git $HOME/.pyenv
+      #     elif [[ ${{ matrix.inputs.runs_on }} == 'macos-13' || ${{ matrix.inputs.runs_on }} == 'macos-latest' ]]; then
+      #       curl https://pyenv.run | bash
+      #     fi
 
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
@@ -128,11 +128,11 @@ jobs:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
             uname -m
-            if [[ ${{ matrix.inputs.runs_on }} == 'windows-2019' || ${{ matrix.inputs.runs_on }} == 'windows-latest' ]]; then
-              .venv/Scripts/activate
-            elif [[ ${{ matrix.inputs.runs_on }} == 'macos-13' || ${{ matrix.inputs.runs_on }} == 'macos-latest' ]]; then
-              source .venv/bin/activate
-            fi
+            # if [[ ${{ matrix.inputs.runs_on }} == 'windows-2019' || ${{ matrix.inputs.runs_on }} == 'windows-latest' ]]; then
+            #   .venv/Scripts/activate
+            # elif [[ ${{ matrix.inputs.runs_on }} == 'macos-13' || ${{ matrix.inputs.runs_on }} == 'macos-latest' ]]; then
+            #   source .venv/bin/activate
+            # fi
               
             if [[ ${{ matrix.inputs.nightly_build }} != 'Python' ]]; then
               echo "Downloading duckdb-binaries-$name artifact..."
