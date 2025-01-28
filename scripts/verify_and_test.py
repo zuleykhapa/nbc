@@ -224,7 +224,7 @@ def verify_version(tested_binary, file_name):
     """)
     return True
 
-def test_extensions(counter, tested_binary, counter, file_name):
+def test_extensions(tested_binary, counter, file_name):
     extensions = list_extensions(config)
     for ext in extensions:
         select_installed = [
@@ -399,7 +399,7 @@ def main():
         print("VERIFY BUILD SHA")
         if verify_version(tested_binary, file_name):
             print("TEST EXTENSIONS")
-            test_extensions(COUNTER, tested_binary, file_name)
+            test_extensions(tested_binary, COUNTER, file_name)
         print("FINISH")
 
 if __name__ == "__main__":
