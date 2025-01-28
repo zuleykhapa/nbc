@@ -125,7 +125,7 @@ Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
         """)
         return True
 
-def verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on):
+def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
     architecture = architecture.replace("/", "-")
     arch = f"linux/{ architecture }"
@@ -171,15 +171,15 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, cou
                         print( f"Is { ext } { act }ed: { installed.output.decode() }")
                         if action_result_ouput != "None":
                             with open(file_name, 'a') as f:
-                                if counter == 0:
+                                if COUNTER == 0:
                                     f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                    counter += 1
+                                    COUNTER += 1
                                 f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
     finally:
         print("FINISH")
         stop_container(container, container_name)
 
-# def verify_and_test_python(file_name, counter, run_id, architecture, nightly_build, runs_on):
+# def verify_and_test_python(file_name, COUNTER, run_id, architecture, nightly_build, runs_on):
 #     python_versions = list_builds_for_python_versions(run_id)
 #     full_sha = get_full_sha(run_id)
     
@@ -187,12 +187,12 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, cou
 #     for version in python_versions:
 #     # architecture = "arm64" #  (architecture == 'arm64' and runs_on == 'windows-2019')
 #         if runs_on == 'macos-latest':
-#             verify_and_test_python_macos(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
+#             verify_and_test_python_macos(version, full_sha, file_name, architecture, COUNTER, config, nightly_build, runs_on)
 #             return
 #         elif runs_on == 'ubuntu-latest':
 #             docker_image = f"python:{ version }"
 #             architecture = f"linux/{ architecture }"
-#             verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
+#             verify_and_test_python_linux(version, full_sha, file_name, architecture, COUNTER, config, nightly_build, runs_on)
 #         else:
 #             raise ValueError(f"Unsupported OS: { runs_on }")
         
@@ -226,7 +226,6 @@ def verify_version(tested_binary, file_name):
 
 def test_extensions(tested_binary, file_name):
     extensions = list_extensions(config)
-    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
         select_installed = [
@@ -250,9 +249,9 @@ def test_extensions(tested_binary, file_name):
                     if result.stderr:
                         print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
                         with open(file_name, "a") as f:
-                            if counter == 0:
+                            if COUNTER == 0:
                                 f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                counter += 1
+                                COUNTER += 1
                             f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
@@ -284,15 +283,14 @@ def install_python_with_pyenv():
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
-    counter = 0 # to write only one header per table
     if nightly_build == 'Python':
         python_versions = list_builds_for_python_versions(run_id)
         full_sha = get_full_sha(run_id)
+        COUNTER = 0 # to write only one header per table
         
-        # python_versions = ["3.10"]
         if runs_on.startswith("ubuntu"):
             for version in python_versions:
-                verify_and_test_python_linux(version, full_sha, file_name, architecture, counter, config, nightly_build, runs_on)
+                verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on)
         else:
             # init_pyenv()
             install_python_with_pyenv()
@@ -367,9 +365,9 @@ def main():
                                     print("TEST RESULT FOR", action, ext, ":", is_installed)
                                     if is_installed == 'None':
                                         with open(file_name, 'a') as f:
-                                            if counter == 0:
+                                            if COUNTER == 0:
                                                 f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                                counter += 1
+                                                COUNTER += 1
                                             f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ action }\n")
                                 else:
                                     is_loaded_command =[
@@ -385,9 +383,9 @@ def main():
                                     print("TEST RESULT FOR", action, ext, ":", is_loaded)
                                     if is_loaded == 'False':
                                         with open(file_name, 'a') as f:
-                                            if counter == 0:
+                                            if COUNTER == 0:
                                                 f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                                counter += 1
+                                                COUNTER += 1
                                             f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ action }\n")
             print("FINISH")
             
