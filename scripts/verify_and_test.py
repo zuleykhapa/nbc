@@ -283,10 +283,10 @@ def install_python_with_pyenv():
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
+    COUNTER = 0 # to write only one header per table
     if nightly_build == 'Python':
         python_versions = list_builds_for_python_versions(run_id)
         full_sha = get_full_sha(run_id)
-        COUNTER = 0 # to write only one header per table
         
         if runs_on.startswith("ubuntu"):
             for version in python_versions:
