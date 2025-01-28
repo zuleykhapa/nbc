@@ -27,6 +27,7 @@ from shared_functions import fetch_data
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTIONS = ["INSTALL", "LOAD"]
 EXT_WHICH_DOESNT_EXIST = "EXT_WHICH_DOESNT_EXIST"
+HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 COUNTER = 0 # to write only one header per table
 
 parser = argparse.ArgumentParser()
@@ -371,18 +372,19 @@ def main():
             print("FINISH")
             
     else:
-        path_pattern = os.path.join("duckdb_path", "duckdb*")
-        matches = glob.glob(path_pattern)
-        if matches:
-            tested_binary = os.path.abspath(matches[0])
-            print(f"Found binary: { tested_binary }")
-        else:
-            raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-        print("VERIFY BUILD SHA")
-        if verify_version(tested_binary, file_name):
-            print("TEST EXTENSIONS")
-            test_extensions(tested_binary, file_name)
-        print("FINISH")
+        if nightly_build not in HAS_NO_ARTIFACTS:
+            path_pattern = os.path.join("duckdb_path", "duckdb*")
+            matches = glob.glob(path_pattern)
+            if matches:
+                tested_binary = os.path.abspath(matches[0])
+                print(f"Found binary: { tested_binary }")
+            else:
+                raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
+            print("VERIFY BUILD SHA")
+            if verify_version(tested_binary, file_name):
+                print("TEST EXTENSIONS")
+                test_extensions(tested_binary, file_name)
+            print("FINISH")
 
 if __name__ == "__main__":
     main()
