@@ -99,7 +99,6 @@ def create_tables_for_report(nightly_build, con, build_info, url):
     Using 'steps' and 'artifacts' tables creates 'artifacts_per_jobs_{ nightly_build }' table 
         for the final report.
     '''
-    
     con.execute(f"""
         CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
             SELECT *
