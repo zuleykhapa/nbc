@@ -125,7 +125,7 @@ Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
         """)
         return True
 
-def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on):
+def verify_and_test_python_linux(counter, version, full_sha, file_name, architecture, config, nightly_build, runs_on):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
     architecture = architecture.replace("/", "-")
     arch = f"linux/{ architecture }"
@@ -171,9 +171,9 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
                         print( f"Is { ext } { act }ed: { installed.output.decode() }")
                         if action_result_ouput != "None":
                             with open(file_name, 'a') as f:
-                                if COUNTER == 0:
+                                if counter == 0:
                                     f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                    COUNTER += 1
+                                    counter += 1
                                 f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
     finally:
         print("FINISH")
@@ -224,9 +224,8 @@ def verify_version(tested_binary, file_name):
     """)
     return True
 
-def test_extensions(tested_binary, file_name):
+def test_extensions(counter, tested_binary, counter, file_name):
     extensions = list_extensions(config)
-
     for ext in extensions:
         select_installed = [
             tested_binary,
@@ -249,9 +248,9 @@ def test_extensions(tested_binary, file_name):
                     if result.stderr:
                         print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
                         with open(file_name, "a") as f:
-                            if COUNTER == 0:
+                            if counter == 0:
                                 f.write("nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                COUNTER += 1
+                                counter += 1
                             f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
@@ -290,7 +289,7 @@ def main():
         
         if runs_on.startswith("ubuntu"):
             for version in python_versions:
-                verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on)
+                verify_and_test_python_linux(COUNTER, version, full_sha, file_name, architecture, config, nightly_build, runs_on)
         else:
             # init_pyenv()
             install_python_with_pyenv()
@@ -400,7 +399,7 @@ def main():
         print("VERIFY BUILD SHA")
         if verify_version(tested_binary, file_name):
             print("TEST EXTENSIONS")
-            test_extensions(tested_binary, file_name)
+            test_extensions(COUNTER, tested_binary, file_name)
         print("FINISH")
 
 if __name__ == "__main__":
