@@ -12,21 +12,22 @@ information to a .csv file (later the file will be used to create a report).
 A list of extensions comes from the `ext/.github/config/out_of_tree_extensions.cmake` file from `duckdb/duckdb` repo.
 Also this script tries to INSTALL a non-existing extension to make sure the whole test results are not false-positive.
 '''
-import duckdb
 import argparse
 import docker
+import duckdb
 import glob
 import os
 import random
 import re
+import sys
 import subprocess
 import textwrap
-import sys
 from shared_functions import fetch_data
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTIONS = ["INSTALL", "LOAD"]
 EXT_WHICH_DOESNT_EXIST = "EXT_WHICH_DOESNT_EXIST"
+COUNTER = 0 # to write only one header per table
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
@@ -125,7 +126,7 @@ Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
         """)
         return True
 
-def verify_and_test_python_linux(counter, version, full_sha, file_name, architecture, config, nightly_build, runs_on):
+def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
     architecture = architecture.replace("/", "-")
     arch = f"linux/{ architecture }"
@@ -137,9 +138,6 @@ def verify_and_test_python_linux(counter, version, full_sha, file_name, architec
     container = create_container(client, container_name, docker_image, architecture, None)
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
-        print("🦑", container.exec_run("cat /etc/os-release", stdout=True, stderr=True).output.decode())
-        print("🫡", container.exec_run("uname -m", stdout=True, stderr=True).output.decode())
-        print("📌", container.exec_run("python --version", stdout=True, stderr=True).output.decode())
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
         result = container.exec_run(
             "python -c \"import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])\"",
@@ -171,32 +169,14 @@ def verify_and_test_python_linux(counter, version, full_sha, file_name, architec
                         print( f"Is { ext } { act }ed: { installed.output.decode() }")
                         if action_result_ouput != "None":
                             with open(file_name, 'a') as f:
-                                if counter == 0:
+                                if global COUNTER == 0:
                                     f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                    counter += 1
+                                    global COUNTER += 1
                                 f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
     finally:
         print("FINISH")
         stop_container(container, container_name)
-
-# def verify_and_test_python(file_name, COUNTER, run_id, architecture, nightly_build, runs_on):
-#     python_versions = list_builds_for_python_versions(run_id)
-#     full_sha = get_full_sha(run_id)
-    
-#     version = "3.13"
-#     for version in python_versions:
-#     # architecture = "arm64" #  (architecture == 'arm64' and runs_on == 'windows-2019')
-#         if runs_on == 'macos-latest':
-#             verify_and_test_python_macos(version, full_sha, file_name, architecture, COUNTER, config, nightly_build, runs_on)
-#             return
-#         elif runs_on == 'ubuntu-latest':
-#             docker_image = f"python:{ version }"
-#             architecture = f"linux/{ architecture }"
-#             verify_and_test_python_linux(version, full_sha, file_name, architecture, COUNTER, config, nightly_build, runs_on)
-#         else:
-#             raise ValueError(f"Unsupported OS: { runs_on }")
         
-
 ##############
 ### OTHERS ###
 ##############
@@ -256,7 +236,7 @@ def test_extensions(tested_binary, counter, file_name):
                 except subprocess.CalledProcessError as e:
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
-    print(f"Trying to install a non-ecisting extension in {nightly_build}...")
+    print(f"Trying to install a non-existing extension in {nightly_build}...")
     result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
     if result.stderr:
         print(f"Attempted to install a non-existing extension resulted with error, as expected: { result.stderr }")
@@ -282,14 +262,14 @@ def install_python_with_pyenv():
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
-    COUNTER = 0 # to write only one header per table
+    # COUNTER = 0 # to write only one header per table
     if nightly_build == 'Python':
         python_versions = list_builds_for_python_versions(run_id)
         full_sha = get_full_sha(run_id)
         
         if runs_on.startswith("ubuntu"):
             for version in python_versions:
-                verify_and_test_python_linux(COUNTER, version, full_sha, file_name, architecture, config, nightly_build, runs_on)
+                verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on)
         else:
             # init_pyenv()
             install_python_with_pyenv()
@@ -313,8 +293,8 @@ def main():
                 # py_version = subprocess.run(f"python{ version } --version", capture_output=True, text=True)
                 # print(f"Installed Python version: { py_version.stdout }")
                 
-                print(f"Ensuring pip is installed to the Python version { version }...")
-                subprocess.run([f"python{ version }", "-m", "ensurepip", "--upgrade"])
+                # print(f"Ensuring pip is installed to the Python version { version }...")
+                # subprocess.run([f"python{ version }", "-m", "ensurepip", "--upgrade"])
                 # install duckdb
                 print(f"Installing Duckdb on Python version { version }...")
                 subprocess.run([
