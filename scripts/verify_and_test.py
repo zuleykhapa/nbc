@@ -14,7 +14,7 @@ Also this script tries to INSTALL a non-existing extension to make sure the whol
 '''
 import duckdb
 import argparse
-import duckdb
+import docker
 import glob
 import os
 import random
