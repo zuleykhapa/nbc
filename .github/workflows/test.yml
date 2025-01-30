@@ -36,7 +36,7 @@ jobs:
         needs: create-json-file
         strategy:
             matrix:
-                file: ${{ needs.create-json-file.outputs.file }}
+                file: ${{ fromJson(needs.create-json-file.outputs.file.old_tests) }}
         steps:
             - run: |
                 for item in ${{matrix.file}}; do
