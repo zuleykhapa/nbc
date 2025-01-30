@@ -10,20 +10,23 @@ jobs:
         steps:
             - id: file
               run: |
-                echo "old_tests = \[" > j.json
-                echo "\{" >> j.json
-                echo '  "new_name": "main",' >> j.json
-                echo '  "new_sha": "latest main SHA",'  >> j.json
-                echo '  "old_name": "main",' >> j.json
-                echo '  "old_sha": "a week ago main SHA"' >> j.json
-                echo '\},' >> j.json
-                echo '\{' >> j.json
-                echo '  "new_name": "main",' >> j.json
-                echo '  "new_sha": "latest main SHA",' >> j.json
-                echo '  "old_name": "v1.2-histrionicus",' >> j.json
-                echo '  "old_sha": "latest v1.2-histrionicus SHA"' >> j.json
-                echo '\}' >> j.json
-                echo '\]' >> j.json
+                echo '{
+                    "old_tests": [
+                        {
+                        "new_name": "main",
+                        "new_sha": "latest main SHA",
+                        "old_name": "main",
+                        "old_sha": "a week ago main SHA"
+                        },
+                        {
+                        "new_name": "main",
+                        "new_sha": "latest main SHA",
+                        "old_name": "v1.2-histrionicus",
+                        "old_sha": "latest v1.2-histrionicus SHA"
+                        }
+                    ]
+                    }' > j.json
+
 
                 matrix=$(cat j.json | jq -c '.')
                 echo "file=$matrix" >> $GITHUB_OUTPUT
