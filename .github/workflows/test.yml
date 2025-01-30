@@ -34,9 +34,17 @@ jobs:
     use-matrix:
         runs-on: ubuntu-latest
         needs: create-json-file
+        outputs:
+            json: ${{ steps.to-json.outputs.file }}
+        steps:
+            - id: to-json
+              run: echo json=${{ toJson(needs.create-json-file.outputs.file )}} >> $GITHUB_OUTPUT
+    use:
+        runs-on: ubuntu-latest
+        needs: use-matrix
         strategy:
             matrix:
-                file: ${{ fromJson(needs.create-json-file.outputs.file.old_tests) }}
+                file: ${{ fromJson(needs.use-matrix.outputs.json) }}
         steps:
             - run: |
                 for item in ${{matrix.file}}; do
