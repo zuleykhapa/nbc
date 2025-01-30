@@ -10,20 +10,20 @@ jobs:
         steps:
             - id: file
               run: |
-                echo "old_tests = [" > j.json
-                echo "{" >> j.json
+                echo "old_tests = \[" > j.json
+                echo "\{" >> j.json
                 echo '  "new_name": "main",' >> j.json
                 echo '  "new_sha": "latest main SHA",'  >> j.json
                 echo '  "old_name": "main",' >> j.json
                 echo '  "old_sha": "a week ago main SHA"' >> j.json
-                echo '},' >> j.json
-                echo '{' >> j.json
+                echo '\},' >> j.json
+                echo '\{' >> j.json
                 echo '  "new_name": "main",' >> j.json
                 echo '  "new_sha": "latest main SHA",' >> j.json
                 echo '  "old_name": "v1.2-histrionicus",' >> j.json
                 echo '  "old_sha": "latest v1.2-histrionicus SHA"' >> j.json
-                echo '}' >> j.json
-                echo ']' >> j.json
+                echo '\}' >> j.json
+                echo '\]' >> j.json
 
                 matrix=$(cat j.json | jq -c '.')
                 echo "file=$matrix" >> $GITHUB_OUTPUT
@@ -39,5 +39,5 @@ jobs:
                 for item in ${{matrix.file}}; do
                     echo $item
                 done
-                
+
         
