@@ -1,12 +1,17 @@
 '''
-We would like to run benchmarks in comparison of `current main` with `a week ago main`, 
-`current main` with `current v1.2-histrionicus`,
-`current v1.2-histrionicus` with `a week ago v1.2-histrionicus`.
+We would like to run benchmarks comparing 
+    - `current main` with `a week ago main`, (1)
+    - `current version of the highest release` with `a week ago version of the highest release` (2),
+    - `current main` with 
+        `current version of the highest release` and (3)
+        `current version of the previous release` (4)
 
-This script creates a `duckdb_previous_version_pairs.json` file containing the values we need to run regression tests
-in pairs of `--old` and `--new` passing respectful values to the `regression_runner`.
+The script finds highest and previous versions in current heads (`git ls-remote --heads`) and create last pairs (3), (4) from it.
+It takes "new_sha" for `main` and for `highest release` in previous version of json file and creates pairs (1), (2).
+It doesn't create pair (2), when there is no "new_sha" for `highest release` in previous version of json file.
+In the end it writes pairs to `duckdb_previous_version_pairs.json` file. The file is used to create a matrix for regression tests run.
 
-Contents of the `duckdb_previous_version_pairs.json` should look like this:
+Contents of the `duckdb_previous_version_pairs.json` look like this:
 [
     {
         "new_name": "main",
@@ -25,8 +30,15 @@ Contents of the `duckdb_previous_version_pairs.json` should look like this:
         "new_sha": "latest v1.2-histrionicus SHA",
         "old_name": "v1.2-histrionicus",
         "old_sha": "a week ago v1.2-histrionicus SHA"
+    },
+    {
+        "new_name": "main",
+        "new_sha": "latest main SHA",
+        "old_name": "v1.1-eatoni",
+        "old_sha": "latest v1.1-eatoni SHA"
     }
 ]
+Names in pairs are starting with "old" and "new" because we use `--old` and `--new` to pass values to the `regression_runner`
 '''
 
 import subprocess
@@ -37,91 +49,119 @@ from collections import defaultdict
 
 PAIR_FILE = "duckdb_previous_version_pairs.json"
 TXT_FILE = "duckdb_curr_version_main.txt"
+PARENT_DIR = os.path.dirname(os.getcwd())
+PAIRS_FILE_PATH = os.path.join(PARENT_DIR, PAIR_FILE)
 
-def main():
-    pairs = []
-    is_old_file_exists = True
-    old_highest_version_sha = None
-    # find a file on runner duckdb_curr_version_main.txt or duckdb_previous_version_pairs.json to get previous run SHA
-    parent_dir = os.path.dirname(os.getcwd())
-    pairs_file_path = os.path.join(parent_dir, PAIR_FILE)
-    txt_file_path = os.path.join(parent_dir, TXT_FILE)
+def maybe_remove_txt_file():
+    txt_file_path = os.path.join(PARENT_DIR, TXT_FILE)
     if os.path.isfile(txt_file_path):
         with open(txt_file_path, "r") as f:
             old_main_sha = f.read()
         os.remove(txt_file_path)
-    if os.path.isfile(pairs_file_path):
-        with open(pairs_file_path, "r") as f:
+        return old_main_sha
+
+def get_pairs_from_file():
+    if os.path.isfile(PAIRS_FILE_PATH):
+        with open(PAIRS_FILE_PATH, "r") as f:
             data = f.read()
-            parsed_data = json.loads(data)
-            # there could be from 1 to 3 json objects
-            visited = -1
-            for data in parsed_data:
-                if data["new_name"] == "main" and visited != 0:
-                    visited = 0
-                    old_main_sha = data["new_sha"]
-                if data["new_name"].startswith("v") and visited != 1:
-                    visited = 1
-                    old_highest_version_sha = data["new_sha"]
+            if len(data):
+                parsed_data = json.loads(data)
+                return parsed_data
+            else:
+                print(f"""
+                `duckdb_previous_version_pairs.json` file found in { PARENT_DIR } but it's empty.
+                """)
+                return None        
     else:
         print(f"""
-        `duckdb_curr_version_main.txt` or `duckdb_previous_version_pairs.json` not found in { parent_dir }.
+        `duckdb_previous_version_pairs.json` not found in { PARENT_DIR }.
         A new duckdb_previous_version_pairs.json will be created in a parent directory.
         """)
-        is_old_file_exists = False
-    # list head branches
+        return None
+
+def get_branches():
     command = [ "git", "ls-remote", "--heads", "https://github.com/duckdb/duckdb.git" ]
     try:
         branches = subprocess.run(command, capture_output=True).stdout
     except subprocess.CalledProcessError as e:
         print(f"Command failed with error: { e.stderr }")
-    branches = branches.decode().splitlines()
+    return branches.decode().splitlines()
 
+def get_highest_and_previous(branches):
+    branches_parsed = {}
     main_sha, main_name = None, None
+    previous_version_sha, previous_version_name = None, None
     highest_version_sha, highest_version_name = None, None
-    highest_version = '-1'
+    highest_version = ''
     for branch in branches:
         sha, name = branch.split()
-        name = name.split("/")[2] # get only the last word of 'refs/heads/main'
+        name = name.split("/")[-1]
         if name == 'main':
             main_sha, main_name = sha, name
+            branches_parsed["main"] = (name, sha)
         else:
             match = re.match(r'v(.*)-', name)
             if match:
                 version_number = match.group(1)
                 if version_number > highest_version:
-                    highest_version = version_number
+                    previous_version_sha, previous_version_name = highest_version_sha, highest_version_name
+                    previous_version = highest_version
                     highest_version_sha, highest_version_name = sha, name
+            branches_parsed["highest_version"] = (highest_version_name, highest_version_sha)
+            branches_parsed["previous_version"] = (previous_version_name, previous_version_sha)
+            
+    return branches_parsed
 
-    # If there are no files storing previously tested versions,
-    # the first pair is not getting added to a json file
-    if is_old_file_exists and main_sha and old_main_sha:
-        # first pair - `curr-main` & `old-main`
-        pairs.append({
-            "new_name": f"{ main_name }",
-            "new_sha": f"{ main_sha }",
-            "old_name": f"{ main_name }",
-            "old_sha": f"{ old_main_sha }"
-        })
-    if main_sha and highest_version_sha:
-        # second pair - `curr-main` & `curr-vx.y`
-        pairs.append({
-            "new_name": f"{ main_name }",
-            "new_sha": f"{ main_sha }",
-            "old_name": f"{ highest_version_name }",
-            "old_sha": f"{ highest_version_sha }"
-        })
-        if old_highest_version_sha:
-            # third pair - `curr-vx.y` & `old-vx.y`
+def get_pairs():
+    pairs = []
+    branches = get_branches()
+    if len(branches):
+        branches_parsed = get_highest_and_previous(branches)
+        main_name, main_sha = branches_parsed["main"]
+        for key in ["highest_version", "previous_version"]:
+            old_name, old_sha = branches_parsed[key]
             pairs.append({
-                "new_name": f"{ highest_version_name }",
-                "new_sha": f"{ highest_version_sha }",
-                "old_name": f"{ highest_version_name }",
-                "old_sha": f"{ old_highest_version_sha }"
+                "new_name": main_name,
+                "new_sha": main_sha,
+                "old_name": old_name,
+                "old_sha": old_sha
             })
+    pairs_data = get_pairs_from_file()
+    if pairs_data:
+        for pair in pairs_data:
+            name, sha = branches_parsed["main"]
+            pairs.append({
+                    "new_name": name,
+                    "new_sha": sha,
+                    "old_name": name,
+                    "old_sha": pair["new_sha"]
+                })
+            break
+        for pair in pairs_data:
+            highest_name, highest_sha = branches_parsed["highest_version"]
+            if highest_name == pair["old_name"]:
+                pairs.append({
+                        "new_name": highest_name,
+                        "new_sha": highest_sha,
+                        "old_name": highest_name,
+                        "old_sha": pair["old_sha"]
+                    })
+            break
+    else:
+        old_main_sha = maybe_remove_txt_file()
+        if old_main_sha:
+            name, sha = branches_parsed["main"]
+            pairs.append({
+                    "new_name": name,
+                    "new_sha": sha,
+                    "old_name": name,
+                    "old_sha": old_main_sha
+                })
+    return pairs
 
-    # write to json file
-    with open(pairs_file_path, "w") as f:
+def main():
+    pairs = get_pairs()
+    with open(PAIRS_FILE_PATH, "w") as f:
         json.dump(pairs, f, indent=4)
 
 if __name__ == "__main__":
