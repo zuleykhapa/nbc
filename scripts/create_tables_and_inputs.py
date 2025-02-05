@@ -320,23 +320,22 @@ def main():
                         "architectures": name + "-amd64",
                         "runs_on": "ubuntu-latest",
                         "run_id": build_info.get('nightly_build_run_id'),
-                        "name": name + "-amd64"
+                        "name": name
                     })
-            else:
-                {
-                    "nightly_build": "Python",
-                    "architectures": "amd64",
-                    "runs_on": "ubuntu-latest",
-                    "run_id": 13147610529,
-                    "name": "amd64"
-                },
-                {
-                    "nightly_build": "Python",
-                    "architectures": "aarch64",
-                    "runs_on": "ubuntu-22.04-arm",
-                    "run_id": 13147610529,
-                    "name": "aarch64"
-                }
+            {
+                "nightly_build": "Python",
+                "architectures": "amd64",
+                "runs_on": "ubuntu-latest",
+                "run_id": 13147610529,
+                "name": "amd64"
+            },
+            {
+                "nightly_build": "Python",
+                "architectures": "aarch64",
+                "runs_on": "ubuntu-22.04-arm",
+                "run_id": 13147610529,
+                "name": "aarch64"
+            }
 
     # matrix_data.append({
     #     "nightly_build": "Python",
