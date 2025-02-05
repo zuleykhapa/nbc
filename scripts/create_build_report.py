@@ -96,7 +96,7 @@ def create_build_report(nightly_build, con, build_info, url):
             f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
         
         # add extensions
-        file_name_pattern = f"failed_ext/ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
+        file_name_pattern = f"failed_ext/ext_*/*.csv"
         matching_files = glob.glob(file_name_pattern)
         if matching_files:
             f.write(f"\n#### List of failed extensions\n")
@@ -114,17 +114,11 @@ def create_build_report(nightly_build, con, build_info, url):
 def main():
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
-    # list all nightly-build runs on current date to get all nightly-build names
-    # result = list_all_runs(con)
     nightly_build = "InvokeCI"
-    # nightly_builds = [row[0] for row in result]
-    # create complete report
-    # for nightly_build in nightly_builds:
     build_info = {}
-    # url = con.execute(f"""
-    #     SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
-    #     """).fetchone()[0]
-    url = ""
+    url = con.execute(f"""
+        SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
+        """).fetchone()[0]
     create_build_report(nightly_build, con, build_info, url)    
     con.close()
     
