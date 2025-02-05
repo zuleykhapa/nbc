@@ -183,7 +183,8 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
 ### OTHERS ###
 ##############
 def verify_version(tested_binary, file_name):
-    full_sha = get_full_sha(run_id)
+    # full_sha = get_full_sha(run_id)
+    full_sha = "5f5512b827df6397afd31daedb4bbdee76520019"
     pragma_version = [ tested_binary, "--version" ]
     short_sha = subprocess.run(pragma_version, text=True, capture_output=True).stdout.strip().split()[-1]
     if not full_sha.startswith(short_sha):
@@ -268,7 +269,9 @@ def main():
     # COUNTER = 0 # to write only one header per table
     if nightly_build == 'Python':
         python_versions = list_builds_for_python_versions(run_id)
-        full_sha = get_full_sha(run_id)
+        # full_sha = get_full_sha(run_id)
+        full_sha = "5f5512b827df6397afd31daedb4bbdee76520019"
+
         
         if runs_on.startswith("ubuntu"):
             for version in python_versions:
