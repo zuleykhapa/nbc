@@ -233,9 +233,9 @@ def test_extensions(tested_binary, file_name):
                         print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
                         with open(file_name, "a") as f:
                             if COUNTER == 0:
-                                f.write("nightly_build,architecture,runs_on,extension,failed_statement\n")
+                                f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
                                 COUNTER += 1
-                            f.write(f"{ nightly_build },{ architecture },{ runs_on },{ ext },{ action }\n")
+                            f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
 
                 except subprocess.CalledProcessError as e:
                     print(f"Error running command for extesion { ext }: { e }")
