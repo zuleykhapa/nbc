@@ -27,6 +27,7 @@ GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
+nightly_build = "InvokeCI"
 
 def create_build_report(nightly_build, con, build_info, url):
     # failures_count = count_consecutive_failures(nightly_build, con)
