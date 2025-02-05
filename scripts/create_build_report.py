@@ -27,7 +27,6 @@ GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
-nightly_build = "InvokeCI"
 
 def create_build_report(nightly_build, con, build_info, url):
     # failures_count = count_consecutive_failures(nightly_build, con)
@@ -116,16 +115,17 @@ def main():
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
     # list all nightly-build runs on current date to get all nightly-build names
-    result = list_all_runs(con)
-    nightly_builds = [row[0] for row in result]
+    # result = list_all_runs(con)
+    nightly_build = "InvokeCI"
+    # nightly_builds = [row[0] for row in result]
     # create complete report
-    for nightly_build in nightly_builds:
-        build_info = {}
-        # url = con.execute(f"""
-        #     SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
-        #     """).fetchone()[0]
-        url = ""
-        create_build_report(nightly_build, con, build_info, url)    
+    # for nightly_build in nightly_builds:
+    build_info = {}
+    # url = con.execute(f"""
+    #     SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
+    #     """).fetchone()[0]
+    url = ""
+    create_build_report(nightly_build, con, build_info, url)    
     con.close()
     
     
