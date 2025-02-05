@@ -70,7 +70,7 @@ def save_run_data_to_json_files(nightly_build, con, build_info):
     runs_command = [
             "gh", "run", "list",
             "--repo", GH_REPO,
-            "--event", "repository_dispatch",
+            "--event", "workflow_dispatch",
             "--workflow", f"{ nightly_build }",
             "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
         ]
@@ -207,7 +207,7 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
             Each item is in a format like this: [duckdb-binaries-linux-aarch64](url)
             Create an array of architectures and save it and a platform value to 'build_info'
         '''
-        result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
+        result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_InvokeCI'").fetchall()
         items = [row[0] for row in result if row[0] is not None]
         pattern = r"\[duckdb-binaries-(\w+)(?:[-_](\w+))?\]\(.*\)" # (\w+)(?:[-_](\w+))? finds the words separated by - or _; \]\(.*\) handles brackets
         platform = None
@@ -255,35 +255,88 @@ def get_runner(platform, architecture):
                     return
         case _:
             return "ubuntu-latest"
-        
 
 def main():
     matrix_data = []
     con = duckdb.connect('run_info_tables.duckdb')
-    # list all nightly-build runs on current date to get all nightly-build names
-    result = list_all_runs(con)
-    nightly_builds = [row[0] for row in result]
-    for nightly_build in nightly_builds:
-        build_info = {}
-        save_run_data_to_json_files(nightly_build, con, build_info)
-        url = con.execute(f"""
-            SELECT url FROM '{ nightly_build }.json'
-            """).fetchone()[0]
-        create_tables_for_report(nightly_build, con, build_info, url)
-        
-        if count_consecutive_failures(nightly_build, con) == 0 or get_binaries_count(nightly_build, con):
-            get_platform_arch_from_artifact_name(nightly_build, con, build_info)
-            platform = str(build_info.get("platform"))
-            architectures = build_info.get('architectures')
-            for architecture in architectures:
-                if architecture != 'windows-arm64':
+    nightly_build = "InvokeCI"
+    build_info = {}
+    save_run_data_to_json_files(nightly_build, con, build_info)
+    url = con.execute(f"""
+        SELECT url FROM '{ nightly_build }.json'
+        """).fetchone()[0]
+    create_tables_for_report(nightly_build, con, build_info, url)
+    
+    if count_consecutive_failures(nightly_build, con) == 0 or get_binaries_count(nightly_build, con):
+        result = con.execute(f"""
+            SELECT artifacts['name']
+            FROM (
+                SELECT unnest(artifacts) AS artifacts
+                FROM artifacts_{ nightly_build }
+            )
+            WHERE artifacts['name'] LIKE '%binaries%'
+        """).fetchall()
+        builds = [row[0] for row in result]
+        print(builds)
+        for build in builds:
+            name_candidate = build.split("-")
+            name = name_candidate[2] if len(name_candidate) == 3 else name_candidate[2] + "-" + name_candidate[3]
+            print(name)
+            if name == 'osx':
+                matrix_data.append({
+                    "nightly_build": name.upper(),
+                    "architectures": "arm64",
+                    "runs_on": "macos-latest",
+                    "run_id": build_info.get('nightly_build_run_id'),
+                    "name": name
+                })
+                matrix_data.append({
+                    "nightly_build": name.upper(),
+                    "architectures": "amd",
+                    "runs_on": "macos-13",
+                    "run_id": build_info.get('nightly_build_run_id'),
+                    "name": name
+                })
+            elif name == "windows-amd64":
+                matrix_data.append({
+                    "nightly_build": "Windows",
+                    "architectures": "amd64",
+                    "runs_on": "windows-2019",
+                    "run_id": build_info.get('nightly_build_run_id'),
+                    "name": name
+                })
+            elif name.startswith('linux'):
+                if name.endswith("64"):
                     matrix_data.append({
-                        "nightly_build": nightly_build,
-                        "architectures": architecture,
-                        "runs_on": get_runner(platform, architecture),
+                        "nightly_build": "LinuxRelease",
+                        "architectures": name,
+                        "runs_on": "ubuntu-22.04-arm",
                         "run_id": build_info.get('nightly_build_run_id'),
-                        "name": get_binary_name(nightly_build, platform, architecture)
+                        "name": name
                     })
+                else:
+                    matrix_data.append({
+                        "nightly_build": "LinuxRelease",
+                        "architectures": name + "-amd64",
+                        "runs_on": "ubuntu-latest",
+                        "run_id": build_info.get('nightly_build_run_id'),
+                        "name": name + "-amd64"
+                    })
+            else:
+                {
+                    "nightly_build": "Python",
+                    "architectures": "amd64",
+                    "runs_on": "ubuntu-latest",
+                    "run_id": 13147610529,
+                    "name": "amd64"
+                },
+                {
+                    "nightly_build": "Python",
+                    "architectures": "aarch64",
+                    "runs_on": "ubuntu-22.04-arm",
+                    "run_id": 13147610529,
+                    "name": "aarch64"
+                }
 
     # matrix_data.append({
     #     "nightly_build": "Python",
