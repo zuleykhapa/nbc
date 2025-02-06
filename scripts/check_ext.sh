@@ -8,7 +8,7 @@ extensions=('arrow' 'autocomplete' 'aws' 'azure' 'delta' 'excel' 'fts' 'httpfs' 
 for pl in ${platform[@]}; do
     for ar in ${arch[@]}; do
         for ext in ${extensions[@]}; do
-            wget https://duckdb-extensions.s3.us-east-2.amazonaws.com/${release_v}/${platform}_${arch}/${ext}.duckdb_extension.gz
+            wget -q https://duckdb-extensions.s3.us-east-2.amazonaws.com/${release_v}/${platform}_${arch}/${ext}.duckdb_extension.gz
             gzip -d ${ext}.duckdb_extension.gz
             hexdump -C ${ext}.duckdb_extension | tail -n 30 | awk -F'|' '{print $2}' | tr -d '\n' > ${ext}-${sha}-${platform}-${arch}.txt
             if (cat ${ext}-${sha}-${platform}-${arch}.txt | grep -o $release_v); then
