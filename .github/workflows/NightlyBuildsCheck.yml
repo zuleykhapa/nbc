@@ -18,6 +18,8 @@ jobs:
     name: Check in advance
     runs-on: macos-13
     steps:
+      - name: Checkout repo with the scripts
+        uses: actions/checkout@v4
       - shell: bash
         run: chmod +x ./check_ext.sh && ./check_ext.sh
       - uses: actions/upload-artifact@v4
