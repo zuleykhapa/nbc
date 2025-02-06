@@ -11,7 +11,7 @@ for pl in ${platform[@]}; do
             wget https://duckdb-extensions.s3.us-east-2.amazonaws.com/${release_v}/${platform}_${arch}/${ext}.duckdb_extension.gz
             gzip -d ${ext}.duckdb_extension.gz
             hexdump -C ${ext}.duckdb_extension | tail -n 30 | awk -F'|' '{print $2}' | tr -d '\n' > ${ext}-${sha}-${platform}-${arch}.txt
-            if $(cat ${ext}-${sha}-${platform}-${arch}.txt | grep -o $release_v); then
+            if (cat ${ext}-${sha}-${platform}-${arch}.txt | grep -o $release_v); then
                 echo "${ext},${sha},${platform},${arch},passed"
                 echo "${ext},${sha},${platform},${arch},passed" >> log.csv
             else
