@@ -12,11 +12,14 @@ for pl in ${platform[@]}; do
             gzip -d ${ext}.duckdb_extension.gz
             hexdump -C ${ext}.duckdb_extension | tail -n 30 > ${ext}-${sha}-${platform}-${arch}.txt
             if $(echo ${ext}-${sha}-${platform}-${arch}.txt | grep $release_v); then
+                echo "${ext},${sha},${platform},${arch},passed"
                 echo "${ext},${sha},${platform},${arch},passed" >> log.csv
             else
+                echo "${ext},${sha},${platform},${arch},failed"
                 echo "${ext},${sha},${platform},${arch},failed" >> log.csv
             fi
             rm ${ext}.duckdb_extension
+            rm ${ext}-${sha}-${platform}-${arch}.txt
         done
     done
 done
