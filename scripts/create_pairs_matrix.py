@@ -115,10 +115,8 @@ def get_pairs():
     pairs = []
     parsed_branches = parse_branches()
     print(parsed_branches)
-    # old_pairs = get_pairs_from_file()
-    old_pairs = None
+    old_pairs = get_pairs_from_file()
     branches = [br for br in parsed_branches]
-    print(branches[1:])
     if old_pairs:
         for pair in old_pairs:
             if pair["old_name"] in branches[1:]:
@@ -147,7 +145,7 @@ def get_pairs():
                     "old_sha": parsed_branches[branch]
                 }
             pairs.append(new_pair)
-            if branch in branches[:1]:
+            if branch in branches[:2]:
                 new_pair = {
                     "new_name": branch,
                     "new_sha": parsed_branches[branch],
@@ -155,7 +153,7 @@ def get_pairs():
                     "old_sha": parsed_branches[branch]
                 }
                 pairs.append(new_pair)
-        unique_pairs = pairs
+        unique_pairs = [dict(t) for t in {frozenset(item.items()) for item in pairs}]
     return unique_pairs
 
 def main():
