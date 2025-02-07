@@ -118,24 +118,42 @@ def get_pairs():
     old_pairs = get_pairs_from_file()
     branches = [br for br in parsed_branches]
     print(branches[1:])
-    for pair in old_pairs:
-        if pair["old_name"] in branches[1:]:
+    if old_pairs:
+        for pair in old_pairs:
+            if pair["old_name"] in branches[1:]:
+                new_pair = {
+                    "new_name": branches[0],
+                    "new_sha": parsed_branches[branches[0]],
+                    "old_name": pair["old_name"],
+                    "old_sha": pair["old_sha"]
+                }
+                pairs.append(new_pair)
+            if pair["new_name"] in branches and pair["new_name"] == pair["old_name"]:
+                new_pair = {
+                    "new_name": pair["new_name"],
+                    "new_sha": parsed_branches[pair["new_name"]],
+                    "old_name": pair["new_name"],
+                    "old_sha": pair["new_sha"]
+                }
+                pairs.append(new_pair)
+        unique_pairs = [dict(t) for t in {frozenset(item.items()) for item in pairs}]
+    else:
+        for branch in branches:
             new_pair = {
-                "new_name": branches[0],
-                "new_sha": parsed_branches[branches[0]],
-                "old_name": pair["old_name"],
-                "old_sha": pair["old_sha"]
-            }
+                    "new_name": branch[0],
+                    "new_sha": parsed_branches[branch[0]],
+                    "old_name": branch,
+                    "old_sha": parsed_branches[branch]
+                }
             pairs.append(new_pair)
-        if pair["new_name"] in branches and pair["new_name"] == pair["old_name"]:
-            new_pair = {
-                "new_name": pair["new_name"],
-                "new_sha": parsed_branches[pair["new_name"]],
-                "old_name": pair["new_name"],
-                "old_sha": pair["new_sha"]
-            }
-            pairs.append(new_pair)
-    unique_pairs = [dict(t) for t in {frozenset(item.items()) for item in pairs}]
+        new_pair = {
+                    "new_name": branch[0],
+                    "new_sha": parsed_branches[branch[0]],
+                    "old_name": branch[0],
+                    "old_sha": parsed_branches[branch[0]]
+                }
+        pairs.append(new_pair)
+        unique_pairs = pairs
     return unique_pairs
 
 def main():
