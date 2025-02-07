@@ -259,8 +259,6 @@ jobs:
           # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
           echo benchmark/micro/index/insert/insert_pk_fk.benchmark >> .github/regression/micro_extended.csv
           echo benchmark/micro/pushdown/window_partition_pushdown.benchmark >> .github/regression/micro_extended.csv
-          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.branch }}/.github/regression/micro_extended.csv
-
           # cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
 
           # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
