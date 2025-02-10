@@ -27,6 +27,7 @@ GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
+SHOULD_BE_TESTED = ('Python', 'OSX', 'LinuxRelease', 'Windows')
 
 def create_build_report(nightly_build, con, build_info, url):
     # failures_count = count_consecutive_failures(nightly_build, con)
@@ -105,7 +106,7 @@ def create_build_report(nightly_build, con, build_info, url):
             """).df()
             f.write(failed_extensions.to_markdown(index=False) + "\n")
         else:
-            if failures_count == 0:
+            if failures_count == 0 and nightly_build in SHOULD_BE_TESTED:
                 f.write(f"\n#### All extensions were successfully installed and loaded.\n")
 
     build_info["failures_count"] = failures_count
@@ -114,14 +115,17 @@ def create_build_report(nightly_build, con, build_info, url):
 def main():
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
-    nightly_build = "InvokeCI"
-    build_info = {}
-    url = con.execute(f"""
-        SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
-        """).fetchone()[0]
-    create_build_report(nightly_build, con, build_info, url)    
+    # list all nightly-build runs on current date to get all nightly-build names
+    result = list_all_runs(con)
+    nightly_builds = [row[0] for row in result]
+    # create complete report
+    for nightly_build in nightly_builds:
+        build_info = {}
+        url = con.execute(f"""
+            SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
+            """).fetchone()[0]
+        create_build_report(nightly_build, con, build_info, url)    
     con.close()
-    
     
 if __name__ == "__main__":
     main()

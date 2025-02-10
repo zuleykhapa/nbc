@@ -48,6 +48,7 @@ GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
+SHOULD_BE_TESTED = ('Python', 'OSX', 'LinuxRelease', 'Windows')
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
@@ -70,7 +71,7 @@ def save_run_data_to_json_files(nightly_build, con, build_info):
     runs_command = [
             "gh", "run", "list",
             "--repo", GH_REPO,
-            "--event", "workflow_dispatch",
+            "--event", "repository_dispatch",
             "--workflow", f"{ nightly_build }",
             "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
         ]
@@ -111,6 +112,7 @@ def create_tables_for_report(nightly_build, con, build_info, url):
         )
     """)
     if nightly_build not in HAS_NO_ARTIFACTS:
+        print(nightly_build)
         con.execute(f"""
                 CREATE OR REPLACE TABLE 'artifacts_{ nightly_build }' AS (
                     SELECT * FROM read_json('{ nightly_build }_artifacts.json')
@@ -188,7 +190,7 @@ def get_binaries_count(nightly_build, con):
             SELECT count(artifacts['name'])
             FROM (
                 SELECT unnest(artifacts) AS artifacts
-                FROM artifacts_{ nightly_build }
+                FROM 'artifacts_{ nightly_build }'
             )
             WHERE artifacts['name'] LIKE '%binaries%'
         """).fetchone()
@@ -259,62 +261,63 @@ def get_runner(platform, architecture):
 def main():
     matrix_data = []
     con = duckdb.connect('run_info_tables.duckdb')
-    nightly_build = "InvokeCI"
-    build_info = {}
-    save_run_data_to_json_files(nightly_build, con, build_info)
-    url = con.execute(f"""
-        SELECT url FROM '{ nightly_build }.json'
-        """).fetchone()[0]
-    create_tables_for_report(nightly_build, con, build_info, url)
-    
-    if count_consecutive_failures(nightly_build, con) == 0 or get_binaries_count(nightly_build, con):
-        result = con.execute(f"""
-            SELECT artifacts['name']
-            FROM (
-                SELECT unnest(artifacts) AS artifacts
-                FROM artifacts_{ nightly_build }
-            )
-            WHERE artifacts['name'] LIKE '%binaries%'
-        """).fetchall()
-        builds = [row[0] for row in result]
-        print(builds)
-        for build in builds:
-            name_candidate = build.split("-")
-            name = name_candidate[2] if len(name_candidate) == 3 else name_candidate[2] + "-" + name_candidate[3]
-            print(name)
-            if name == 'osx':
-                matrix_data.append({
-                    "nightly_build": name.upper(),
-                    "architectures": "arm64",
-                    "runs_on": "macos-latest",
-                    "run_id": build_info.get('nightly_build_run_id'),
-                    "name": name
-                })
-                matrix_data.append({
-                    "nightly_build": name.upper(),
-                    "architectures": "amd",
-                    "runs_on": "macos-13",
-                    "run_id": build_info.get('nightly_build_run_id'),
-                    "name": name
-                })
-            elif name == "windows-amd64":
-                matrix_data.append({
-                    "nightly_build": "Windows",
-                    "architectures": "amd64",
-                    "runs_on": "windows-2019",
-                    "run_id": build_info.get('nightly_build_run_id'),
-                    "name": name
-                })
-            elif name.startswith('linux'):
-                if name.endswith("64"):
+    # nightly_build = "InvokeCI"
+    result = list_all_runs(con)
+    nightly_builds = [row[0] for row in result]
+    for nightly_build in nightly_builds:
+        build_info = {}
+        save_run_data_to_json_files(nightly_build, con, build_info)
+        url = con.execute(f"""
+            SELECT url FROM '{ nightly_build }.json'
+            """).fetchone()[0]
+        create_tables_for_report(nightly_build, con, build_info, url)
+        
+        if get_binaries_count(nightly_build, con) > 0 and nightly_build in SHOULD_BE_TESTED:
+            result = con.execute(f"""
+                SELECT artifacts['name']
+                FROM (
+                    SELECT unnest(artifacts) AS artifacts
+                    FROM artifacts_{ nightly_build }
+                )
+                WHERE artifacts['name'] LIKE '%binaries%'
+            """).fetchall()
+            builds = [row[0] for row in result]
+            print(builds)
+            for build in builds:
+                name_candidate = build.split("-")
+                name = name_candidate[2] if len(name_candidate) == 3 else name_candidate[2] + "-" + name_candidate[3]
+                print(name)
+                if name == 'osx':
+                    matrix_data.append({
+                        "nightly_build": name.upper(),
+                        "architectures": "arm64",
+                        "runs_on": "macos-latest",
+                        "run_id": build_info.get('nightly_build_run_id'),
+                        "name": name
+                    })
+                    matrix_data.append({
+                        "nightly_build": name.upper(),
+                        "architectures": "amd",
+                        "runs_on": "macos-13",
+                        "run_id": build_info.get('nightly_build_run_id'),
+                        "name": name
+                    })
+                elif name == "windows-amd64":
+                    matrix_data.append({
+                        "nightly_build": "Windows",
+                        "architectures": "amd64",
+                        "runs_on": "windows-2019",
+                        "run_id": build_info.get('nightly_build_run_id'),
+                        "name": name
+                    })
+                elif name.startswith('linux'):
                     matrix_data.append({
                         "nightly_build": "LinuxRelease",
-                        "architectures": name,
+                        "architectures": name + "-arm64",
                         "runs_on": "ubuntu-22.04-arm",
                         "run_id": build_info.get('nightly_build_run_id'),
                         "name": name
                     })
-                else:
                     matrix_data.append({
                         "nightly_build": "LinuxRelease",
                         "architectures": name + "-amd64",
@@ -322,20 +325,20 @@ def main():
                         "run_id": build_info.get('nightly_build_run_id'),
                         "name": name
                     })
-        matrix_data.append({
-            "nightly_build": "Python",
-            "architectures": "amd64",
-            "runs_on": "ubuntu-latest",
-            "run_id": 13147610529,
-            "name": "amd64"
-        }),
-        matrix_data.append({
-            "nightly_build": "Python",
-            "architectures": "aarch64",
-            "runs_on": "ubuntu-22.04-arm",
-            "run_id": 13147610529,
-            "name": "aarch64"
-        })
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "amd64",
+        "runs_on": "ubuntu-latest",
+        "run_id": 13147610529,
+        "name": "amd64"
+    }),
+    matrix_data.append({
+        "nightly_build": "Python",
+        "architectures": "aarch64",
+        "runs_on": "ubuntu-22.04-arm",
+        "run_id": 13147610529,
+        "name": "aarch64"
+    })
 
     # matrix_data.append({
     #     "nightly_build": "Python",
