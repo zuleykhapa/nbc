@@ -209,7 +209,7 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
             Each item is in a format like this: [duckdb-binaries-linux-aarch64](url)
             Create an array of architectures and save it and a platform value to 'build_info'
         '''
-        result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_InvokeCI'").fetchall()
+        result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
         items = [row[0] for row in result if row[0] is not None]
         pattern = r"\[duckdb-binaries-(\w+)(?:[-_](\w+))?\]\(.*\)" # (\w+)(?:[-_](\w+))? finds the words separated by - or _; \]\(.*\) handles brackets
         platform = None
