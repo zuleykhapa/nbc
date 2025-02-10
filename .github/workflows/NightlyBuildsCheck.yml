@@ -92,6 +92,8 @@ jobs:
             
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
+        with:
+          ref: 'release'
 
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
