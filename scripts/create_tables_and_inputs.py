@@ -201,12 +201,12 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
         # print("nightly_build", nightly_build)
         platform = str(nightly_build).lower()
         # print("platform", platform)
-        # architectures = ['amd64', 'aarch64', 'x86_64', 'arm64'] if nightly_build == 'Python' else ['x64']
+        # architectures = ['amd64', 'x86_64', 'arm64'] if nightly_build == 'Python' else ['x64']
         architectures = ['amd64', 'aarch64'] if nightly_build == 'Python' else ['x64']
     else:
         '''
         From artifact names in 'artifacts_per_jobs_{ nightly_build }' table create a list of 'items'.
-            Each item is in a format like this: [duckdb-binaries-linux-aarch64](url)
+            Each item is in a format like this: [duckdb-binaries-linux-arm64](url)
             Create an array of architectures and save it and a platform value to 'build_info'
         '''
         result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
@@ -220,18 +220,13 @@ def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
                 if match:
                     platform = match.group(1)
                     arch_suffix = match.group(2)
-                    if platform == 'linux' and not arch_suffix:
-                        arch_suffix = 'amd64'
-                    if arch_suffix:
-                        architectures.append(f"{ platform }-{ arch_suffix }")
-    build_info["architectures"] = [ 'arm64', 'amd64' ] if nightly_build == 'OSX' else architectures
+                    architectures.append(arch_suffix)
+    build_info["architectures"] = architectures if platform == 'windows' else ["arm64", "amd64"]  
     build_info["platform"] = platform
 
 def get_binary_name(nightly_build, platform, architecture):
     if nightly_build == 'OSX':
         return 'osx'
-    elif architecture == 'linux-amd64':
-        return platform
     else:
         return architecture
 
@@ -242,15 +237,11 @@ def get_runner(platform, architecture):
         case 'windows':
             return "windows-2019"
         case 'linux':
-            return "ubuntu-22.04-arm" if architecture == 'linux-aarch64' else "ubuntu-latest"
+            return "ubuntu-22.04-arm" if architecture == 'arm64' else "ubuntu-latest"
         case 'python':
             match architecture:
-                case 'aarch64':
+                case 'arm64':
                     return "ubuntu-22.04-arm"
-                # case 'x86_64':
-                #     return "macos-latest"
-                # case 'arm64':
-                #     return "macos-13"
                 case 'amd64':
                     return "ubuntu-latest"
                 case _:
@@ -283,47 +274,34 @@ def main():
             """).fetchall()
             builds = [row[0] for row in result]
             print(builds)
-            for build in builds:
-                name_candidate = build.split("-")
-                name = name_candidate[2] if len(name_candidate) == 3 else name_candidate[2] + "-" + name_candidate[3]
-                print(name)
-                if name == 'osx':
+            get_platform_arch_from_artifact_name(nightly_build, con, build_info)
+            architectures = build_info.get("architectures")
+            print(nightly_build, architectures)
+            if nightly_build == 'OSX':
+                for architecture in architectures:
                     matrix_data.append({
-                        "nightly_build": name.upper(),
-                        "architectures": "arm64",
-                        "runs_on": "macos-latest",
+                        "nightly_build": nightly_build,
+                        "architectures": architecture,
+                        "runs_on": "macos-latest" if architecture == 'arm64' else "macos-13",
                         "run_id": build_info.get('nightly_build_run_id'),
-                        "name": name
+                        "name": build_info.get("platform")
                     })
+            if nightly_build == "Windows":
+                matrix_data.append({
+                    "nightly_build": nightly_build,
+                    "architectures": "amd64",
+                    "runs_on": "windows-2019",
+                    "run_id": build_info.get('nightly_build_run_id'),
+                    "name": build_info.get("platform")
+                })
+            if nightly_build == "LinuxRelease":
+                for architecture in architectures:
                     matrix_data.append({
-                        "nightly_build": name.upper(),
-                        "architectures": "amd",
-                        "runs_on": "macos-13",
+                        "nightly_build": nightly_build,
+                        "architectures": architecture,
+                        "runs_on": "ubuntu-22.04-arm" if architecture == 'arm64' else "ubuntu-latest",
                         "run_id": build_info.get('nightly_build_run_id'),
-                        "name": name
-                    })
-                elif name == "windows-amd64":
-                    matrix_data.append({
-                        "nightly_build": "Windows",
-                        "architectures": "amd64",
-                        "runs_on": "windows-2019",
-                        "run_id": build_info.get('nightly_build_run_id'),
-                        "name": name
-                    })
-                elif name.startswith('linux'):
-                    matrix_data.append({
-                        "nightly_build": "LinuxRelease",
-                        "architectures": name + "-arm64",
-                        "runs_on": "ubuntu-22.04-arm",
-                        "run_id": build_info.get('nightly_build_run_id'),
-                        "name": name
-                    })
-                    matrix_data.append({
-                        "nightly_build": "LinuxRelease",
-                        "architectures": name + "-amd64",
-                        "runs_on": "ubuntu-latest",
-                        "run_id": build_info.get('nightly_build_run_id'),
-                        "name": name
+                        "name": build_info.get("platform")
                     })
     matrix_data.append({
         "nightly_build": "Python",
