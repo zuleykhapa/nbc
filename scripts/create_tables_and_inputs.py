@@ -292,7 +292,7 @@ def main():
                     "architectures": "amd64",
                     "runs_on": "windows-2019",
                     "run_id": build_info.get('nightly_build_run_id'),
-                    "name": f"{ build_info.get("platform") }-{ architecture }"
+                    "name": f"windows-{ architecture }"
                 })
             if nightly_build == "LinuxRelease":
                 for architecture in architectures:
