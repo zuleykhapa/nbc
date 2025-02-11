@@ -241,28 +241,31 @@ def main():
         if nightly_build in SHOULD_BE_TESTED:
             architectures = get_platform_arch_from_artifact_name(nightly_build, con)
             print(nightly_build, architectures)
-            if nightly_build == 'OSX':
+            if nightly_build == 'OSX' and get_binaries_count(nightly_build, con) > 0:
                 for architecture in architectures:
                     matrix_data.append({
                         "nightly_build": nightly_build,
                         "duckdb_arch": architecture,
                         "runs_on": "macos-latest" if architecture == 'osx_arm64' else "macos-13",
-                        "run_id": nightly_build_run_id
+                        "run_id": nightly_build_run_id,
+                        "duckdb_binary": architecture.replace("_", "-")
                     })
-            if nightly_build == "Windows" and architecture == 'windows_amd64':
+            if nightly_build == "Windows" and architecture == 'windows_amd64' and get_binaries_count(nightly_build, con) > 0:
                 matrix_data.append({
                     "nightly_build": nightly_build,
                     "duckdb_arch": architecture,
                     "runs_on": "windows-2019",
-                    "run_id": nightly_build_run_id
+                    "run_id": nightly_build_run_id,
+                        "duckdb_binary": architecture.replace("_", "-")
                 })
-            if nightly_build in ("LinuxRelease", "Python"):
+            if (nightly_build == "LinuxRelease" and get_binaries_count(nightly_build, con) > 0) or nightly_build == "Python":
                 for architecture in architectures:
                     matrix_data.append({
                         "nightly_build": nightly_build,
                         "duckdb_arch": architecture,
                         "runs_on": "ubuntu-22.04-arm" if architecture == 'linux_arm64' else "ubuntu-latest",
-                        "run_id": nightly_build_run_id
+                        "run_id": nightly_build_run_id,
+                        "duckdb_binary": architecture.replace("_", "-")
                     })
                 
     with open("inputs.json", "w") as f:
