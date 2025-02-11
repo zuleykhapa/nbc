@@ -40,7 +40,7 @@ parser.add_argument("--config")
 args = parser.parse_args()
 
 nightly_build = args.nightly_build
-architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("_", "/") # linux_aarch64 => linux/aarch64 for docker
+architecture = args.architecture if nightly_build == 'Python'
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 config = args.config # ext/config/out_of_tree_extensions.cmake
@@ -68,11 +68,12 @@ def get_full_sha(run_id):
 # DOCKER #
 ##########
 def create_container(client, container_name, image, architecture, tested_binary_path):
+    platform = architecture.split("_")[1]
     container = client.containers.run(
         image=image,
         name=container_name,
         command="/bin/bash -c 'sleep infinity'",
-        platform=architecture,
+        platform=platform,
         volumes=tested_binary_path if tested_binary_path else None,
         detach=True
     )
