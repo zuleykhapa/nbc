@@ -98,7 +98,7 @@ def create_build_report(nightly_build, con, build_info, url):
         
         # add extensions
         name = 'linux' if nightly_build == 'LinuxRelease' else nightly_build.lower()
-        file_name_pattern = f"failed_ext/ext_*/*{ name }.csv"
+        file_name_pattern = f"failed_ext/ext_*/*{ name }*.csv"
         matching_files = glob.glob(file_name_pattern)
         if matching_files:
             f.write(f"\n#### List of failed extensions\n")
