@@ -248,7 +248,7 @@ def main():
                         "duckdb_arch": architecture,
                         "runs_on": "macos-latest" if architecture == 'osx_arm64' else "macos-13",
                         "run_id": nightly_build_run_id,
-                        "duckdb_binary": architecture.split("_")[1]
+                        "duckdb_binary": architecture.split("_")[0]
                     })
             if nightly_build == "Windows" and architecture == 'windows_amd64' and get_binaries_count(nightly_build, con) > 0:
                 matrix_data.append({
