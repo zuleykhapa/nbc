@@ -40,7 +40,7 @@ parser.add_argument("--config")
 args = parser.parse_args()
 
 nightly_build = args.nightly_build
-architecture = args.architecture if nightly_build == 'Python'
+architecture = args.architecture
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 config = args.config # ext/config/out_of_tree_extensions.cmake
