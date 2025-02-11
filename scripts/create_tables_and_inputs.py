@@ -60,10 +60,9 @@ def get_value_for_key(key, nightly_build):
         """).fetchone()[0]
     return value
 
-def save_run_data_to_json_files(nightly_build, con, build_info):
+def save_run_data_to_json_files(nightly_build, con, nightly_build_run_id):
     '''
-    Fetches GH Actions data related to specified nightly-build and saves it into json files,
-        populates build_info dict with nightly_build_run_id value.
+    Fetches GH Actions data related to specified nightly-build and saves it into json files.
         As result "{ nightly_build }.json", "{ nightly_build }_jobs.json" and "{ nightly_build }_artifacts.json"
         files are created. They will be used by create_tables_for_report()
     '''
@@ -76,7 +75,6 @@ def save_run_data_to_json_files(nightly_build, con, build_info):
             "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
         ]
     fetch_data(runs_command, gh_run_list_file)
-    nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
     jobs_file = f"{ nightly_build }_jobs.json"
     jobs_command = [
             "gh", "run", "view",
@@ -91,9 +89,8 @@ def save_run_data_to_json_files(nightly_build, con, build_info):
             f"repos/{ GH_REPO }/actions/runs/{ nightly_build_run_id }/artifacts"
         ]
     fetch_data(artifacts_command, artifacts_file)
-    build_info["nightly_build_run_id"] = nightly_build_run_id
 
-def create_tables_for_report(nightly_build, con, build_info, url):
+def create_tables_for_report(nightly_build, con, url):
     '''
     In 'run_info_tables.duckdb' file creates 'gh_run_list_{ nightly_build }', 'steps_{ nightly_build }'
         and 'artifacts_{ nightly_build }' tables from json files created on save_run_data_to_json_files()
@@ -196,58 +193,32 @@ def get_binaries_count(nightly_build, con):
         """).fetchone()
     return binaries_count[0] if binaries_count else 0
 
-def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
+def get_platform_arch_from_artifact_name(nightly_build, con):
     if nightly_build in HAS_NO_ARTIFACTS:
-        # print("nightly_build", nightly_build)
         platform = str(nightly_build).lower()
-        # print("platform", platform)
-        # architectures = ['amd64', 'x86_64', 'arm64'] if nightly_build == 'Python' else ['x64']
-        architectures = ['amd64', 'aarch64'] if nightly_build == 'Python' else ['x64']
+        architectures = ['linux_amd64', 'linux_arm64'] if nightly_build == 'Python' else ['x64']
     else:
         '''
         From artifact names in 'artifacts_per_jobs_{ nightly_build }' table create a list of 'items'.
-            Each item is in a format like this: [duckdb-binaries-linux-arm64](url)
-            Create an array of architectures and save it and a platform value to 'build_info'
+            Each item is in a format like this: [duckdb-binaries-linux_arm64](url)
+            Return an array of architectures.
         '''
-        result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
+        result = con.execute(f"""
+            SELECT Artifact
+            FROM 'artifacts_per_jobs_{ nightly_build }'
+            WHERE Artifact LIKE '%64]%';
+            """).fetchall()
         items = [row[0] for row in result if row[0] is not None]
-        pattern = r"\[duckdb-binaries-(\w+)(?:[-_](\w+))?\]\(.*\)" # (\w+)(?:[-_](\w+))? finds the words separated by - or _; \]\(.*\) handles brackets
+        pattern = r"\[duckdb-extensions-(\w+)(?:[_](\w+))?\]\(.*\)" # (\w+)(?:[_](\w+))? finds the words separated by - ; \]\(.*\) handles brackets
         platform = None
         architectures = []
         if items:
             for item in items:
                 match = re.match(pattern, item)
                 if match:
-                    platform = match.group(1)
-                    arch_suffix = match.group(2)
-                    architectures.append(arch_suffix)
-    build_info["architectures"] = architectures if platform == 'windows' else ["arm64", "amd64"]  
-    build_info["platform"] = platform
-
-def get_binary_name(nightly_build, platform, architecture):
-    if nightly_build == 'OSX':
-        return 'osx'
-    else:
-        return architecture
-
-def get_runner(platform, architecture):
-    match platform:
-        case 'osx':
-            return "macos-latest" if architecture == 'arm64' else "macos-13"
-        case 'windows':
-            return "windows-2019"
-        case 'linux':
-            return "ubuntu-22.04-arm" if architecture == 'arm64' else "ubuntu-latest"
-        case 'python':
-            match architecture:
-                case 'arm64':
-                    return "ubuntu-22.04-arm"
-                case 'amd64':
-                    return "ubuntu-latest"
-                case _:
-                    return
-        case _:
-            return "ubuntu-latest"
+                    architectures.append(match.group(1))
+                    print(match.group(1))
+    return architectures 
 
 def main():
     matrix_data = []
@@ -256,104 +227,40 @@ def main():
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
     for nightly_build in nightly_builds:
-        build_info = {}
-        save_run_data_to_json_files(nightly_build, con, build_info)
+        nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
+        save_run_data_to_json_files(nightly_build, con, nightly_build_run_id)
         url = con.execute(f"""
             SELECT url FROM '{ nightly_build }.json'
             """).fetchone()[0]
-        create_tables_for_report(nightly_build, con, build_info, url)
+        create_tables_for_report(nightly_build, con, url)
         
-        if get_binaries_count(nightly_build, con) > 0 and nightly_build in SHOULD_BE_TESTED:
-            result = con.execute(f"""
-                SELECT artifacts['name']
-                FROM (
-                    SELECT unnest(artifacts) AS artifacts
-                    FROM artifacts_{ nightly_build }
-                )
-                WHERE artifacts['name'] LIKE '%binaries%'
-            """).fetchall()
-            builds = [row[0] for row in result]
-            print(builds)
-            get_platform_arch_from_artifact_name(nightly_build, con, build_info)
-            architectures = build_info.get("architectures")
+        if nightly_build in SHOULD_BE_TESTED:
+            architectures = get_platform_arch_from_artifact_name(nightly_build, con)
             print(nightly_build, architectures)
             if nightly_build == 'OSX':
                 for architecture in architectures:
                     matrix_data.append({
                         "nightly_build": nightly_build,
-                        "architectures": architecture,
-                        "runs_on": "macos-latest" if architecture == 'arm64' else "macos-13",
-                        "run_id": build_info.get('nightly_build_run_id'),
-                        "name": build_info.get("platform")
+                        "duckdb_arch": architecture,
+                        "runs_on": "macos-latest" if architecture == 'osx_arm64' else "macos-13",
+                        "run_id": nightly_build_run_id
                     })
-            if nightly_build == "Windows":
+            if nightly_build == "Windows" and architecture == 'windows_amd64':
                 matrix_data.append({
                     "nightly_build": nightly_build,
-                    "architectures": "amd64",
+                    "duckdb_arch": architecture,
                     "runs_on": "windows-2019",
-                    "run_id": build_info.get('nightly_build_run_id'),
-                    "name": "windows-amd64"
+                    "run_id": nightly_build_run_id
                 })
-            if nightly_build == "LinuxRelease":
+            if nightly_build in ("LinuxRelease", "Python"):
                 for architecture in architectures:
                     matrix_data.append({
                         "nightly_build": nightly_build,
-                        "architectures": architecture,
-                        "runs_on": "ubuntu-22.04-arm" if architecture == 'arm64' else "ubuntu-latest",
-                        "run_id": build_info.get('nightly_build_run_id'),
-                        "name": build_info.get("platform")
+                        "duckdb_arch": architecture,
+                        "runs_on": "ubuntu-22.04-arm" if architecture == 'linux_arm64' else "ubuntu-latest",
+                        "run_id": nightly_build_run_id
                     })
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "amd64",
-        "runs_on": "ubuntu-latest",
-        "run_id": build_info.get('nightly_build_run_id'),
-        "name": "amd64"
-    }),
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "aarch64",
-        "runs_on": "ubuntu-22.04-arm",
-        "run_id": build_info.get('nightly_build_run_id'),
-        "name": "aarch64"
-    })
-
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "aarch64",
-    #     "runs_on": "ubuntu-22.04-arm",
-    #     "run_id": "12919733489",
-    #     "name": "aarch64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "amd64",
-    #     "runs_on": "ubuntu-latest",
-    #     "run_id": "12919733489",
-    #     "name": "amd64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "arm64",
-    #     "runs_on": "macos-13",
-    #     "run_id": "12919733489",
-    #     "name": "arm64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "x86_64",
-    #     "runs_on": "macos-latest",
-    #     "run_id": "12919733489",
-    #     "name": "x86_64"
-    # })
-    # matrix_data.append({
-    #     "nightly_build": "Python",
-    #     "architectures": "amd64",
-    #     "runs_on": "windows-2019",
-    #     "run_id": "12919733489",
-    #     "name": "amd64"
-    # })
-
+                
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)
 

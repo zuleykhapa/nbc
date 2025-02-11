@@ -40,7 +40,7 @@ parser.add_argument("--config")
 args = parser.parse_args()
 
 nightly_build = args.nightly_build
-architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("-", "/") # linux-aarch64 => linux/aarch64 for docker
+architecture = args.architecture if nightly_build == 'Python' else args.architecture.replace("_", "/") # linux_aarch64 => linux/aarch64 for docker
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
 config = args.config # ext/config/out_of_tree_extensions.cmake

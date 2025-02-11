@@ -73,7 +73,7 @@ jobs:
           cat inputs.json
 
   run-tests:
-    name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.architectures }} (${{ matrix.inputs.runs_on }})
+    name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.duckdb_arch }} (${{ matrix.inputs.runs_on }})
     needs: get-run-info
     if: ${{ needs.get-run-info.outputs.matrix != '[]' }}
     strategy:
@@ -112,13 +112,13 @@ jobs:
             uname -m
             if [[ ${{ matrix.inputs.nightly_build }} != 'Python' ]]; then
               echo "Downloading duckdb-binaries-$name artifact..."
-              if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-${{ matrix.inputs.name }}; then
+              if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-${{ matrix.inputs.duckdb_arch }}; then
                   echo "Artifact duckdb-binaries-$name is successfuly downloaded."
                   unzip duckdb_cli-*.zip -d duckdb_path
               fi
             fi
             echo "Verifying version and testing extensions..."
-            if [[ ${{ matrix.inputs.nightly_build }} == 'LinuxRelease' && ${{ matrix.inputs.architectures }} == 'arm64' ]]; then
+            if [[ ${{ matrix.inputs.nightly_build }} == 'LinuxRelease' && ${{ matrix.inputs.duckdb_arch }} == 'arm64' ]]; then
               python scripts/verify_and_test.py \
                 --nightly_build ${{ matrix.inputs.nightly_build }} \
                 --architecture "aarch64" \
@@ -128,7 +128,7 @@ jobs:
             else
               python scripts/verify_and_test.py \
                   --nightly_build ${{ matrix.inputs.nightly_build }} \
-                  --architecture ${{ matrix.inputs.architectures }} \
+                  --architecture ${{ matrix.inputs.duckdb_arch }} \
                   --run_id ${{ matrix.inputs.run_id }} \
                   --runs_on ${{ matrix.inputs.runs_on }} \
                   --config ext/.github/config/out_of_tree_extensions.cmake
@@ -138,8 +138,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}
-          path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.architectures }}.csv
+          name: ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.duckdb_arch }}
+          path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.duckdb_arch }}.csv
           if-no-files-found: ignore
     
   report:
