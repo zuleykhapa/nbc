@@ -60,12 +60,7 @@ def get_value_for_key(key, nightly_build):
         """).fetchone()[0]
     return value
 
-def save_run_data_to_json_files(nightly_build, con, nightly_build_run_id):
-    '''
-    Fetches GH Actions data related to specified nightly-build and saves it into json files.
-        As result "{ nightly_build }.json", "{ nightly_build }_jobs.json" and "{ nightly_build }_artifacts.json"
-        files are created. They will be used by create_tables_for_report()
-    '''
+def get_nightly_build_run_id(nightly_build):
     gh_run_list_file = f"{ nightly_build }.json"
     runs_command = [
             "gh", "run", "list",
@@ -75,6 +70,15 @@ def save_run_data_to_json_files(nightly_build, con, nightly_build_run_id):
             "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
         ]
     fetch_data(runs_command, gh_run_list_file)
+    nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
+    return nightly_build_run_id
+
+def save_run_data_to_json_files(nightly_build, con, nightly_build_run_id):
+    '''
+    Fetches GH Actions data related to specified nightly-build and saves it into json files.
+        As result "{ nightly_build }.json", "{ nightly_build }_jobs.json" and "{ nightly_build }_artifacts.json"
+        files are created. They will be used by create_tables_for_report()
+    '''
     jobs_file = f"{ nightly_build }_jobs.json"
     jobs_command = [
             "gh", "run", "view",
@@ -227,7 +231,7 @@ def main():
     result = list_all_runs(con)
     nightly_builds = [row[0] for row in result]
     for nightly_build in nightly_builds:
-        nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
+        nightly_build_run_id = get_nightly_build_run_id(nightly_build)
         save_run_data_to_json_files(nightly_build, con, nightly_build_run_id)
         url = con.execute(f"""
             SELECT url FROM '{ nightly_build }.json'
