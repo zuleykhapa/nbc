@@ -131,7 +131,6 @@ Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
 def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on):
     global COUNTER
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
-    architecture = architecture.replace("/", "-")
     arch = f"linux/{ architecture }"
     docker_image = f"python:{ version }"
     container_name = f"python-test-{ runs_on }-{ architecture }-python-{ version.replace('.', '-') }"

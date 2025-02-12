@@ -21,13 +21,10 @@ def list_all_runs(con):
         "gh", "run", "list",
         "--repo", GH_REPO,
         "--event", "repository_dispatch",
+        "--workflow", "InvokeCI",
         "--created", CURR_DATE,
         "--limit", "50",
-        "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
-        "--jq", (
-            '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
-            '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
-        )
+        "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
     ]
     fetch_data(gh_run_list_command, gh_run_list_file)
     result = duckdb.sql(f"SELECT name FROM read_json('{ gh_run_list_file }')").fetchall()
