@@ -16,14 +16,12 @@ def fetch_data(command, f_output):
 
 # create a json file with the list all nightly-build runs for current date
 def list_all_runs(con):
-    gh_run_list_file = f"GH_run_list.json"
+    gh_run_list_file = f"InvokeCI.json"
     gh_run_list_command = [
         "gh", "run", "list",
         "--repo", GH_REPO,
-        "--event", "repository_dispatch",
         "--workflow", "InvokeCI",
         "--created", CURR_DATE,
-        "--limit", "50",
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
     ]
     fetch_data(gh_run_list_command, gh_run_list_file)
