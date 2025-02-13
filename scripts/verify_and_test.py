@@ -145,7 +145,6 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
         if sha_matching(short_sha, full_sha, file_name, nightly_build):
             print(f"TESTING EXTENSIONS ON python{ version }")
             extensions = list_extensions(config)
-            action=["INSTALL", "LOAD"]
             for ext in extensions:
                 installed = container.exec_run(f"""
                     python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
