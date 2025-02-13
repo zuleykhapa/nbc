@@ -97,7 +97,6 @@ def create_build_report(nightly_build, con, build_info, url, tested_binaries):
             file_name_pattern = f"failed_ext/ext_{ tested_binary }*/list_failed_ext_{ tested_binary }*.csv"
             matching_files = glob.glob(file_name_pattern)
             if matching_files:
-                print("HERE")
                 f.write(f"\n## { tested_binary }\n")
                 f.write("\n#### Tested extensions\n")
                 passed = con.execute(f"""

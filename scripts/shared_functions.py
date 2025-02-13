@@ -38,3 +38,25 @@ def count_consecutive_failures(nightly_build, con):
     """).fetchone()
     consecutive_failures = latest_success_rowid[0] if latest_success_rowid else -1 # when -1 then all runs in the json file have conclusion 'failure'
     return consecutive_failures
+
+
+def sha_matching(short_sha, full_sha, file_name, nightly_build):
+    if not full_sha.startswith(short_sha):
+        print(f"""
+        Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+        - Version triggered the build: { full_sha }
+        - Downloaded build version: { short_sha }
+        """)
+        with open(file_name, 'w') as f:
+            f.write(f"""
+            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+            - Version triggered the build: { full_sha }
+            - Downloaded build version: { short_sha }
+            """)
+        return False
+    print(f"""
+    Versions of { nightly_build } build match:
+    - Version triggered the build: { full_sha }
+    - Downloaded build version: { short_sha }
+    """)
+    return True
