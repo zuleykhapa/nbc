@@ -120,18 +120,18 @@ def main():
     full_sha = get_full_sha(run_id)
     extensions = list_extensions(config)
     if nightly_build in SHOULD_BE_TESTED:
-        if nightly_build == 'python':
-            verify_and_test_python_linux(file_name, counter, extensions, nightly_build, run_id, architecture, runs_on, full_sha)
+        # if nightly_build == 'python':
+        #     verify_and_test_python_linux(file_name, counter, extensions, nightly_build, run_id, architecture, runs_on, full_sha)
+        # else:
+        path_pattern = os.path.join("duckdb_path", "duckdb*")
+        matches = glob.glob(path_pattern)
+        if matches:
+            tested_binary = os.path.abspath(matches[0])
+            print(f"Found binary: { tested_binary }")
         else:
-            path_pattern = os.path.join("duckdb_path", "duckdb*")
-            matches = glob.glob(path_pattern)
-            if matches:
-                tested_binary = os.path.abspath(matches[0])
-                print(f"Found binary: { tested_binary }")
-            else:
-                raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-            if verify_version(tested_binary, file_name, full_sha):
-                test_extensions(tested_binary, file_name, counter, extensions)
+            raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
+        if verify_version(tested_binary, file_name, full_sha):
+            test_extensions(tested_binary, file_name, counter, extensions)
 
 if __name__ == "__main__":
     main()
