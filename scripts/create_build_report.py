@@ -93,7 +93,8 @@ def create_build_report(nightly_build, con, build_info, url, tested_binaries):
         
         # add extensions
         for tested_binary in tested_binaries:
-            file_name_pattern = f"failed_ext/ext_{ tested_binary.replace("-", "_") }*/list_failed_ext_{ tested_binary.replace("-", "_") }*.csv"
+            tested_binary = tested_binary.replace("-", "_")
+            file_name_pattern = f"failed_ext/ext_{ tested_binary }*/list_failed_ext_{ tested_binary }*.csv"
             matching_files = glob.glob(file_name_pattern)
             if matching_files:
                 print("HERE")
