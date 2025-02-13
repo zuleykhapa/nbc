@@ -228,23 +228,17 @@ def test_extensions(tested_binary, file_name):
                     "-c",
                     f"{ action } '{ ext }';"
                 ]
-                try:
-                    print("OK IM HERE")
-                    subprocess_result = subprocess.run(install_ext, text=True, capture_output=True)
-                    if subprocess_result.stderr:
-                        print(f"{ action } '{ ext }' had failed with following error:\n{ subprocess_result.stderr.strip() }")
-                        actual_result = 'failed'
-                    else:
-                        actual_result = 'passed'
-                    with open(file_name, "a") as f:
-                        if counter == 0:
-                            f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
-                            counter += 1
-                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
-
-                except subprocess.CalledProcessError as e:
-                    print(f"Error running command for extesion { ext }: { e }")
-                    print(f"stderr: { e.stderr }")
+                subprocess_result = subprocess.run(install_ext, text=True, capture_output=True)
+                if subprocess_result.stderr:
+                    print(f"{ action } '{ ext }' had failed with following error:\n{ subprocess_result.stderr.strip() }")
+                    actual_result = 'failed'
+                else:
+                    actual_result = 'passed'
+                with open(file_name, "a") as f:
+                    if counter == 0:
+                        f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
+                        counter += 1
+                    f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
     print(f"Trying to install a non-existing extension in {nightly_build}...")
     subprocess_result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
     if subprocess_result.stderr:
