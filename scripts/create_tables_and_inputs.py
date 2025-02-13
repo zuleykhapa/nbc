@@ -46,13 +46,13 @@ from shared_functions import count_consecutive_failures
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
-SHOULD_BE_TESTED = ('python', 'osx', 'linux-release', 'windows')
+SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
         SELECT { key } 
         FROM read_json('{ nightly_build }.json') 
-        -- WHERE status = 'completed' 
+        WHERE status = 'completed' 
         ORDER BY createdAt 
         DESC LIMIT 1;
         """).fetchone()[0]
@@ -157,11 +157,11 @@ def create_tables_for_report(nightly_build, con):
 def get_runner(platform, architecture):
     match platform:
         case 'osx':
-            return "macos-latest" if architecture == 'osx_arm64' else "macos-13"
+            return "macos-latest" if architecture == 'arm64' else "macos-13"
         case 'windows':
             return "windows-2019"
         case _:
-            return "ubuntu-22.04-arm" if architecture == 'linux_arm64' else "ubuntu-latest"
+            return "ubuntu-22.04-arm" if architecture == 'arm64' else "ubuntu-latest"
 
 def main():
     nightly_build = "InvokeCI"
@@ -173,6 +173,26 @@ def main():
     save_run_data_to_json_files(nightly_build, con, nightly_build_run_id)
     create_tables_for_report(nightly_build, con)
 
+    build_artifacts = con.execute(f"""
+        SELECT Artifact
+        FROM 'artifacts_per_jobs_{ nightly_build }'
+        WHERE Artifact LIKE '[duckdb-binaries%';
+    """).fetchall()
+    # array of testable binaries like 'windows-amd64' extracted from a line like '[duckdb-binaries-windows-amd64](https://github.com/duckdb/duckdb/actions/runs/13275346242/artifacts/2575624860)'
+    # but we replace an underscore with a dash to match with the extensions names
+    tested_binaries = set()
+    for row in build_artifacts:
+        pattern = r'\[duckdb-binaries-([a-zA-Z]+)(?:-([a-zA-Z0-9]+))?\]'
+        match = re.search(pattern, row[0])
+        if match:
+            build_platform = match.group(1)
+            build_architecture = match.group(2) if match.group(2) else ''
+            if build_architecture:
+                tested_binaries.add(build_platform + "_" + build_architecture)
+            elif build_platform == 'osx':
+                tested_binaries.add(build_platform + "_arm64")
+                tested_binaries.add(build_platform + "_amd64")
+
     extensions_artifacts = con.execute(f"""
         SELECT Artifact
         FROM 'artifacts_per_jobs_{ nightly_build }'
@@ -180,22 +200,23 @@ def main():
     """).fetchall()
     tested_builds_dict = {}
     for row in extensions_artifacts:
-        row = row[0]
-        pattern = r"-(\w+)_(\w+)\]"
-        match = re.search(pattern, row)
+        pattern =  r'\[duckdb-extensions-([a-zA-Z]+)_(amd64|arm64)'
+        match = re.search(pattern, row[0])
         if match:
             platform = match.group(1)
             architecture = match.group(2)
-            if platform in SHOULD_BE_TESTED:
+            duckdb_arch = platform + "_" + architecture
+            if duckdb_arch in tested_binaries:
+                tested_binaries.remove(duckdb_arch)
                 new_data = {
                     "nightly_build": platform,
                     "duckdb_arch": architecture,
                     "runs_on": get_runner(platform, architecture),
                     "run_id": nightly_build_run_id,
-                    "duckdb_binary": platform if platform == 'osx' else platform + "-" + architecture
+                    "duckdb_binary": platform + "-" + architecture
                 }
                 matrix_data.append(new_data)
-                if platform == 'linux':
+                if platform.startswith('linux'):
                     new_data = {
                         "nightly_build": "python",
                         "duckdb_arch": architecture,
