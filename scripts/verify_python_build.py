@@ -71,23 +71,23 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                 short_sha = subprocess_result.output.decode().strip()
                 if sha_matching(short_sha, full_sha, file_name, nightly_build):
                     print(f"TESTING EXTENSIONS ON python{ version }")
-                    for ext in extensions:
+                    for extension in extensions:
                         installed = container.exec_run(f"""
-                            python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
+                            python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ extension }\\'').fetchone(); print(res[0] if res else None)"
                             """, stdout=True, stderr=True)
-                        print( f"Is { ext } already installed: { installed.output.decode() }")
+                        print( f"Is { extension } already installed: { installed.output.decode() }")
                         if installed.output.decode().strip() == "False":
                             for action in ACTIONS:
-                                print(f"{ action }ing { ext }...")
+                                print(f"{ action }ing { extension }...")
                                 action_result_ouput = container.exec_run(f"""
-                                    python -c "import duckdb; print(duckdb.sql('{ action } \\'{ ext }\\''))"
+                                    python -c "import duckdb; print(duckdb.sql('{ action } \\'{ extension }\\''))"
                                 """,
                                 stdout=True, stderr=True).output.decode().strip()
                                 print(f"STDOUT: {action_result_ouput}")
                                 installed = container.exec_run(f"""
-                                    python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
+                                    python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ extension }\\'').fetchone(); print(res[0] if res else None)"
                                     """, stdout=True, stderr=True)
-                                print( f"Is { ext } { action }ed: { installed.output.decode() }")
+                                print( f"Is { extension } { action }ed: { installed.output.decode() }")
                                 if action_result_ouput != "None":
                                     actual_result = 'failed'
                                 else:
@@ -96,7 +96,7 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                                     if counter == 0:
                                         f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
                                     counter += 1
-                                    f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
+                                    f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ extension },{ action },{ actual_result }\n")
             finally:
                 stop_container(container, container_name)
         
