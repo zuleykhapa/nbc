@@ -151,7 +151,7 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
                     """, stdout=True, stderr=True)
                 print( f"Is { ext } already installed: { installed.output.decode() }")
                 if installed.output.decode().strip() == "False":
-                    for act in action:
+                    for act in ACTIONS:
                         print(f"{ act }ing { ext }...")
                         action_result_ouput = container.exec_run(f"""
                             python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\''))"
