@@ -123,8 +123,7 @@ def sha_matching(short_sha, full_sha, file_name, nightly_build):
         print(f"Versions of { nightly_build } build matches:- Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n")
         return True
 
-def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on):
-    global COUNTER
+def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on, counter):
     client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
     arch = f"linux/{ architecture }"
     docker_image = f"python:{ version }"
@@ -169,9 +168,9 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
                         else:
                             actual_result = 'passed'
                         with open(file_name, 'a') as f:
-                            if COUNTER == 0:
+                            if counter == 0:
                                 f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                COUNTER += 1
+                                counter += 1
                             f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
     finally:
         print("FINISH")
@@ -205,10 +204,9 @@ def verify_version(tested_binary, file_name):
     """)
     return True
 
-def test_extensions(tested_binary, file_name):
+def test_extensions(tested_binary, file_name, counter):
     extensions = list_extensions(config)
     print(extensions)
-    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
         select_installed = [
@@ -273,13 +271,14 @@ def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
     print(nightly_build)
     if nightly_build in SHOULD_BE_TESTED:
+        counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
         if nightly_build == 'python':
             python_versions = list_builds_for_python_versions(run_id)
             full_sha = get_full_sha(run_id)
             
             if runs_on.startswith("ubuntu"):
                 for version in python_versions:
-                    verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on)
+                    verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on, counter)
             else:
                 # init_pyenv()
                 install_python_with_pyenv()
@@ -337,9 +336,9 @@ def main():
                                         else:
                                             actual_result = 'passed'
                                         with open(file_name, 'a') as f:
-                                            if COUNTER == 0:
+                                            if counter == 0:
                                                 f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
-                                                COUNTER += 1
+                                                counter += 1
                                             f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
                                     else:
                                         is_loaded_command =[
@@ -374,7 +373,7 @@ def main():
             print("VERIFY BUILD SHA")
             if verify_version(tested_binary, file_name):
                 print("TEST EXTENSIONS")
-                test_extensions(tested_binary, file_name)
+                test_extensions(tested_binary, file_name, counter)
             print("FINISH")
 
 if __name__ == "__main__":
