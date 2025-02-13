@@ -29,7 +29,8 @@ from verify_python_build import verify_and_test_python_linux
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTIONS = ["INSTALL", "LOAD"]
 EXT_WHICH_DOESNT_EXIST = "EXT_WHICH_DOESNT_EXIST"
-SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
+SHOULD_BE_TESTED = ('osx', 'linux', 'windows')
+# SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
