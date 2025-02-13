@@ -208,8 +208,9 @@ def verify_version(tested_binary, file_name):
     return True
 
 def test_extensions(tested_binary, file_name):
-    global COUNTER
     extensions = list_extensions(config)
+    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
+
     for ext in extensions:
         select_installed = [
             tested_binary,
@@ -219,31 +220,36 @@ def test_extensions(tested_binary, file_name):
             f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
         ]
         result=subprocess.run(select_installed, text=True, capture_output=True)
+
         is_installed = result.stdout.strip()
-        if is_installed == 'false':
+        if is_installed == 'true':
             for action in ACTIONS:
                 print(f"{ action }ing { ext }...")
                 install_ext = [
-                    tested_binary, "-c",
+                    tested_binary,
+                    "-c",
                     f"{ action } '{ ext }';"
                 ]
                 try:
-                    result = subprocess.run(install_ext, text=True, capture_output=True)
+                    subprocess_result = subprocess.run(install_ext, text=True, capture_output=True)
                     if result.stderr:
                         print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
-                        with open(file_name, "a") as f:
-                            if COUNTER == 0:
-                                f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                COUNTER += 1
-                            f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action }\n")
+                        actual_result = 'failed'
+                    else:
+                        actual_result = 'passed'
+                    with open(file_name, "a") as f:
+                        if counter == 0:
+                            f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
+                            counter += 1
+                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
 
                 except subprocess.CalledProcessError as e:
                     print(f"Error running command for extesion { ext }: { e }")
                     print(f"stderr: { e.stderr }")
     print(f"Trying to install a non-existing extension in {nightly_build}...")
-    result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
+    subprocess_result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
     if result.stderr:
-        print(f"Attempted to install a non-existing extension resulted with error, as expected: { result.stderr }")
+        print(f"Attempt to install a non-existing extension resulted with error, as expected: { result.stderr }")
     else:
         print(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
         f.write(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
@@ -266,12 +272,9 @@ def install_python_with_pyenv():
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
-    # COUNTER = 0 # to write only one header per table
     if nightly_build == 'Python':
         python_versions = list_builds_for_python_versions(run_id)
         full_sha = get_full_sha(run_id)
-        # full_sha = "5f5512b827df6397afd31daedb4bbdee76520019"
-
         
         if runs_on.startswith("ubuntu"):
             for version in python_versions:
@@ -283,25 +286,6 @@ def main():
                 print(f"Setting up Python {version}...")
                 subprocess.run(f"pyenv install {version}", shell=True, check=True)
                 subprocess.run(f"pyenv global {version}", shell=True, check=True)
-                # print(f"Installing Python version { version }...")
-                # try: 
-                #     subprocess.check_call([
-                #         sys.executable, "-m", "pip", "install", "-s", f"python{ version }"
-                #     ])
-                # except subprocess.CalledProcessError as e:
-                #     print(f"Error installing Python version { version }: { e }")
-                #     print(f"stderr: { e.stderr }")
-                
-                # print(f"Setting Python version { version } global.")
-                # subprocess.run(
-                #     f"pyenv local { version }", shell=True, check=True, executable="/bin/bash", env=env)
-                # # py_version - debug output
-                # py_version = subprocess.run(f"python{ version } --version", capture_output=True, text=True)
-                # print(f"Installed Python version: { py_version.stdout }")
-                
-                # print(f"Ensuring pip is installed to the Python version { version }...")
-                # subprocess.run([f"python{ version }", "-m", "ensurepip", "--upgrade"])
-                # install duckdb
                 print(f"Installing Duckdb on Python version { version }...")
                 subprocess.run([
                     f"python{ version }", "-m",
@@ -315,12 +299,11 @@ def main():
                     f"python{ version }", "-c",
                     "import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])"
                 ]
-                result = subprocess.run(py_version_command, text=True, capture_output=True)
+                subprocess_result = subprocess.run(py_version_command, text=True, capture_output=True)
                 short_sha = result.stdout.strip()
                 if sha_matching(short_sha, full_sha, file_name, nightly_build):
                     print(f"Testing extensions on python{ version }...")
                     extensions = list_extensions(config)
-                    # extensions = ["aws"]
                     for ext in extensions:
                         for action in ACTIONS:
                             is_installed_command = [
@@ -349,11 +332,14 @@ def main():
                                     
                                     print("TEST RESULT FOR", action, ext, ":", is_installed)
                                     if is_installed == 'None':
-                                        with open(file_name, 'a') as f:
-                                            if COUNTER == 0:
-                                                f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                                COUNTER += 1
-                                            f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ action }\n")
+                                        actual_result = 'failed'
+                                    else:
+                                        actual_result = 'passed'
+                                    with open(file_name, 'a') as f:
+                                        if COUNTER == 0:
+                                            f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
+                                            COUNTER += 1
+                                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
                                 else:
                                     is_loaded_command =[
                                         f"python{ version }", "-c",
@@ -367,11 +353,14 @@ def main():
 
                                     print("TEST RESULT FOR", action, ext, ":", is_loaded)
                                     if is_loaded == 'False':
-                                        with open(file_name, 'a') as f:
-                                            if COUNTER == 0:
-                                                f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                                COUNTER += 1
-                                            f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ action }\n")
+                                        actual_result = 'failed'
+                                    else:
+                                        actual_result = 'passed'
+                                    with open(file_name, 'a') as f:
+                                        if COUNTER == 0:
+                                            f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
+                                            COUNTER += 1
+                                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
             print("FINISH")
             
     else:
