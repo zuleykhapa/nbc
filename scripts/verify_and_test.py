@@ -122,10 +122,7 @@ def sha_matching(short_sha, full_sha, file_name, nightly_build):
                 """)
             return False
     else:
-        print(f"""
-Versions of { nightly_build } build match: ({ short_sha }) and ({ full_sha }).
-- Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n
-        """)
+        print(f"Versions of { nightly_build } build matches:- Version triggered the build: { full_sha }\n - Downloaded build version: { short_sha }\n")
         return True
 
 def verify_and_test_python_linux(version, full_sha, file_name, architecture, config, nightly_build, runs_on):
@@ -145,9 +142,9 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
             "python -c \"import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])\"",
             stdout=True, stderr=True
         )
-        print(f"Result: { result.output.decode() }")
+        print(f"Result: { subprocess_result.output.decode() }")
         
-        short_sha = result.output.decode().strip()
+        short_sha = subprocess_result.output.decode().strip()
         if sha_matching(short_sha, full_sha, file_name, nightly_build):
             print(f"TESTING EXTENSIONS ON python{ version }")
             extensions = list_extensions(config)
@@ -221,7 +218,7 @@ def test_extensions(tested_binary, file_name):
         ]
         result=subprocess.run(select_installed, text=True, capture_output=True)
 
-        is_installed = result.stdout.strip()
+        is_installed = subprocess_result.stdout.strip()
         if is_installed == 'true':
             for action in ACTIONS:
                 print(f"{ action }ing { ext }...")
@@ -232,8 +229,8 @@ def test_extensions(tested_binary, file_name):
                 ]
                 try:
                     subprocess_result = subprocess.run(install_ext, text=True, capture_output=True)
-                    if result.stderr:
-                        print(f"{ action } '{ ext }' had failed with following error:\n{ result.stderr.strip() }")
+                    if subprocess_result.stderr:
+                        print(f"{ action } '{ ext }' had failed with following error:\n{ subprocess_result.stderr.strip() }")
                         actual_result = 'failed'
                     else:
                         actual_result = 'passed'
@@ -248,8 +245,8 @@ def test_extensions(tested_binary, file_name):
                     print(f"stderr: { e.stderr }")
     print(f"Trying to install a non-existing extension in {nightly_build}...")
     subprocess_result = subprocess.run([ tested_binary, "-c", "INSTALL", f"'{ EXT_WHICH_DOESNT_EXIST }'"], text=True, capture_output=True)
-    if result.stderr:
-        print(f"Attempt to install a non-existing extension resulted with error, as expected: { result.stderr }")
+    if subprocess_result.stderr:
+        print(f"Attempt to install a non-existing extension resulted with error, as expected: { subprocess_result.stderr }")
     else:
         print(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
         f.write(f"Unexpected extension with name { EXT_WHICH_DOESNT_EXIST } had been installed.")
@@ -300,7 +297,7 @@ def main():
                     "import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])"
                 ]
                 subprocess_result = subprocess.run(py_version_command, text=True, capture_output=True)
-                short_sha = result.stdout.strip()
+                short_sha = subprocess_result.stdout.strip()
                 if sha_matching(short_sha, full_sha, file_name, nightly_build):
                     print(f"Testing extensions on python{ version }...")
                     extensions = list_extensions(config)
