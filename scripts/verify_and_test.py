@@ -170,6 +170,9 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
                                     f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
                                     COUNTER += 1
                                 f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
+        except subprocess.CalledProcessError as e:
+            print(f"Error running command for extesion { ext }: { e }")
+            print(f"stderr: { e.stderr }")
     finally:
         print("FINISH")
         stop_container(container, container_name)
