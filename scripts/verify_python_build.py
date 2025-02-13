@@ -77,17 +77,17 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                             """, stdout=True, stderr=True)
                         print( f"Is { ext } already installed: { installed.output.decode() }")
                         if installed.output.decode().strip() == "False":
-                            for act in ACTIONS:
-                                print(f"{ act }ing { ext }...")
+                            for action in ACTIONS:
+                                print(f"{ action }ing { ext }...")
                                 action_result_ouput = container.exec_run(f"""
-                                    python -c "import duckdb; print(duckdb.sql('{ act } \\'{ ext }\\''))"
+                                    python -c "import duckdb; print(duckdb.sql('{ action } \\'{ ext }\\''))"
                                 """,
                                 stdout=True, stderr=True).output.decode().strip()
                                 print(f"STDOUT: {action_result_ouput}")
                                 installed = container.exec_run(f"""
                                     python -c "import duckdb; res = duckdb.sql('SELECT installed FROM duckdb_extensions() WHERE extension_name=\\'{ ext }\\'').fetchone(); print(res[0] if res else None)"
                                     """, stdout=True, stderr=True)
-                                print( f"Is { ext } { act }ed: { installed.output.decode() }")
+                                print( f"Is { ext } { action }ed: { installed.output.decode() }")
                                 if action_result_ouput != "None":
                                     actual_result = 'failed'
                                 else:
