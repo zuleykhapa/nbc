@@ -216,7 +216,7 @@ def main():
                     "run_id": nightly_build_run_id,
                     "duckdb_binary": platform if platform == 'osx' else platform + "-" + architecture
                 }
-                # matrix_data.append(new_data)
+                matrix_data.append(new_data)
                 # if platform.startswith('linux'):
                 #     new_data = {
                 #         "nightly_build": "python",
