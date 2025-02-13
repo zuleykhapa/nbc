@@ -89,7 +89,7 @@ def create_build_report(nightly_build, con, build_info, url):
         if nightly_build not in HAS_NO_ARTIFACTS:
             f.write(f"\n#### Workflow Artifacts\n")
             artifacts_per_job = con.execute(f"""
-                SELECT * FROM 'artifacts_per_jobs_{ nightly_build }' ORDER BY 'Build (Architecture)';
+                SELECT * FROM 'artifacts_per_jobs_{ nightly_build }' ORDER BY "Build (Architecture)" ASC;
                 """).df()
             f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         else:
