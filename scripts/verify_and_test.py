@@ -136,7 +136,7 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
     print(f"VERIFYING BUILD SHA FOR python{ version }")
     try:
         container.exec_run("pip install -v duckdb --pre --upgrade", stdout=True, stderr=True)
-        result = container.exec_run(
+        subprocess_result = container.exec_run(
             "python -c \"import duckdb; print(duckdb.sql('SELECT source_id FROM pragma_version()').fetchone()[0])\"",
             stdout=True, stderr=True
         )
