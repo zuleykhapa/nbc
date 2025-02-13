@@ -229,6 +229,7 @@ def test_extensions(tested_binary, file_name):
                     f"{ action } '{ ext }';"
                 ]
                 try:
+                    print("OK IM HERE")
                     subprocess_result = subprocess.run(install_ext, text=True, capture_output=True)
                     if subprocess_result.stderr:
                         print(f"{ action } '{ ext }' had failed with following error:\n{ subprocess_result.stderr.strip() }")
