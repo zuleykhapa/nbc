@@ -206,6 +206,7 @@ def verify_version(tested_binary, file_name):
 
 def test_extensions(tested_binary, file_name):
     extensions = list_extensions(config)
+    print(extensions)
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
 
     for ext in extensions:
