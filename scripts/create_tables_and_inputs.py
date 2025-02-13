@@ -213,7 +213,7 @@ def main():
                     "duckdb_arch": architecture,
                     "runs_on": get_runner(platform, architecture),
                     "run_id": nightly_build_run_id,
-                    "duckdb_binary": platform + "-" + architecture
+                    "duckdb_binary": platform if platform == 'osx' else platform + "-" + architecture
                 }
                 matrix_data.append(new_data)
                 if platform.startswith('linux'):
