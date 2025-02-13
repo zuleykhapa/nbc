@@ -216,7 +216,7 @@ def test_extensions(tested_binary, file_name):
             "-c",
             f"SELECT installed FROM duckdb_extensions() WHERE extension_name='{ ext }';"
         ]
-        result=subprocess.run(select_installed, text=True, capture_output=True)
+        subprocess_result = subprocess.run(select_installed, text=True, capture_output=True)
 
         is_installed = subprocess_result.stdout.strip()
         if is_installed == 'true':
