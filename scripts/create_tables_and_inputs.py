@@ -46,7 +46,8 @@ from shared_functions import count_consecutive_failures
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
-SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
+SHOULD_BE_TESTED = ('osx', 'linux', 'windows')
+# SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
