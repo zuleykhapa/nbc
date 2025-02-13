@@ -132,6 +132,7 @@ def main():
     nightly_build = 'InvokeCI'
     result = con.execute("SELECT duckdb_binary FROM 'inputs.json'").fetchall()
     tested_binaries = [row[0] for row in result]
+    tested_binaries.append('python')
     # create complete report
     build_info = {}
     url = con.execute(f"""
