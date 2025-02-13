@@ -29,8 +29,7 @@ from verify_python_build import verify_and_test_python_linux
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTIONS = ["INSTALL", "LOAD"]
 EXT_WHICH_DOESNT_EXIST = "EXT_WHICH_DOESNT_EXIST"
-SHOULD_BE_TESTED = ('osx', 'linux', 'windows')
-# SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
+SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
@@ -121,18 +120,18 @@ def main():
     full_sha = get_full_sha(run_id)
     extensions = list_extensions(config)
     if nightly_build in SHOULD_BE_TESTED:
-        # if nightly_build == 'python':
-        #     verify_and_test_python_linux(file_name, counter, extensions, nightly_build, run_id, architecture, runs_on, full_sha)
-        # else:
-        path_pattern = os.path.join("duckdb_path", "duckdb*")
-        matches = glob.glob(path_pattern)
-        if matches:
-            tested_binary = os.path.abspath(matches[0])
-            print(f"Found binary: { tested_binary }")
+        if nightly_build == 'python':
+            verify_and_test_python_linux(file_name, counter, extensions, nightly_build, run_id, architecture, runs_on, full_sha)
         else:
-            raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
-        if verify_version(tested_binary, file_name, full_sha):
-            test_extensions(tested_binary, file_name, counter, extensions)
+            path_pattern = os.path.join("duckdb_path", "duckdb*")
+            matches = glob.glob(path_pattern)
+            if matches:
+                tested_binary = os.path.abspath(matches[0])
+                print(f"Found binary: { tested_binary }")
+            else:
+                raise FileNotFoundError(f"No binary matching { path_pattern } found in duckdb_path dir.")
+            if verify_version(tested_binary, file_name, full_sha):
+                test_extensions(tested_binary, file_name, counter, extensions)
 
 if __name__ == "__main__":
     main()

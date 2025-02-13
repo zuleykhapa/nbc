@@ -46,8 +46,7 @@ from shared_functions import count_consecutive_failures
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
-SHOULD_BE_TESTED = ('osx', 'linux', 'windows')
-# SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
+SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
@@ -217,15 +216,15 @@ def main():
                     "duckdb_binary": platform if platform == 'osx' else platform + "-" + architecture
                 }
                 matrix_data.append(new_data)
-                # if platform.startswith('linux'):
-                #     new_data = {
-                #         "nightly_build": "python",
-                #         "duckdb_arch": architecture,
-                #         "runs_on": get_runner(platform, architecture),
-                #         "run_id": nightly_build_run_id,
-                #         "duckdb_binary": platform + "-" + architecture
-                #     }
-                #     matrix_data.append(new_data)
+                if platform.startswith('linux'):
+                    new_data = {
+                        "nightly_build": "python",
+                        "duckdb_arch": architecture,
+                        "runs_on": get_runner(platform, architecture),
+                        "run_id": nightly_build_run_id,
+                        "duckdb_binary": platform + "-" + architecture
+                    }
+                    matrix_data.append(new_data)
 
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)
