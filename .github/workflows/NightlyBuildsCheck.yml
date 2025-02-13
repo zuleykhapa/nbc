@@ -117,7 +117,7 @@ jobs:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
             uname -m
-            if [[ ${{ matrix.inputs.nightly_build }} != 'Python' ]]; then
+            if [[ ${{ matrix.inputs.nightly_build }} != 'python' ]]; then
               echo "Downloading duckdb-binaries-${{ matrix.inputs.duckdb_binary }} artifact..."
               if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-${{ matrix.inputs.duckdb_binary }}; then
                   echo "Artifact duckdb-binaries-$name is successfuly downloaded."
