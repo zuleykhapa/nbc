@@ -71,6 +71,13 @@ jobs:
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
           echo "***"
           cat inputs.json
+      
+      - name: Upload inputs.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: inputs.json
+          path: inputs.json
+          if-no-files-found: ignore
 
   run-tests:
     name: ${{ matrix.inputs.nightly_build }} - ${{ matrix.inputs.duckdb_arch }} (${{ matrix.inputs.runs_on }})
@@ -124,14 +131,6 @@ jobs:
                 --run_id ${{ matrix.inputs.run_id }} \
                 --runs_on ${{ matrix.inputs.runs_on }} \
                 --config ext/.github/config/out_of_tree_extensions.cmake
-
-      - name: Upload inputs.json
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: inputs.json
-          path: inputs.json
-          if-no-files-found: ignore
 
       - name: Upload actions for extensions
         if: always()
