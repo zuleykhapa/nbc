@@ -79,21 +79,17 @@ def create_build_report(nightly_build, con, build_info, url):
                     createdAt as "Created at",
                     url as "URL"
                 FROM 'gh_run_list_{ nightly_build }'
-                WHERE conclusion = 'failure'
+                WHERE conclusion != 'success'
                 ORDER BY createdAt DESC
                 LIMIT 7
             """).df()
             f.write(failure_details.to_markdown(index=False) + "\n")
             
-        # check if the artifacts table is not empty
-        if nightly_build not in HAS_NO_ARTIFACTS:
-            f.write(f"\n#### Workflow Artifacts\n")
-            artifacts_per_job = con.execute(f"""
-                SELECT * FROM 'artifacts_per_jobs_{ nightly_build }' ORDER BY "Build (Architecture)" ASC;
-                """).df()
-            f.write(artifacts_per_job.to_markdown(index=False) + "\n")
-        else:
-            f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
+        f.write(f"\n#### Workflow Artifacts\n")
+        artifacts_per_job = con.execute(f"""
+            SELECT * FROM 'artifacts_per_jobs_{ nightly_build }' ORDER BY "Build (Architecture)" ASC;
+            """).df()
+        f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
         # add extensions
         file_name_pattern = f"failed_ext/ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
@@ -130,8 +126,9 @@ def main():
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
     # list all nightly-build runs on current date to get all nightly-build names
-    result = list_all_runs(con)
-    nightly_builds = [row[0] for row in result]
+    # result = con.execute("SELECT nightly_build FROM 'inputs.json'").fetchall()
+    # nightly_builds = [row[0] for row in result]
+    nightly_builds = ['InvokeCI']
     # create complete report
     for nightly_build in nightly_builds:
         build_info = {}
