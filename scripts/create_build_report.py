@@ -28,7 +28,7 @@ CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
-def create_build_report(nightly_build, con, build_info, url):
+def create_build_report(nightly_build, con, build_info, url, tested_binaries):
     failures_count = count_consecutive_failures(nightly_build, con)
 
     with open(REPORT_FILE, 'a') as f:
@@ -92,32 +92,35 @@ def create_build_report(nightly_build, con, build_info, url):
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
         # add extensions
-        file_name_pattern = f"failed_ext/ext_{ nightly_build }_*/list_failed_ext_{ nightly_build }_*.csv"
-        matching_files = glob.glob(file_name_pattern)
-        if matching_files:
-            f.write(f"\n#### Tested extensions\n")
-            passed = con.execute(f"""
-                SELECT extension
-                FROM read_csv('{ file_name_pattern }')
-                WHERE result = 'passed' AND statement = 'INSTALL'
-                INTERSECT(
+        for tested_binary in tested_binaries:
+            file_name_pattern = f"failed_ext/ext_{ tested_binary.replace("-", "_") }*/list_failed_ext_{ tested_binary.replace("-", "_") }*.csv"
+            matching_files = glob.glob(file_name_pattern)
+            if matching_files:
+                print("HERE")
+                f.write(f"\n## { tested_binary }\n")
+                f.write("\n#### Tested extensions\n")
+                passed = con.execute(f"""
                     SELECT extension
                     FROM read_csv('{ file_name_pattern }')
-                    WHERE result = 'passed' AND statement = 'LOAD'
-                )
-            """).fetchall()
-            passed_extentions = [p[0] for p in passed]
-            f.write(f"The following extensions could be loaded and installed successfully:\n##### { passed_extentions }\n")
-            
-            failed_extensions = con.execute(f"""
-                SELECT * FROM read_csv('{ file_name_pattern }')
-                WHERE result = 'failed'
-            """).df()
-            if failed_extensions.empty:
-                f.write(f"None of extensions had failed to be installed or loaded.\n")
-            else:
-                f.write("#### List of failed extensions:\n")
-                f.write(failed_extensions.to_markdown(index=False) + "\n")
+                    WHERE result = 'passed' AND statement = 'INSTALL'
+                    INTERSECT(
+                        SELECT extension
+                        FROM read_csv('{ file_name_pattern }')
+                        WHERE result = 'passed' AND statement = 'LOAD'
+                    )
+                """).fetchall()
+                passed_extentions = [p[0] for p in passed]
+                f.write(f"The following extensions could be loaded and installed successfully:\n##### { passed_extentions }\n")
+                
+                failed_extensions = con.execute(f"""
+                    SELECT * FROM read_csv('{ file_name_pattern }')
+                    WHERE result = 'failed'
+                """).df()
+                if failed_extensions.empty:
+                    f.write(f"None of extensions had failed to be installed or loaded.\n")
+                else:
+                    f.write("#### List of failed extensions:\n")
+                    f.write(failed_extensions.to_markdown(index=False) + "\n")
 
     build_info["failures_count"] = failures_count
     build_info["url"] = url
@@ -126,16 +129,15 @@ def main():
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
     # list all nightly-build runs on current date to get all nightly-build names
-    # result = con.execute("SELECT nightly_build FROM 'inputs.json'").fetchall()
-    # nightly_builds = [row[0] for row in result]
-    nightly_builds = ['InvokeCI']
+    nightly_build = 'InvokeCI'
+    result = con.execute("SELECT duckdb_binary FROM 'inputs.json'").fetchall()
+    tested_binaries = [row[0] for row in result]
     # create complete report
-    for nightly_build in nightly_builds:
-        build_info = {}
-        url = con.execute(f"""
-            SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
-            """).fetchone()[0]
-        create_build_report(nightly_build, con, build_info, url)    
+    build_info = {}
+    url = con.execute(f"""
+        SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
+        """).fetchone()[0]
+    create_build_report(nightly_build, con, build_info, url, tested_binaries)
     con.close()
     
 if __name__ == "__main__":
