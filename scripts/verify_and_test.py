@@ -67,12 +67,11 @@ def get_full_sha(run_id):
 # DOCKER #
 ##########
 def create_container(client, container_name, image, architecture, tested_binary_path):
-    platform = architecture.split("_")[1]
     container = client.containers.run(
         image=image,
         name=container_name,
         command="/bin/bash -c 'sleep infinity'",
-        platform=platform,
+        platform=architecture,
         volumes=tested_binary_path if tested_binary_path else None,
         detach=True
     )
