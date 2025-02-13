@@ -169,9 +169,9 @@ def verify_and_test_python_linux(version, full_sha, file_name, architecture, con
                             actual_result = 'passed'
                         with open(file_name, 'a') as f:
                             if counter == 0:
-                                f.write(f"nightly_build,architecture,runs_on,version,extension,failed_statement\n")
-                                counter += 1
-                            f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ ext },{ act }\n")
+                                f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
+                            counter += 1
+                        f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
     finally:
         print("FINISH")
         stop_container(container, container_name)
