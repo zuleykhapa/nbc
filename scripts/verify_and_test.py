@@ -270,8 +270,8 @@ def install_python_with_pyenv():
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
     print(nightly_build)
+    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
     if nightly_build in SHOULD_BE_TESTED:
-        counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
         if nightly_build == 'python':
             python_versions = list_builds_for_python_versions(run_id)
             full_sha = get_full_sha(run_id)
@@ -357,9 +357,9 @@ def main():
                                         else:
                                             actual_result = 'passed'
                                         with open(file_name, 'a') as f:
-                                            if COUNTER == 0:
+                                            if counter == 0:
                                                 f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
-                                                COUNTER += 1
+                                                counter += 1
                                             f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
                 print("FINISH")
         else:
