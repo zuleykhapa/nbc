@@ -102,7 +102,6 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: ${{ env.GH_REPO }}
-            ref: 'main'
             sparse-checkout: |
                 .github/config
             path: ext
@@ -122,8 +121,6 @@ jobs:
               fi
             fi
             echo "Verifying version and testing extensions..."
-            cat ext/.github/config/*tree_extensions.cmake
-            
             python scripts/verify_and_test.py \
                 --nightly_build ${{ matrix.inputs.nightly_build }} \
                 --architecture ${{ matrix.inputs.duckdb_arch }} \

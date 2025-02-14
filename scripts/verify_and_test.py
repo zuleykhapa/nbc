@@ -30,6 +30,7 @@ GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 ACTIONS = ["INSTALL", "LOAD"]
 EXT_WHICH_DOESNT_EXIST = "EXT_WHICH_DOESNT_EXIST"
 SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
+EXT_PATH_PATTERN = "ext/.github/config/*tree_extensions.cmake"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nightly_build")
@@ -54,7 +55,7 @@ def get_extensions_from(config) :
 
 def list_extensions():
     extensions = []
-    matches = glob.glob("ext/.github/config/*tree_extensions.cmake")
+    matches = glob.glob(EXT_PATH_PATTERN)
     if matches:
         for match in matches:
             extensions += get_extensions_from(match)
@@ -125,8 +126,7 @@ def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
     full_sha = get_full_sha(run_id)
-    not_loaded = duckdb.sql(f"FROM duckdb_extensions() WHERE NOT loaded;").fetchall()
-    extensions = [row[0] for row in not_loaded]
+    extensions = list_extensions()
     if nightly_build in SHOULD_BE_TESTED:
         if nightly_build == 'python':
             verify_and_test_python_linux(file_name, counter, extensions, nightly_build, run_id, architecture, runs_on, full_sha)
