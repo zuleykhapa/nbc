@@ -20,7 +20,7 @@ def list_all_runs(con, build_job):
     gh_run_list_command = [
         "gh", "run", "list",
         "--repo", GH_REPO,
-        "--workflow", { build_job },
+        "--workflow", f"{ build_job }",
         "--created", CURR_DATE,
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
     ]
