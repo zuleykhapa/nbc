@@ -69,7 +69,7 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                 )
                 print(f"Result: { subprocess_result.output.decode() }")
                 short_sha = subprocess_result.output.decode().strip()
-                if sha_matching(short_sha, full_sha, file_name, nightly_build):
+                if sha_matching(short_sha, full_sha, nightly_build, architecture):
                     print(f"TESTING EXTENSIONS ON python{ version }")
                     for extension in extensions:
                         installed = container.exec_run(f"""
