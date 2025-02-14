@@ -26,7 +26,6 @@ from shared_functions import count_consecutive_failures
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
-HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
 def create_build_report(nightly_build, con, build_info, url, tested_binaries):
     failures_count = count_consecutive_failures(nightly_build, con)
@@ -36,7 +35,6 @@ def create_build_report(nightly_build, con, build_info, url, tested_binaries):
             f.write(f"\n## { nightly_build }\n")            
             f.write(f"\n\n### { nightly_build } nightly-build has succeeded.\n")            
             f.write(f"Latest run: [ Run Link ]({ url })\n")
-
         else:
             # failures_count = -1 means all runs in the json file have conclusion = 'failure' 
             # so we need to update its value.
