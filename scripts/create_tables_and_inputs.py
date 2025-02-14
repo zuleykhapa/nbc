@@ -46,8 +46,7 @@ from shared_functions import count_consecutive_failures
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
-REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
-HAS_NO_ARTIFACTS = ('Python', 'Julia', 'Swift', 'SwiftRelease')
+SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
@@ -59,23 +58,12 @@ def get_value_for_key(key, nightly_build):
         """).fetchone()[0]
     return value
 
-def save_run_data_to_json_files(nightly_build, con, build_info):
+def save_run_data_to_json_files(nightly_build, con, nightly_build_run_id):
     '''
-    Fetches GH Actions data related to specified nightly-build and saves it into json files,
-        populates build_info dict with nightly_build_run_id value.
+    Fetches GH Actions data related to specified nightly-build and saves it into json files.
         As result "{ nightly_build }.json", "{ nightly_build }_jobs.json" and "{ nightly_build }_artifacts.json"
         files are created. They will be used by create_tables_for_report()
     '''
-    gh_run_list_file = f"{ nightly_build }.json"
-    runs_command = [
-            "gh", "run", "list",
-            "--repo", GH_REPO,
-            "--event", "repository_dispatch",
-            "--workflow", f"{ nightly_build }",
-            "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
-        ]
-    fetch_data(runs_command, gh_run_list_file)
-    nightly_build_run_id = get_value_for_key('databaseId', nightly_build)
     jobs_file = f"{ nightly_build }_jobs.json"
     jobs_command = [
             "gh", "run", "view",
@@ -90,16 +78,14 @@ def save_run_data_to_json_files(nightly_build, con, build_info):
             f"repos/{ GH_REPO }/actions/runs/{ nightly_build_run_id }/artifacts"
         ]
     fetch_data(artifacts_command, artifacts_file)
-    build_info["nightly_build_run_id"] = nightly_build_run_id
 
-def create_tables_for_report(nightly_build, con, build_info, url):
+def create_tables_for_report(nightly_build, con):
     '''
     In 'run_info_tables.duckdb' file creates 'gh_run_list_{ nightly_build }', 'steps_{ nightly_build }'
         and 'artifacts_{ nightly_build }' tables from json files created on save_run_data_to_json_files()
     Using 'steps' and 'artifacts' tables creates 'artifacts_per_jobs_{ nightly_build }' table 
         for the final report.
     '''
-    
     con.execute(f"""
         CREATE OR REPLACE TABLE 'gh_run_list_{ nightly_build }' AS (
             SELECT *
@@ -111,127 +97,62 @@ def create_tables_for_report(nightly_build, con, build_info, url):
             SELECT * FROM read_json('{ nightly_build }_jobs.json')
         )
     """)
-    if nightly_build not in HAS_NO_ARTIFACTS:
+    con.execute(f"""
+            CREATE OR REPLACE TABLE 'artifacts_{ nightly_build }' AS (
+                SELECT * FROM read_json('{ nightly_build }_artifacts.json')
+            );
+        """)
+    # check if the artifatcs table is not empty
+    artifacts_count = con.execute(f"SELECT list_count(artifacts) FROM 'artifacts_{ nightly_build }';").fetchone()[0]
+    if artifacts_count > 0:
+        # Given a job and its steps, we want to find the artifacts uploaded by the job 
+        # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
+        url = get_value_for_key("url", nightly_build)
         con.execute(f"""
-                CREATE OR REPLACE TABLE 'artifacts_{ nightly_build }' AS (
-                    SELECT * FROM read_json('{ nightly_build }_artifacts.json')
+            SET VARIABLE base_url = "{ url }/artifacts/";
+            CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
+                SELECT
+                    t1.job_name AS "Build (Architecture)",
+                    t1.conclusion AS "Conclusion",
+                    '[' || t2.name || '](' || getvariable('base_url') || t2.artifact_id || ')' AS "Artifact",
+                    t2.updated_at AS "Uploaded at"
+                FROM (
+                    SELECT
+                        job_name,
+                        steps.name step_name, 
+                        steps.conclusion conclusion,
+                        steps.startedAt startedAt
+                    FROM (
+                        SELECT
+                            unnest(steps) steps,
+                            job_name 
+                        FROM (
+                            SELECT
+                                unnest(jobs)['steps'] steps,
+                                unnest(jobs)['name'] job_name 
+                            FROM 'steps_{ nightly_build }'
+                            )
+                        )
+                    WHERE steps['name'] LIKE '%upload%'
+                    ORDER BY 
+                        conclusion DESC,
+                        startedAt
+                    ) t1
+                POSITIONAL JOIN (
+                    SELECT
+                        art.name,
+                        art.expires_at expires_at,
+                        art.updated_at updated_at,
+                        art.id artifact_id
+                    FROM (
+                        SELECT
+                            unnest(artifacts) art
+                        FROM 'artifacts_{ nightly_build }'
+                        )
+                    ORDER BY expires_at
+                    ) as t2
                 );
             """)
-        # check if the artifatcs table is not empty
-        artifacts_count = con.execute(f"SELECT list_count(artifacts) FROM 'artifacts_{ nightly_build }';").fetchone()[0]
-        if artifacts_count > 0:
-            # Given a job and its steps, we want to find the artifacts uploaded by the job 
-            # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
-            con.execute(f"""
-                SET VARIABLE base_url = "{ url }/artifacts/";
-                CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
-                    SELECT
-                        t1.job_name AS "Build (Architecture)",
-                        t1.conclusion AS "Conclusion",
-                        '[' || t2.name || '](' || getvariable('base_url') || t2.artifact_id || ')' AS "Artifact",
-                        t2.updated_at AS "Uploaded at"
-                    FROM (
-                        SELECT
-                            job_name,
-                            steps.name step_name, 
-                            steps.conclusion conclusion,
-                            steps.startedAt startedAt
-                        FROM (
-                            SELECT
-                                unnest(steps) steps,
-                                job_name 
-                            FROM (
-                                SELECT
-                                    unnest(jobs)['steps'] steps,
-                                    unnest(jobs)['name'] job_name 
-                                FROM 'steps_{ nightly_build }'
-                                )
-                            )
-                        WHERE steps['name'] LIKE '%upload%'
-                        ORDER BY 
-                            conclusion DESC,
-                            startedAt
-                        ) t1
-                    POSITIONAL JOIN (
-                        SELECT
-                            art.name,
-                            art.expires_at expires_at,
-                            art.updated_at updated_at,
-                            art.id artifact_id
-                        FROM (
-                            SELECT
-                                unnest(artifacts) art
-                            FROM 'artifacts_{ nightly_build }'
-                            )
-                        ORDER BY expires_at
-                        ) as t2
-                    );
-                """)
-    else:
-        con.execute(f"""
-            CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
-                SELECT job_name, conclusion 
-                FROM (
-                    SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
-                    FROM (
-                        SELECT unnest(jobs) j 
-                        FROM 'steps_{ nightly_build }'
-                        )
-                    ) 
-                WHERE steps['name'] LIKE '%upload-artifact%'
-                )
-            """)
-
-def get_binaries_count(nightly_build, con):
-    binaries_count = [0]
-    if nightly_build not in HAS_NO_ARTIFACTS:
-        binaries_count = con.execute(f"""
-            SELECT count(artifacts['name'])
-            FROM (
-                SELECT unnest(artifacts) AS artifacts
-                FROM artifacts_{ nightly_build }
-            )
-            WHERE artifacts['name'] LIKE '%binaries%'
-        """).fetchone()
-    return binaries_count[0] if binaries_count else 0
-
-def get_platform_arch_from_artifact_name(nightly_build, con, build_info):
-    if nightly_build in HAS_NO_ARTIFACTS:
-        # print("nightly_build", nightly_build)
-        platform = str(nightly_build).lower()
-        # print("platform", platform)
-        architectures = ['amd64', 'aarch64', 'x86_64', 'arm64'] if nightly_build == 'Python' else ['x64']
-    else:
-        '''
-        From artifact names in 'artifacts_per_jobs_{ nightly_build }' table create a list of 'items'.
-            Each item is in a format like this: [duckdb-binaries-linux-aarch64](url)
-            Create an array of architectures and save it and a platform value to 'build_info'
-        '''
-        result = con.execute(f"SELECT Artifact FROM 'artifacts_per_jobs_{ nightly_build }'").fetchall()
-        items = [row[0] for row in result if row[0] is not None]
-        pattern = r"\[duckdb-binaries-(\w+)(?:[-_](\w+))?\]\(.*\)" # (\w+)(?:[-_](\w+))? finds the words separated by - or _; \]\(.*\) handles brackets
-        platform = None
-        architectures = []
-        if items:
-            for item in items:
-                match = re.match(pattern, item)
-                if match:
-                    platform = match.group(1)
-                    arch_suffix = match.group(2)
-                    if platform == 'linux' and not arch_suffix:
-                        arch_suffix = 'amd64'
-                    if arch_suffix:
-                        architectures.append(f"{ platform }-{ arch_suffix }")
-    build_info["architectures"] = [ 'arm64', 'amd64' ] if nightly_build == 'OSX' else architectures
-    build_info["platform"] = platform
-
-def get_binary_name(nightly_build, platform, architecture):
-    if nightly_build == 'OSX':
-        return 'osx'
-    elif architecture == 'linux-amd64':
-        return platform
-    else:
-        return architecture
 
 def get_runner(platform, architecture):
     match platform:
@@ -239,85 +160,71 @@ def get_runner(platform, architecture):
             return "macos-latest" if architecture == 'arm64' else "macos-13"
         case 'windows':
             return "windows-2019"
-        case 'linux':
-            return "ubuntu-22.04-arm" if architecture == 'linux-aarch64' else "ubuntu-latest"
-        case 'python':
-            match architecture:
-                case 'aarch64':
-                    return "ubuntu-22.04-arm"
-                case 'x86_64':
-                    return "macos-latest"
-                case 'arm64':
-                    return "macos-13"
-                case _:
-                    return "ubuntu-latest"
         case _:
-            return "ubuntu-latest"
-        
+            return "ubuntu-22.04-arm" if architecture == 'arm64' else "ubuntu-latest"
 
 def main():
+    nightly_build = "InvokeCI"
     matrix_data = []
-    con = duckdb.connect('run_info_tables.duckdb')
-    # list all nightly-build runs on current date to get all nightly-build names
-    result = list_all_runs(con)
-    nightly_builds = [row[0] for row in result]
-    # for nightly_build in nightly_builds:
-    #     build_info = {}
-    #     save_run_data_to_json_files(nightly_build, con, build_info)
-    #     url = con.execute(f"""
-    #         SELECT url FROM '{ nightly_build }.json'
-    #         """).fetchone()[0]
-    #     create_tables_for_report(nightly_build, con, build_info, url)
-        
-    #     if count_consecutive_failures(nightly_build, con) == 0 or get_binaries_count(nightly_build, con):
-    #         get_platform_arch_from_artifact_name(nightly_build, con, build_info)
-    #         platform = str(build_info.get("platform"))
-    #         architectures = build_info.get('architectures')
-    #         for architecture in architectures:
-    #             if architecture != 'windows-arm64':
-    #                 matrix_data.append({
-    #                     "nightly_build": nightly_build,
-    #                     "architectures": architecture,
-    #                     "runs_on": get_runner(platform,architecture),
-    #                     "run_id": build_info.get('nightly_build_run_id'),
-    #                     "name": get_binary_name(nightly_build, platform, architecture)
-    #                 })
 
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "aarch64",
-        "runs_on": "ubuntu-22.04-arm",
-        "run_id": "12919733489",
-        "name": "aarch64"
-    })
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "amd64",
-        "runs_on": "ubuntu-latest",
-        "run_id": "12919733489",
-        "name": "amd64"
-    })
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "arm64",
-        "runs_on": "macos-13",
-        "run_id": "12919733489",
-        "name": "arm64"
-    })
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "x86_64",
-        "runs_on": "macos-latest",
-        "run_id": "12919733489",
-        "name": "x86_64"
-    })
-    matrix_data.append({
-        "nightly_build": "Python",
-        "architectures": "amd64",
-        "runs_on": "windows-2019",
-        "run_id": "12919733489",
-        "name": "amd64"
-    })
+    con = duckdb.connect('run_info_tables.duckdb')
+    list_all_runs(con)
+    nightly_build_run_id = get_value_for_key("databaseId", nightly_build)
+    save_run_data_to_json_files(nightly_build, con, nightly_build_run_id)
+    create_tables_for_report(nightly_build, con)
+
+    build_artifacts = con.execute(f"""
+        SELECT Artifact
+        FROM 'artifacts_per_jobs_{ nightly_build }'
+        WHERE Artifact LIKE '[duckdb-binaries%';
+    """).fetchall()
+    # array of testable binaries like 'windows-amd64' extracted from a line like '[duckdb-binaries-windows-amd64](https://github.com/duckdb/duckdb/actions/runs/13275346242/artifacts/2575624860)'
+    # but we replace an underscore with a dash to match with the extensions names
+    tested_binaries = set()
+    for row in build_artifacts:
+        pattern = r'\[duckdb-binaries-([a-zA-Z]+)(?:-([a-zA-Z0-9]+))?\]'
+        match = re.search(pattern, row[0])
+        if match:
+            build_platform = match.group(1)
+            build_architecture = match.group(2) if match.group(2) else ''
+            if build_architecture:
+                tested_binaries.add(build_platform + "_" + build_architecture)
+            elif build_platform == 'osx':
+                tested_binaries.add(build_platform + "_arm64")
+                tested_binaries.add(build_platform + "_amd64")
+
+    extensions_artifacts = con.execute(f"""
+        SELECT Artifact
+        FROM 'artifacts_per_jobs_{ nightly_build }'
+        WHERE Artifact LIKE '[duckdb-extensions%';
+    """).fetchall()
+    tested_builds_dict = {}
+    for row in extensions_artifacts:
+        pattern =  r'\[duckdb-extensions-([a-zA-Z]+)_(amd64|arm64)'
+        match = re.search(pattern, row[0])
+        if match:
+            platform = match.group(1)
+            architecture = match.group(2)
+            duckdb_arch = platform + "_" + architecture
+            if duckdb_arch in tested_binaries:
+                tested_binaries.remove(duckdb_arch)
+                new_data = {
+                    "nightly_build": platform,
+                    "duckdb_arch": architecture,
+                    "runs_on": get_runner(platform, architecture),
+                    "run_id": nightly_build_run_id,
+                    "duckdb_binary": platform if platform == 'osx' else platform + "-" + architecture
+                }
+                matrix_data.append(new_data)
+                if platform.startswith('linux'):
+                    new_data = {
+                        "nightly_build": "python",
+                        "duckdb_arch": architecture,
+                        "runs_on": get_runner(platform, architecture),
+                        "run_id": nightly_build_run_id,
+                        "duckdb_binary": platform + "-" + architecture
+                    }
+                    matrix_data.append(new_data)
 
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)
