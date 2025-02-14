@@ -48,7 +48,6 @@ def sha_matching(short_sha, full_sha, build_job, architecture):
         - Downloaded build version: { short_sha }
         """)
         non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(build_job, architecture.replace("/", "-"))
-        print(non_matching_sha_file_name)
         with open(non_matching_sha_file_name, 'a') as f:
             f.write(f"""
             Version of { build_job } { architecture } tested binary doesn't match to the version that triggered the build.

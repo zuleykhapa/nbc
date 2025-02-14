@@ -2,7 +2,7 @@
 The scripts/create_build_report.py script job is to create a final report file "{ CURR_DATE }_REPORT_FILE.md".
     For each name of nightly-build it writes the latest run's conclusion, in case of failure,
     followed with a list of last 7 failed runs.
-    Then it adds 'artifacts_per_jobs_{ nightly_build }' table contents.
+    Then it adds 'artifacts_per_jobs_{ build_job }' table contents.
 
 Can be tested locally running 'python scripts/create_tables_and_inputs.py' with preconditions:
     1. Run 'scripts/create_build_report.py'.
@@ -27,20 +27,19 @@ GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 
-def create_build_report(nightly_build, con):
+def create_build_report(build_job, con):
     result = con.execute("SELECT nightly_build, duckdb_arch FROM 'inputs.json'").fetchall()
     tested_binaries = [row[0] + "-" + row[1] for row in result]
     print(tested_binaries)
-    # create complete report
     url = con.execute(f"""
-        SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
+        SELECT url FROM 'gh_run_list_{ build_job }' LIMIT 1
         """).fetchone()[0]
-    failures_count = count_consecutive_failures(nightly_build, con)
+    failures_count = count_consecutive_failures(build_job, con)
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:
-            f.write(f"\n## { nightly_build }\n")            
-            f.write(f"\n\n### { nightly_build } nightly-build has succeeded.\n")            
+            f.write(f"\n## { build_job }\n")            
+            f.write(f"\n\n### { build_job } nightly-build has succeeded.\n")            
             f.write(f"Latest run: [ Run Link ]({ url })\n")
         else:
             # failures_count = -1 means all runs in the json file have conclusion = 'failure' 
@@ -50,26 +49,26 @@ def create_build_report(nightly_build, con):
                 failures_count = con.execute(f"""
                     SELECT
                         count(*)
-                    FROM 'gh_run_list_{ nightly_build }'
+                    FROM 'gh_run_list_{ build_job }'
                     WHERE conclusion = 'failure'
                 """).fetchone()[0]
         
             total_count = con.execute(f"""
                 SELECT
                     count(*)
-                FROM 'gh_run_list_{ nightly_build }'
+                FROM 'gh_run_list_{ build_job }'
             """).fetchone()[0]
 
-            f.write(f"## { nightly_build }\n")            
+            f.write(f"## { build_job }\n")            
             if failures_count == total_count:
-                f.write(f"### { nightly_build } nightly-build has not succeeded more than **{ failures_count }** times.\n")
+                f.write(f"### { build_job } nightly-build has not succeeded more than **{ failures_count }** times.\n")
             else:
-                f.write(f"### { nightly_build } nightly-build has not succeeded the previous **{ failures_count }** times.\n")
+                f.write(f"### { build_job } nightly-build has not succeeded the previous **{ failures_count }** times.\n")
             if failures_count < total_count:
                 tmp_url = con.execute(f"""
                     SELECT
                         url
-                    FROM 'gh_run_list_{ nightly_build }'
+                    FROM 'gh_run_list_{ build_job }'
                     WHERE conclusion = 'success'
                     ORDER BY createdAt DESC
                     LIMIT 1
@@ -83,7 +82,7 @@ def create_build_report(nightly_build, con):
                     conclusion as "Conclusion",
                     createdAt as "Created at",
                     url as "URL"
-                FROM 'gh_run_list_{ nightly_build }'
+                FROM 'gh_run_list_{ build_job }'
                 WHERE conclusion != 'success'
                 ORDER BY createdAt DESC
                 LIMIT 7
@@ -92,7 +91,7 @@ def create_build_report(nightly_build, con):
             
         f.write(f"\n#### Workflow Artifacts\n")
         artifacts_per_job = con.execute(f"""
-            SELECT * FROM 'artifacts_per_jobs_{ nightly_build }' ORDER BY "Build (Architecture)" ASC;
+            SELECT * FROM 'artifacts_per_jobs_{ build_job }' ORDER BY "Build (Architecture)" ASC;
             """).df()
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
@@ -139,10 +138,10 @@ def create_build_report(nightly_build, con):
                         f.write(content)
     
 def main():
-    nightly_build = 'InvokeCI'
+    build_job = 'InvokeCI'
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
-    create_build_report(nightly_build, con)
+    create_build_report(build_job, con)
     con.close()
     
 if __name__ == "__main__":
