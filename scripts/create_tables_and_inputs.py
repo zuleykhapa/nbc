@@ -168,7 +168,7 @@ def main():
     matrix_data = []
 
     con = duckdb.connect('run_info_tables.duckdb')
-    list_all_runs(con)
+    list_all_runs(con, build_job)
     build_job_run_id = get_value_for_key("databaseId", build_job)
     save_run_data_to_json_files(build_job, con, build_job_run_id)
     create_tables_for_report(build_job, con)

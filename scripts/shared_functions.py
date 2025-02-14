@@ -15,12 +15,12 @@ def fetch_data(command, f_output):
         print(f"Command failed with error: {e.stderr}")
 
 # create a json file with the list all nightly-build runs for current date
-def list_all_runs(con):
-    gh_run_list_file = f"InvokeCI.json"
+def list_all_runs(con, build_job):
+    gh_run_list_file = f"{ build_job }.json"
     gh_run_list_command = [
         "gh", "run", "list",
         "--repo", GH_REPO,
-        "--workflow", "InvokeCI",
+        "--workflow", { build_job },
         "--created", CURR_DATE,
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
     ]
@@ -29,10 +29,10 @@ def list_all_runs(con):
     return result
 
 # return a number of consecutive failures
-def count_consecutive_failures(nightly_build, con):
+def count_consecutive_failures(build_job, con):
     latest_success_rowid = con.execute(f"""
         SELECT rowid
-        FROM 'gh_run_list_{ nightly_build }'
+        FROM 'gh_run_list_{ build_job }'
         WHERE conclusion = 'success'
         ORDER BY createdAt DESC
     """).fetchone()
@@ -40,24 +40,24 @@ def count_consecutive_failures(nightly_build, con):
     return consecutive_failures
 
 
-def sha_matching(short_sha, full_sha, nightly_build, architecture):
+def sha_matching(short_sha, full_sha, build_job, architecture):
     if not full_sha.startswith(short_sha):
         print(f"""
-        Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+        Version of { build_job } tested binary doesn't match to the version that triggered the build.
         - Version triggered the build: { full_sha }
         - Downloaded build version: { short_sha }
         """)
-        non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(nightly_build, architecture.replace("/", "-"))
+        non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(build_job, architecture.replace("/", "-"))
         print(non_matching_sha_file_name)
         with open(non_matching_sha_file_name, 'a') as f:
             f.write(f"""
-            Version of { nightly_build } { architecture } tested binary doesn't match to the version that triggered the build.
+            Version of { build_job } { architecture } tested binary doesn't match to the version that triggered the build.
             - Version triggered the build: { full_sha }
             - Downloaded build version: { short_sha }
             """)
         return False
     print(f"""
-    Versions of { nightly_build } build match:
+    Versions of { build_job } build match:
     - Version triggered the build: { full_sha }
     - Downloaded build version: { short_sha }
     """)
