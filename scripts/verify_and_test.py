@@ -118,7 +118,8 @@ def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
     counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
     full_sha = get_full_sha(run_id)
-    extensions = list_extensions(config)
+    not_loaded = sucksb.sql(f"FROM duckdb_extensions() WHERE NOT loaded;").fetchall()
+    extensions = [row[0] for row in not_loaded]
     if nightly_build in SHOULD_BE_TESTED:
         if nightly_build == 'python':
             verify_and_test_python_linux(file_name, counter, extensions, nightly_build, run_id, architecture, runs_on, full_sha)

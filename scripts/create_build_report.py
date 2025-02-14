@@ -28,10 +28,9 @@ CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 
 def create_build_report(nightly_build, con):
-    result = con.execute("SELECT duckdb_binary FROM 'inputs.json'").fetchall()
-    tested_binaries = [row[0] for row in result]
-    tested_binaries.append('python')
-    
+    result = con.execute("SELECT nightly_build, duckdb_arch FROM 'inputs.json'").fetchall()
+    tested_binaries = [row[0] + "-" + row[1] for row in result]
+    print(tested_binaries)
     # create complete report
     url = con.execute(f"""
         SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
@@ -99,7 +98,7 @@ def create_build_report(nightly_build, con):
         
         # add extensions
         for tested_binary in tested_binaries:
-            tested_binary = tested_binary.replace("-", "_")
+            tested_binary = tested_binary + "_" + architecture if tested_binary == 'osx' else tested_binary.replace("-", "_")
             file_name_pattern = f"failed_ext/ext_{ tested_binary }*/list_failed_ext_{ tested_binary }*.csv"
             matching_files = glob.glob(file_name_pattern)
             if matching_files:
