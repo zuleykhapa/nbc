@@ -108,13 +108,13 @@ def create_tables_for_report(build_job, con):
         # Given a job and its steps, we want to find the artifacts uploaded by the job 
         # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
         url = get_value_for_key("url", build_job)
+        base_url = f"{ url }/artifacts/"
         con.execute(f"""
-            SET VARIABLE base_url = "{ url }/artifacts/";
             CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ build_job }' AS (
                 SELECT
                     t1.job_name AS "Build (Architecture)",
                     t1.conclusion AS "Conclusion",
-                    '[' || t2.name || '](' || getvariable('base_url') || t2.artifact_id || ')' AS "Artifact",
+                    '[' || t2.name || '](' || '{base_url}' || t2.artifact_id || ')' AS "Artifact",
                     t2.updated_at AS "Uploaded at"
                 FROM (
                     SELECT
