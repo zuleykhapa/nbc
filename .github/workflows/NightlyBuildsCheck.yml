@@ -117,16 +117,15 @@ jobs:
           CURR_DATE: ${{ needs.get-run-info.outputs.CURR_DATE }}
         run: |
             uname -m
-            if [[ ${{ matrix.inputs.nightly_build }} != 'python' ]]; then
+            # if [[ ${{ matrix.inputs.nightly_build }} != 'python' ]]; then
               # echo "Downloading duckdb-binaries-${{ matrix.inputs.duckdb_binary }} artifact..."
               # if gh run download ${{ matrix.inputs.run_id }} --repo ${{ env.GH_REPO }} -n duckdb-binaries-${{ matrix.inputs.duckdb_binary }}; then
               #     echo "Artifact duckdb-binaries-$name is successfuly downloaded."
               #     unzip duckdb_cli-*.zip -d duckdb_path
               # fi
-            fi
+            # fi
             echo "Verifying version and testing extensions..."
             if [[ ${{ matrix.inputs.nightly_build }} == 'python' ]]; then
-
               python scripts/verify_and_test.py \
                   --nightly_build ${{ matrix.inputs.nightly_build }} \
                   --architecture ${{ matrix.inputs.duckdb_arch }} \
