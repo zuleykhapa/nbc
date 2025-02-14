@@ -112,6 +112,7 @@ def create_build_report(nightly_build, con):
                         SELECT extension
                         FROM read_csv('{ file_name_pattern }')
                         WHERE result = 'passed' AND statement = 'LOAD'
+                        ORDER BY extension ASC
                     )
                 """).fetchall()
                 passed_extentions = [p[0] for p in passed]

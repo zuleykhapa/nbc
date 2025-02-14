@@ -178,7 +178,8 @@ def main():
         FROM 'artifacts_per_jobs_{ build_job }'
         WHERE Artifact LIKE '[duckdb-binaries%';
     """).fetchall()
-    # array of testable binaries like 'windows-amd64' extracted from a line like '[duckdb-binaries-windows-amd64](https://github.com/duckdb/duckdb/actions/runs/13275346242/artifacts/2575624860)'
+    # array of testable binaries like 'windows-amd64' extracted from a line 
+    # like '[duckdb-binaries-windows-amd64](https://github.com/duckdb/duckdb/actions/runs/13275346242/artifacts/2575624860)'
     # but we replace an underscore with a dash to match with the extensions names
     tested_binaries = set()
     for row in build_artifacts:
