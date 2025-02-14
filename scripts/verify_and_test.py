@@ -36,7 +36,6 @@ parser.add_argument("--nightly_build")
 parser.add_argument("--architecture")
 parser.add_argument("--run_id")
 parser.add_argument("--runs_on")
-parser.add_argument("--config")
 
 args = parser.parse_args()
 
@@ -44,15 +43,23 @@ nightly_build = args.nightly_build
 architecture = args.architecture
 run_id = args.run_id
 runs_on = args.runs_on # linux-latest
-config = args.config # ext/config/out_of_tree_extensions.cmake
 
-def list_extensions(config) :
+def get_extensions_from(config) :
     with open(config, "r") as file:
         content = file.read()
     # matching each word after `load(`
     pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
     matches = re.findall(pattern, content)
     return matches
+
+def list_extensions():
+    extensions = []
+    matches = glob.glob("ext/.github/config/*tree_extensions.cmake")
+    if matches:
+        for match in matches:
+            extensions += get_extensions_from(match)
+    extensions = list(set(extensions))
+    return extensions
 
 def get_full_sha(run_id):
     gh_headSha_command = [
@@ -71,15 +78,6 @@ def verify_version(tested_binary, full_sha):
     return sha_matching(short_sha, full_sha, tested_binary, architecture)
 
 def test_extensions(tested_binary, file_name, counter, extensions):
-    # select_extensions = [
-    #     tested_binary,
-    #     "-csv",
-    #     "-noheader",
-    #     "-c",
-    #     "SELECT extension_name FROM duckdb_extensions() WHERE NOT loaded"
-    # ]
-    # subprocess_result = subprocess.run(select_extensions, text=True, capture_output=True)
-    # extensions = subprocess_result.stdout.strip().splitlines()
     for ext in extensions:
         select_installed = [
             tested_binary,
