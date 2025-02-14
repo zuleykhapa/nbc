@@ -47,10 +47,10 @@ def sha_matching(short_sha, full_sha, nightly_build, architecture):
         - Version triggered the build: { full_sha }
         - Downloaded build version: { short_sha }
         """)
-        file_name = "non_matching_sha_{}_{}.txt".format(nightly_build, architecture.replace("/", "-"))
-        with open(file_name, 'a') as f:
+        non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(nightly_build, architecture.replace("/", "-"))
+        with open(non_matching_sha_file_name, 'a') as f:
             f.write(f"""
-            Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
+            Version of { nightly_build } { architecture } tested binary doesn't match to the version that triggered the build.
             - Version triggered the build: { full_sha }
             - Downloaded build version: { short_sha }
             """)
