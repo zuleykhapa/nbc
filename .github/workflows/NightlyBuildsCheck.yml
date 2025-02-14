@@ -37,8 +37,6 @@ jobs:
 
       - name: Checkout repo with the script
         uses: actions/checkout@v4
-        with:
-          ref: 'release'
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -99,8 +97,6 @@ jobs:
             
       - name: Checkout repo with the scripts
         uses: actions/checkout@v4
-        with:
-          ref: 'release'
 
       - name: Checkout repo with extensions config file
         uses: actions/checkout@v4
