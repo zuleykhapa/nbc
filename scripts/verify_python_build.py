@@ -69,7 +69,16 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                 )
                 print(f"Result: { subprocess_result.output.decode() }")
                 short_sha = subprocess_result.output.decode().strip()
-                if sha_matching(short_sha, full_sha, nightly_build, architecture):
+                if not full_sha.startswith(short_sha):
+                    non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(build_job, architecture.replace("/", "-"))
+                    print(non_matching_sha_file_name)
+                    with open(non_matching_sha_file_name, 'a') as f:
+                        f.write(f"""
+                        Version of { build_job } { architecture } tested binary doesn't match to the version that triggered the build.
+                        - Version triggered the build: { full_sha }
+                        - Downloaded build version: { short_sha }
+                        """)
+                else:
                     print(f"TESTING EXTENSIONS ON python{ version }")
                     # select_extensions = container.exec_run("""
                     #     python -c "import duckdb; res = duckdb.sql('SELECT extension_name FROM duckdb_extensions() WHERE NOT loaded').fetchall(); result =[row[0] for row in res]; print(result)"
