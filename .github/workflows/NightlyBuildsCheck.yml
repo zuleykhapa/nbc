@@ -26,7 +26,7 @@ jobs:
   #       with:
   #         path: log.csv
   get-run-info:
-    name: Get Runs Info
+    name: Generate nightly build artifact json file
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-outputs.outputs.matrix }}
@@ -137,7 +137,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.duckdb_arch }}
-          path: list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.duckdb_arch }}.csv
+          path: |
+            list_failed_ext_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.duckdb_arch }}.csv
+            non_matching_sha_${{ matrix.inputs.nightly_build }}_${{ matrix.inputs.duckdb_arch }}.txt
           if-no-files-found: ignore
     
   report:

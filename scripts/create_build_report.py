@@ -27,7 +27,15 @@ GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 
-def create_build_report(nightly_build, con, build_info, url, tested_binaries):
+def create_build_report(nightly_build, con):
+    result = con.execute("SELECT duckdb_binary FROM 'inputs.json'").fetchall()
+    tested_binaries = [row[0] for row in result]
+    tested_binaries.append('python')
+    
+    # create complete report
+    url = con.execute(f"""
+        SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
+        """).fetchone()[0]
     failures_count = count_consecutive_failures(nightly_build, con)
 
     with open(REPORT_FILE, 'a') as f:
@@ -119,24 +127,22 @@ def create_build_report(nightly_build, con, build_info, url, tested_binaries):
                 else:
                     f.write("#### List of failed extensions:\n")
                     f.write(failed_extensions.to_markdown(index=False) + "\n")
-
-    build_info["failures_count"] = failures_count
-    build_info["url"] = url
+            else:
+                file_name_pattern = f"failed_ext/ext_{ tested_binary }*/non_matching_sha_{ tested_binary }*.txt"
+                matching_files = glob.glob(file_name_pattern)
+                if matching_files:
+                    f.write(f"\n## { tested_binary }\n")
+                    for file in matching_files:
+                        with open(file, 'r') as src:
+                            content = src.read()
+                        f.write(f"#### { file }:")
+                        f.write(content)
     
 def main():
+    nightly_build = 'InvokeCI'
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
-    # list all nightly-build runs on current date to get all nightly-build names
-    nightly_build = 'InvokeCI'
-    result = con.execute("SELECT duckdb_binary FROM 'inputs.json'").fetchall()
-    tested_binaries = [row[0] for row in result]
-    tested_binaries.append('python')
-    # create complete report
-    build_info = {}
-    url = con.execute(f"""
-        SELECT url FROM 'gh_run_list_{ nightly_build }' LIMIT 1
-        """).fetchone()[0]
-    create_build_report(nightly_build, con, build_info, url, tested_binaries)
+    create_build_report(nightly_build, con)
     con.close()
     
 if __name__ == "__main__":

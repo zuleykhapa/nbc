@@ -68,6 +68,7 @@ def get_full_sha(run_id):
 def verify_version(tested_binary, file_name, full_sha):
     pragma_version = [ tested_binary, "--version" ]
     short_sha = subprocess.run(pragma_version, text=True, capture_output=True).stdout.strip().split()[-1]
+    file_name = "non_matching_sha_{}_{}.txt".format(nightly_build, architecture.replace("/", "-"))
     return sha_matching(short_sha, full_sha, file_name, tested_binary)
 
 def test_extensions(tested_binary, file_name, counter, extensions):

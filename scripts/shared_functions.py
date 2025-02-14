@@ -47,7 +47,7 @@ def sha_matching(short_sha, full_sha, file_name, nightly_build):
         - Version triggered the build: { full_sha }
         - Downloaded build version: { short_sha }
         """)
-        with open(file_name, 'w') as f:
+        with open(file_name, 'a') as f:
             f.write(f"""
             Version of { nightly_build } tested binary doesn't match to the version that triggered the build.
             - Version triggered the build: { full_sha }
