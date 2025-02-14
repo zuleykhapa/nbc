@@ -48,7 +48,7 @@ def get_extensions_from(config) :
     with open(config, "r") as file:
         content = file.read()
     # matching each word after `load(`
-    pattern = r"duckdb_extension_load\(\s*([^\s,)]+)"
+    pattern = r"duckdb_extension_load\((\w+)"
     matches = re.findall(pattern, content)
     return matches
 
