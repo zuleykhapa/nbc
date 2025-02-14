@@ -102,6 +102,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: ${{ env.GH_REPO }}
+            ref: 'main'
             sparse-checkout: |
                 .github/config
             path: ext
