@@ -71,6 +71,15 @@ def verify_version(tested_binary, full_sha):
     return sha_matching(short_sha, full_sha, tested_binary, architecture)
 
 def test_extensions(tested_binary, file_name, counter, extensions):
+    # select_extensions = [
+    #     tested_binary,
+    #     "-csv",
+    #     "-noheader",
+    #     "-c",
+    #     "SELECT extension_name FROM duckdb_extensions() WHERE NOT loaded"
+    # ]
+    # subprocess_result = subprocess.run(select_extensions, text=True, capture_output=True)
+    # extensions = subprocess_result.stdout.strip().splitlines()
     for ext in extensions:
         select_installed = [
             tested_binary,
