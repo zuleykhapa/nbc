@@ -93,7 +93,7 @@ def test_extensions(tested_binary, file_name, counter, extensions):
         is_installed = subprocess_result.stdout.strip()
         if is_installed == 'false':
             for action in ACTIONS:
-                print(f"{ action }ing { ext }...")
+                print(f"{ action } { ext }...")
                 install_ext = [
                     tested_binary,
                     "-c",
