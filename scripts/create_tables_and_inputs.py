@@ -83,7 +83,7 @@ def create_tables_for_report(build_job, con):
     '''
     In 'run_info_tables.duckdb' file creates 'gh_run_list_{ build_job }', 'steps_{ build_job }'
         and 'artifacts_{ build_job }' tables from json files created on save_run_data_to_json_files()
-    Using 'steps' and 'artifacts' tables creates 'artifacts_per_jobs_{ build_job }' table 
+    Using 'steps' and 'artifacts' tables creates '{ build_job }_artifacts_per_jobs' table 
         for the final report.
     '''
     con.execute(f"""
@@ -110,11 +110,11 @@ def create_tables_for_report(build_job, con):
         url = get_value_for_key("url", build_job)
         base_url = f"{ url }/artifacts/"
         con.execute(f"""
-            CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ build_job }' AS (
+            CREATE OR REPLACE TABLE '{ build_job }_artifacts_per_jobs' AS (
                 SELECT
                     t1.job_name AS "Build (Architecture)",
                     t1.conclusion AS "Conclusion",
-                    '[' || t2.name || '](' || '{base_url}' || t2.artifact_id || ')' AS "Artifact",
+                    '[' || t2.name || '](' || '{ base_url }' || t2.artifact_id || ')' AS "Artifact",
                     t2.updated_at AS "Uploaded at"
                 FROM (
                     SELECT
@@ -175,7 +175,7 @@ def main():
 
     build_artifacts = con.execute(f"""
         SELECT Artifact
-        FROM 'artifacts_per_jobs_{ build_job }'
+        FROM '{ build_job }_artifacts_per_jobs'
         WHERE Artifact LIKE '[duckdb-binaries%';
     """).fetchall()
     # array of testable binaries like 'windows-amd64' extracted from a line 
@@ -196,7 +196,7 @@ def main():
 
     extensions_artifacts = con.execute(f"""
         SELECT Artifact
-        FROM 'artifacts_per_jobs_{ build_job }'
+        FROM '{ build_job }_artifacts_per_jobs'
         WHERE Artifact LIKE '[duckdb-extensions%';
     """).fetchall()
     tested_builds_dict = {}

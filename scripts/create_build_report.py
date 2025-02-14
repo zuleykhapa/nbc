@@ -2,7 +2,7 @@
 The scripts/create_build_report.py script job is to create a final report file "{ CURR_DATE }_REPORT_FILE.md".
     For each name of nightly-build it writes the latest run's conclusion, in case of failure,
     followed with a list of last 7 failed runs.
-    Then it adds 'artifacts_per_jobs_{ build_job }' table contents.
+    Then it adds '{ build_job }_artifacts_per_jobs' table contents.
 
 Can be tested locally running 'python scripts/create_tables_and_inputs.py' with preconditions:
     1. Run 'scripts/create_build_report.py'.
@@ -91,7 +91,7 @@ def create_build_report(build_job, con):
             
         f.write(f"\n#### Workflow Artifacts\n")
         artifacts_per_job = con.execute(f"""
-            SELECT * FROM 'artifacts_per_jobs_{ build_job }' ORDER BY "Build (Architecture)" ASC;
+            SELECT * FROM '{ build_job }_artifacts_per_jobs' ORDER BY "Build (Architecture)" ASC;
             """).df()
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
