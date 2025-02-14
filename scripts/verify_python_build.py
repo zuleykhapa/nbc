@@ -69,7 +69,7 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                 )
                 print(f"Result: { subprocess_result.output.decode() }")
                 short_sha = subprocess_result.output.decode().strip()
-                if not sha_matching(short_sha, full_sha, build_job, architecture):
+                if not sha_matching(short_sha, full_sha, nightly_build, architecture):
                     print(f"TESTING EXTENSIONS ON python{ version }")
                     # select_extensions = container.exec_run("""
                     #     python -c "import duckdb; res = duckdb.sql('SELECT extension_name FROM duckdb_extensions() WHERE NOT loaded').fetchall(); result =[row[0] for row in res]; print(result)"
