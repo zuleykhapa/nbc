@@ -79,23 +79,23 @@ def count_consecutive_failures(build_job, con):
     return consecutive_failures
 
 
-def sha_matching(short_sha, full_sha, build_job, architecture):
+def sha_matching(short_sha, full_sha, tested_binary, architecture):
     if not full_sha.startswith(short_sha):
         print(f"""
-        Version of { build_job.get_build_job_name() } tested binary doesn't match to the version that triggered the build.
+        Version of { tested_binary } tested binary doesn't match to the version that triggered the build.
         - Version triggered the build: { full_sha }
         - Downloaded build version: { short_sha }
         """)
-        non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(build_job, architecture.replace("/", "-"))
+        non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(tested_binary, architecture.replace("/", "-"))
         with open(non_matching_sha_file_name, 'a') as f:
             f.write(f"""
-            Version of { build_job.get_build_job_name() } { architecture } tested binary doesn't match to the version that triggered the build.
+            Version of { tested_binary } { architecture } tested binary doesn't match to the version that triggered the build.
             - Version triggered the build: { full_sha }
             - Downloaded build version: { short_sha }
             """)
         return False
     print(f"""
-    Versions of { build_job.get_build_job_name() } build match:
+    Versions of { tested_binary } build match:
     - Version triggered the build: { full_sha }
     - Downloaded build version: { short_sha }
     """)
