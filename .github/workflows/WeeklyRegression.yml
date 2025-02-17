@@ -260,6 +260,7 @@ jobs:
           echo benchmark/micro/index/insert/insert_pk_fk.benchmark >> .github/regression/micro_extended.csv
           echo benchmark/micro/pushdown/window_partition_pushdown.benchmark >> .github/regression/micro_extended.csv
           sed -i 's/\(COPY lineitem to .* (.*\))\;/\1, OVERWRITE TRUE)\;/g' benchmark/micro/pushdown/window_partition_pushdown.benchmark
+          cat benchmark/micro/pushdown/window_partition_pushdown.benchmark
           cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/micro_extended.csv
 
       # - id: failed-build
