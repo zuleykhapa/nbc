@@ -54,8 +54,7 @@ def get_value_for_key(key, build_job):
         SELECT { key } 
         FROM read_json('{ build_job.get_build_job_file_name() }') 
         WHERE status = 'completed' 
-        ORDER BY createdAt 
-        DESC LIMIT 1;
+        ORDER BY createdAt DESC
         """).fetchone()[0]
     return value
 
@@ -162,25 +161,19 @@ def get_runner(platform, architecture):
         case _:
             return "ubuntu-22.04-arm" if architecture == 'arm64' else "ubuntu-latest"
 
-def main():
-    build_job = BuildJob("InvokeCI")
-    matrix_data = []
-    if os.path.isfile(DUCKDB_FILE):
-        os.remove(DUCKDB_FILE)
-    con = duckdb.connect(DUCKDB_FILE)
-    list_all_runs(con, build_job)
-    build_job_run_id = get_value_for_key("databaseId", build_job)
-    save_run_data_to_json_files(build_job, con, build_job_run_id)
-    create_tables_for_report(build_job, con)
-
-    build_artifacts = con.execute(f"""
+def get_artifacts_list(con, build_job, artifatc_type):
+    artifacts = con.execute(f"""
         SELECT Artifact
         FROM '{ build_job.get_artifacts_per_jobs_table_name() }'
-        WHERE Artifact LIKE '[duckdb-binaries%';
+        WHERE Artifact LIKE '[duckdb-{ artifatc_type }%';
     """).fetchall()
+    return artifacts
+
+def get_tested_binaries_set(con, build_job):
     # array of testable binaries like 'windows-amd64' extracted from a line 
     # like '[duckdb-binaries-windows-amd64](https://github.com/duckdb/duckdb/actions/runs/13275346242/artifacts/2575624860)'
     # but we replace an underscore with a dash to match with the extensions names
+    build_artifacts = get_artifacts_list(con, build_job, "binaries")
     tested_binaries = set()
     for row in build_artifacts:
         pattern = r'\[duckdb-binaries-([a-zA-Z]+)(?:-([a-zA-Z0-9]+))?\]'
@@ -193,12 +186,12 @@ def main():
             elif build_platform == 'osx':
                 tested_binaries.add(build_platform + "_arm64")
                 tested_binaries.add(build_platform + "_amd64")
+    return tested_binaries
 
-    extensions_artifacts = con.execute(f"""
-        SELECT Artifact
-        FROM '{ build_job.get_artifacts_per_jobs_table_name() }'
-        WHERE Artifact LIKE '[duckdb-extensions%';
-    """).fetchall()
+def create_inputs(build_job, con, build_job_run_id):
+    matrix_data = []
+    tested_binaries = get_tested_binaries_set(con, build_job)
+    extensions_artifacts = get_artifacts_list(con, build_job, "extensions")
     tested_builds_dict = {}
     for row in extensions_artifacts:
         pattern =  r'\[duckdb-extensions-([a-zA-Z]+)_(amd64|arm64)'
@@ -217,6 +210,7 @@ def main():
                     "duckdb_binary": platform if platform == 'osx' else platform + "-" + architecture
                 }
                 matrix_data.append(new_data)
+                # also add python extensions for linux, ignore windows and ubuntu for now
                 if platform.startswith('linux'):
                     new_data = {
                         "nightly_build": "python",
@@ -227,9 +221,20 @@ def main():
                     }
                     matrix_data.append(new_data)
 
+def main():
+    build_job = BuildJob("InvokeCI")
+    if os.path.isfile(DUCKDB_FILE):
+        os.remove(DUCKDB_FILE)
+    con = duckdb.connect(DUCKDB_FILE)
+    
+    list_all_runs(con, build_job)
+    build_job_run_id = get_value_for_key("databaseId", build_job)
+    save_run_data_to_json_files(build_job, con, build_job_run_id)
+    create_tables_for_report(build_job, con)
+
+    matrix_data = create_inputs(build_job, con, build_job_run_id)
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)
-
     con.close()
     
 if __name__ == "__main__":
