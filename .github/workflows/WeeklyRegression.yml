@@ -259,9 +259,7 @@ jobs:
           # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
           echo benchmark/micro/index/insert/insert_pk_fk.benchmark >> .github/regression/micro_extended.csv
           echo benchmark/micro/pushdown/window_partition_pushdown.benchmark >> .github/regression/micro_extended.csv
-          # cp .github/regression/micro_extended.csv ../duckdb-curr-main/.github/regression/micro_extended.csv
-
-          # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+          sed -i 's/COPY (FROM lineitem ORDER BY l_shipdate) TO '${BENCHMARK_DIR}/lineitem_partitioned_shipdate_csv' (FORMAT CSV, PARTITION_BY l_shipdate);/COPY (FROM lineitem ORDER BY l_shipdate) TO '${BENCHMARK_DIR}/lineitem_partitioned_shipdate_csv' (FORMAT CSV, PARTITION_BY l_shipdate, OVERWRITE TRUE);/' benchmark/micro/pushdown/window_partition_pushdown.benchmark
           cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/micro_extended.csv
 
       # - id: failed-build
