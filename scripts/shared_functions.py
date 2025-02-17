@@ -6,6 +6,18 @@ import os
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
 
+def get_artifact_table_name(build_job):
+    return f"{ build_job }_artifacts"
+
+def get_steps_table_name(build_job):
+    return f"{ build_job }_steps"
+
+def get_artifacts_per_jobs_table_name(build_job):
+    return f"{ build_job }_artifacts_per_jobs"
+
+def get_run_list_table_name(build_job):
+    return f"{ build_job }_gh_run_list"
+    
 # save command execution results into an f_output file
 def fetch_data(command, f_output): 
     data = open(f_output, "w")
@@ -21,7 +33,6 @@ def list_all_runs(con, build_job):
         "gh", "run", "list",
         "--repo", GH_REPO,
         "--workflow", f"{ build_job }",
-        "--created", CURR_DATE,
         "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
     ]
     fetch_data(gh_run_list_command, gh_run_list_file)
@@ -32,7 +43,7 @@ def list_all_runs(con, build_job):
 def count_consecutive_failures(build_job, con):
     latest_success_rowid = con.execute(f"""
         SELECT rowid
-        FROM 'gh_run_list_{ build_job }'
+        FROM '{ get_run_list_table_name(build_job) }'
         WHERE conclusion = 'success'
         ORDER BY createdAt DESC
     """).fetchone()

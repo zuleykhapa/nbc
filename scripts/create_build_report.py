@@ -22,6 +22,10 @@ from collections import defaultdict
 from shared_functions import fetch_data
 from shared_functions import list_all_runs
 from shared_functions import count_consecutive_failures
+from shared_functions import get_artifact_table_name
+from shared_functions import get_steps_table_name
+from shared_functions import get_artifacts_per_jobs_table_name
+from shared_functions import get_run_list_table_name
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -32,7 +36,7 @@ def create_build_report(build_job, con):
     tested_binaries = [row[0] + "-" + row[1] for row in result]
     print(tested_binaries)
     url = con.execute(f"""
-        SELECT url FROM 'gh_run_list_{ build_job }' LIMIT 1
+        SELECT url FROM '{ get_run_list_table_name(build_job) }' LIMIT 1
         """).fetchone()[0]
     failures_count = count_consecutive_failures(build_job, con)
 
@@ -49,14 +53,14 @@ def create_build_report(build_job, con):
                 failures_count = con.execute(f"""
                     SELECT
                         count(*)
-                    FROM 'gh_run_list_{ build_job }'
+                    FROM '{ get_run_list_table_name(build_job) }'
                     WHERE conclusion = 'failure'
                 """).fetchone()[0]
         
             total_count = con.execute(f"""
                 SELECT
                     count(*)
-                FROM 'gh_run_list_{ build_job }'
+                FROM '{ get_run_list_table_name(build_job) }'
             """).fetchone()[0]
 
             f.write(f"## { build_job }\n")            
@@ -68,7 +72,7 @@ def create_build_report(build_job, con):
                 tmp_url = con.execute(f"""
                     SELECT
                         url
-                    FROM 'gh_run_list_{ build_job }'
+                    FROM '{ get_run_list_table_name(build_job) }'
                     WHERE conclusion = 'success'
                     ORDER BY createdAt DESC
                     LIMIT 1
@@ -82,7 +86,7 @@ def create_build_report(build_job, con):
                     conclusion as "Conclusion",
                     createdAt as "Created at",
                     url as "URL"
-                FROM 'gh_run_list_{ build_job }'
+                FROM '{ get_run_list_table_name(build_job) }'
                 WHERE conclusion != 'success'
                 ORDER BY createdAt DESC
                 LIMIT 7
@@ -91,7 +95,7 @@ def create_build_report(build_job, con):
             
         f.write(f"\n#### Workflow Artifacts\n")
         artifacts_per_job = con.execute(f"""
-            SELECT * FROM '{ build_job }_artifacts_per_jobs' ORDER BY "Build (Architecture)" ASC;
+            SELECT * FROM '{ get_artifacts_per_jobs_table_name(build_job) }' ORDER BY "Build (Architecture)" ASC;
             """).df()
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         

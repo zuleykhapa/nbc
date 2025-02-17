@@ -43,9 +43,13 @@ from collections import defaultdict
 from shared_functions import fetch_data
 from shared_functions import list_all_runs
 from shared_functions import count_consecutive_failures
+from shared_functions import get_artifact_table_name
+from shared_functions import get_steps_table_name
+from shared_functions import get_artifacts_per_jobs_table_name
+from shared_functions import get_run_list_table_name
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
-CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
+DUCKDB_FILE = 'run_info_tables.duckdb'
 SHOULD_BE_TESTED = ('python', 'osx', 'linux', 'windows')
 
 def get_value_for_key(key, build_job):
@@ -61,23 +65,21 @@ def get_value_for_key(key, build_job):
 def save_run_data_to_json_files(build_job, con, build_job_run_id):
     '''
     Fetches GH Actions data related to specified nightly-build and saves it into json files.
-        As result "{ build_job }.json", "{ build_job }_jobs.json" and "{ build_job }_artifacts.json"
-        files are created. They will be used by create_tables_for_report()
+    As result "{ build_job }.json", "{ build_job }_jobs.json" and "{ build_job }_artifacts.json"
+    files are created. They will be used by create_tables_for_report()
     '''
-    jobs_file = f"{ build_job }_jobs.json"
     jobs_command = [
             "gh", "run", "view",
             "--repo", GH_REPO,
             f"{ build_job_run_id }",
             "--json", "jobs"
         ]
-    fetch_data(jobs_command, jobs_file)
-    artifacts_file = f"{ build_job }_artifacts.json"
+    fetch_data(jobs_command, f"{ build_job }_jobs.json")
     artifacts_command = [
             "gh", "api",
             f"repos/{ GH_REPO }/actions/runs/{ build_job_run_id }/artifacts"
         ]
-    fetch_data(artifacts_command, artifacts_file)
+    fetch_data(artifacts_command, f"{ build_job }_artifacts.json")
 
 def create_tables_for_report(build_job, con):
     '''
@@ -87,30 +89,30 @@ def create_tables_for_report(build_job, con):
         for the final report.
     '''
     con.execute(f"""
-        CREATE OR REPLACE TABLE 'gh_run_list_{ build_job }' AS (
+        CREATE OR REPLACE TABLE '{ get_run_list_table_name(build_job) }' AS (
             SELECT *
             FROM '{ build_job }.json')
             ORDER BY createdAt DESC
     """)
     con.execute(f"""
-        CREATE OR REPLACE TABLE 'steps_{ build_job }' AS (
+        CREATE OR REPLACE TABLE '{ get_steps_table_name(build_job) }' AS (
             SELECT * FROM read_json('{ build_job }_jobs.json')
         )
     """)
     con.execute(f"""
-            CREATE OR REPLACE TABLE 'artifacts_{ build_job }' AS (
+            CREATE OR REPLACE TABLE '{ get_artifact_table_name(build_job) }' AS (
                 SELECT * FROM read_json('{ build_job }_artifacts.json')
             );
         """)
     # check if the artifatcs table is not empty
-    artifacts_count = con.execute(f"SELECT list_count(artifacts) FROM 'artifacts_{ build_job }';").fetchone()[0]
+    artifacts_count = con.execute(f"SELECT list_count(artifacts) FROM '{ get_artifact_table_name(build_job) }';").fetchone()[0]
     if artifacts_count > 0:
         # Given a job and its steps, we want to find the artifacts uploaded by the job 
         # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
         url = get_value_for_key("url", build_job)
         base_url = f"{ url }/artifacts/"
         con.execute(f"""
-            CREATE OR REPLACE TABLE '{ build_job }_artifacts_per_jobs' AS (
+            CREATE OR REPLACE TABLE '{ get_artifacts_per_jobs_table_name(build_job) }' AS (
                 SELECT
                     t1.job_name AS "Build (Architecture)",
                     t1.conclusion AS "Conclusion",
@@ -130,7 +132,7 @@ def create_tables_for_report(build_job, con):
                             SELECT
                                 unnest(jobs)['steps'] steps,
                                 unnest(jobs)['name'] job_name 
-                            FROM 'steps_{ build_job }'
+                            FROM '{ get_steps_table_name(build_job) }'
                             )
                         )
                     WHERE steps['name'] LIKE '%upload%'
@@ -140,14 +142,14 @@ def create_tables_for_report(build_job, con):
                     ) t1
                 POSITIONAL JOIN (
                     SELECT
-                        art.name,
-                        art.expires_at expires_at,
-                        art.updated_at updated_at,
-                        art.id artifact_id
+                        artifacts.name,
+                        artifacts.expires_at expires_at,
+                        artifacts.updated_at updated_at,
+                        artifacts.id artifact_id
                     FROM (
                         SELECT
-                            unnest(artifacts) art
-                        FROM 'artifacts_{ build_job }'
+                            unnest(artifacts) artifacts
+                        FROM '{ get_artifact_table_name(build_job) }'
                         )
                     ORDER BY expires_at
                     ) as t2
@@ -166,8 +168,9 @@ def get_runner(platform, architecture):
 def main():
     build_job = "InvokeCI"
     matrix_data = []
-
-    con = duckdb.connect('run_info_tables.duckdb')
+    if os.path.isfile(DUCKDB_FILE):
+        os.remove(DUCKDB_FILE)
+    con = duckdb.connect(DUCKDB_FILE)
     list_all_runs(con, build_job)
     build_job_run_id = get_value_for_key("databaseId", build_job)
     save_run_data_to_json_files(build_job, con, build_job_run_id)
@@ -175,7 +178,7 @@ def main():
 
     build_artifacts = con.execute(f"""
         SELECT Artifact
-        FROM '{ build_job }_artifacts_per_jobs'
+        FROM '{ get_artifacts_per_jobs_table_name(build_job) }'
         WHERE Artifact LIKE '[duckdb-binaries%';
     """).fetchall()
     # array of testable binaries like 'windows-amd64' extracted from a line 
@@ -196,7 +199,7 @@ def main():
 
     extensions_artifacts = con.execute(f"""
         SELECT Artifact
-        FROM '{ build_job }_artifacts_per_jobs'
+        FROM '{ get_artifacts_per_jobs_table_name(build_job) }'
         WHERE Artifact LIKE '[duckdb-extensions%';
     """).fetchall()
     tested_builds_dict = {}
