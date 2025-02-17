@@ -22,10 +22,7 @@ from collections import defaultdict
 from shared_functions import fetch_data
 from shared_functions import list_all_runs
 from shared_functions import count_consecutive_failures
-from shared_functions import get_artifact_table_name
-from shared_functions import get_steps_table_name
-from shared_functions import get_artifacts_per_jobs_table_name
-from shared_functions import get_run_list_table_name
+from shared_functions import BuildJob
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -36,14 +33,14 @@ def create_build_report(build_job, con):
     tested_binaries = [row[0] + "-" + row[1] for row in result]
     print(tested_binaries)
     url = con.execute(f"""
-        SELECT url FROM '{ get_run_list_table_name(build_job) }' LIMIT 1
+        SELECT url FROM '{ build_job.get_run_list_table_name() }' LIMIT 1
         """).fetchone()[0]
     failures_count = count_consecutive_failures(build_job, con)
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:
-            f.write(f"\n## { build_job }\n")            
-            f.write(f"\n\n### { build_job } nightly-build has succeeded.\n")            
+            f.write(f"\n## { build_job.get_build_job_name() }\n")            
+            f.write(f"\n\n### { build_job.get_build_job_name() } nightly-build has succeeded.\n")            
             f.write(f"Latest run: [ Run Link ]({ url })\n")
         else:
             # failures_count = -1 means all runs in the json file have conclusion = 'failure' 
@@ -53,26 +50,26 @@ def create_build_report(build_job, con):
                 failures_count = con.execute(f"""
                     SELECT
                         count(*)
-                    FROM '{ get_run_list_table_name(build_job) }'
+                    FROM '{ build_job.get_run_list_table_name() }'
                     WHERE conclusion = 'failure'
                 """).fetchone()[0]
         
             total_count = con.execute(f"""
                 SELECT
                     count(*)
-                FROM '{ get_run_list_table_name(build_job) }'
+                FROM '{ build_job.get_run_list_table_name() }'
             """).fetchone()[0]
 
-            f.write(f"## { build_job }\n")            
+            f.write(f"## { build_job.get_build_job_name() }\n")            
             if failures_count == total_count:
-                f.write(f"### { build_job } nightly-build has not succeeded more than **{ failures_count }** times.\n")
+                f.write(f"### { build_job.get_build_job_name() } nightly-build has not succeeded more than **{ failures_count }** times.\n")
             else:
-                f.write(f"### { build_job } nightly-build has not succeeded the previous **{ failures_count }** times.\n")
+                f.write(f"### { build_job.get_build_job_name() } nightly-build has not succeeded the previous **{ failures_count }** times.\n")
             if failures_count < total_count:
                 tmp_url = con.execute(f"""
                     SELECT
                         url
-                    FROM '{ get_run_list_table_name(build_job) }'
+                    FROM '{ build_job.get_run_list_table_name() }'
                     WHERE conclusion = 'success'
                     ORDER BY createdAt DESC
                     LIMIT 1
@@ -86,7 +83,7 @@ def create_build_report(build_job, con):
                     conclusion as "Conclusion",
                     createdAt as "Created at",
                     url as "URL"
-                FROM '{ get_run_list_table_name(build_job) }'
+                FROM '{ build_job.get_run_list_table_name() }'
                 WHERE conclusion != 'success'
                 ORDER BY createdAt DESC
                 LIMIT 7
@@ -95,7 +92,7 @@ def create_build_report(build_job, con):
             
         f.write(f"\n#### Workflow Artifacts\n")
         artifacts_per_job = con.execute(f"""
-            SELECT * FROM '{ get_artifacts_per_jobs_table_name(build_job) }' ORDER BY "Build (Architecture)" ASC;
+            SELECT * FROM '{ build_job.get_artifacts_per_jobs_table_name() }' ORDER BY "Build (Architecture)" ASC;
             """).df()
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
@@ -142,7 +139,7 @@ def create_build_report(build_job, con):
                         f.write(content)
     
 def main():
-    build_job = 'InvokeCI'
+    build_job = BuildJob('InvokeCI')
     db_name = 'tables/run_info_tables.duckdb'
     con = duckdb.connect(db_name)
     create_build_report(build_job, con)
