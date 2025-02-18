@@ -35,23 +35,24 @@ jobs:
             gh run list -w "Check Nightly Build Status" -L 1 --json databaseId --jq '.[] | .databaseId' > run_id
             gh run download $(cat run_id) -n REPORT
             ls
-
-      - name: Move report to docs folder
-        run: |
-          mkdir -p _posts
-          cp *REPORT_FILE.md _posts/
-          git add _posts/*REPORT_FILE.md
-
-      - name: Set up Pages
-        uses: actions/configure-pages@v5
   
       - id: curr-date
         run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
+      - name: Move report to docs folder
+        run: |
+          mkdir -p _posts
+          cp ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md _posts/ || (echo "No report file found!" && exit 1)
+          ls -l _posts/
+          git add _posts/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+
+      - name: Set up Pages
+        uses: actions/configure-pages@v5
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-            path: _posts/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+            path: _posts/
 
     #   - name: Commit and push changes
     #     uses: stefanzweifel/git-auto-commit-action@v5
