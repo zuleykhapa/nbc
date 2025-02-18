@@ -94,9 +94,10 @@ def create_build_report(build_job, con):
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
         # add extensions
-        if os.path.getsize(os.path.join(os.getcwd(), "inputs.json")) == 0:
+        inputs = "inputs.json"
+        if os.path.exists(inputs) and os.path.getsize(inputs) > 0:
             print("🥵")
-            result = con.execute("SELECT nightly_build, duckdb_arch FROM 'inputs.json'").fetchall()
+            result = con.execute(f"SELECT nightly_build, duckdb_arch FROM '{ inputs }'").fetchall()
             tested_binaries = [row[0] + "-" + row[1] for row in result]
             print(tested_binaries)
             for tested_binary in tested_binaries:
