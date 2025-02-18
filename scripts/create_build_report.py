@@ -94,51 +94,51 @@ def create_build_report(build_job, con):
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
         # add extensions
-        if os.path.getsize(os.path.join(os.path.dirname(os.getcwd()),"inputs.json")) == 0:
+        if os.path.getsize(os.path.join(os.getcwd(), "inputs.json")) == 0:
             print("🥵")
             result = con.execute("SELECT nightly_build, duckdb_arch FROM 'inputs.json'").fetchall()
             tested_binaries = [row[0] + "-" + row[1] for row in result]
             print(tested_binaries)
-        for tested_binary in tested_binaries:
-            tested_binary = tested_binary + "_" + architecture if tested_binary == 'osx' else tested_binary.replace("-", "_")
-            file_name_pattern = f"failed_ext/ext_{ tested_binary }*/list_failed_ext_{ tested_binary }*.csv"
-            matching_files = glob.glob(file_name_pattern)
-            if matching_files:
-                f.write(f"\n## { tested_binary }\n")
-                f.write("\n#### Tested extensions\n")
-                passed = con.execute(f"""
-                    SELECT extension
-                    FROM read_csv('{ file_name_pattern }')
-                    WHERE result = 'passed' AND statement = 'INSTALL'
-                    INTERSECT(
-                        SELECT extension
-                        FROM read_csv('{ file_name_pattern }')
-                        WHERE result = 'passed' AND statement = 'LOAD'
-                        ORDER BY extension ASC
-                    )
-                """).fetchall()
-                passed_extentions = [p[0] for p in passed]
-                f.write(f"The following extensions could be loaded and installed successfully:\n##### { passed_extentions }\n")
-                
-                failed_extensions = con.execute(f"""
-                    SELECT * FROM read_csv('{ file_name_pattern }')
-                    WHERE result = 'failed'
-                """).df()
-                if failed_extensions.empty:
-                    f.write(f"None of extensions had failed to be installed or loaded.\n")
-                else:
-                    f.write("#### List of failed extensions:\n")
-                    f.write(failed_extensions.to_markdown(index=False) + "\n")
-            else:
-                file_name_pattern = f"failed_ext/ext_{ tested_binary }*/non_matching_sha_{ tested_binary }*.txt"
+            for tested_binary in tested_binaries:
+                tested_binary = tested_binary + "_" + architecture if tested_binary == 'osx' else tested_binary.replace("-", "_")
+                file_name_pattern = f"failed_ext/ext_{ tested_binary }*/list_failed_ext_{ tested_binary }*.csv"
                 matching_files = glob.glob(file_name_pattern)
                 if matching_files:
                     f.write(f"\n## { tested_binary }\n")
-                    for file in matching_files:
-                        with open(file, 'r') as src:
-                            content = src.read()
-                        f.write(f"#### { file }:")
-                        f.write(content)
+                    f.write("\n#### Tested extensions\n")
+                    passed = con.execute(f"""
+                        SELECT extension
+                        FROM read_csv('{ file_name_pattern }')
+                        WHERE result = 'passed' AND statement = 'INSTALL'
+                        INTERSECT(
+                            SELECT extension
+                            FROM read_csv('{ file_name_pattern }')
+                            WHERE result = 'passed' AND statement = 'LOAD'
+                            ORDER BY extension ASC
+                        )
+                    """).fetchall()
+                    passed_extentions = [p[0] for p in passed]
+                    f.write(f"The following extensions could be loaded and installed successfully:\n##### { passed_extentions }\n")
+                    
+                    failed_extensions = con.execute(f"""
+                        SELECT * FROM read_csv('{ file_name_pattern }')
+                        WHERE result = 'failed'
+                    """).df()
+                    if failed_extensions.empty:
+                        f.write(f"None of extensions had failed to be installed or loaded.\n")
+                    else:
+                        f.write("#### List of failed extensions:\n")
+                        f.write(failed_extensions.to_markdown(index=False) + "\n")
+                else:
+                    file_name_pattern = f"failed_ext/ext_{ tested_binary }*/non_matching_sha_{ tested_binary }*.txt"
+                    matching_files = glob.glob(file_name_pattern)
+                    if matching_files:
+                        f.write(f"\n## { tested_binary }\n")
+                        for file in matching_files:
+                            with open(file, 'r') as src:
+                                content = src.read()
+                            f.write(f"#### { file }:")
+                            f.write(content)
     
 def main():
     build_job = BuildJob('InvokeCI')
