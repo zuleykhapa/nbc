@@ -1,6 +1,5 @@
 name: Test matrix from json
 on: 
-    push:
     workflow_dispatch:
 jobs:
     create-json-file:
