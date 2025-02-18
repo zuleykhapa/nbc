@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: gh-pages
-            
+
       - name: Download report artifact
         shell: bash
         run: |
@@ -27,14 +27,14 @@ jobs:
       - name: Move report to docs folder
         run: |
           mkdir -p docs
-          mkdir -p _posts
-          cp *REPORT_FILE.md _posts/
+          mkdir -p reports
+          cp *REPORT_FILE.md reports/
           mv *REPORT_FILE.md docs/
-          git add _posts/*REPORT_FILE.md
+          git add docs/*REPORT_FILE.md
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update daily report $(date +'%Y-%m-%d')"
           branch: gh-pages
-          file_pattern: _posts/*REPORT_FILE.md
+          file_pattern: docs/*REPORT_FILE.md
