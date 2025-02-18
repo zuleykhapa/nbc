@@ -57,13 +57,6 @@ jobs:
         with:
             path: _posts/
 
-    #   - name: Commit and push changes
-    #     uses: stefanzweifel/git-auto-commit-action@v5
-    #     with:
-    #       commit_message: "Update daily report $(date +'%Y-%m-%d')"
-    #       branch: gh-pages
-    #       file_pattern: _posts/*REPORT_FILE.md
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
