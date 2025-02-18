@@ -30,7 +30,7 @@ jobs:
             mkdir -p _posts
             cp *REPORT_FILE.md _posts/
             mv *REPORT_FILE.md docs/
-            git add _posts/*REPORT_FILE.md
+            git add -f _posts/*REPORT_FILE.md
             
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
