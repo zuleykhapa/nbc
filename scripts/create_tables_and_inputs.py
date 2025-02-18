@@ -220,19 +220,20 @@ def create_inputs(build_job, con, build_job_run_id):
                         "duckdb_binary": platform + "-" + architecture
                     }
                     matrix_data.append(new_data)
+    return matrix_data
 
 def main():
     build_job = BuildJob("InvokeCI")
     if os.path.isfile(DUCKDB_FILE):
         os.remove(DUCKDB_FILE)
     con = duckdb.connect(DUCKDB_FILE)
-    
     list_all_runs(con, build_job)
     build_job_run_id = get_value_for_key("databaseId", build_job)
     save_run_data_to_json_files(build_job, con, build_job_run_id)
     create_tables_for_report(build_job, con)
 
     matrix_data = create_inputs(build_job, con, build_job_run_id)
+    print("#####", matrix_data)
     with open("inputs.json", "w") as f:
         json.dump(matrix_data, f, indent=4)
     con.close()

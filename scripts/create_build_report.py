@@ -29,9 +29,6 @@ CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-
 REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
 
 def create_build_report(build_job, con):
-    result = con.execute("SELECT nightly_build, duckdb_arch FROM 'inputs.json'").fetchall()
-    tested_binaries = [row[0] + "-" + row[1] for row in result]
-    print(tested_binaries)
     url = con.execute(f"""
         SELECT url FROM '{ build_job.get_run_list_table_name() }' LIMIT 1
         """).fetchone()[0]
@@ -97,6 +94,11 @@ def create_build_report(build_job, con):
         f.write(artifacts_per_job.to_markdown(index=False) + "\n")
         
         # add extensions
+        if os.path.getsize(os.path.join(os.path.dirname(os.getcwd()),"inputs.json")) == 0:
+            print("🥵")
+            result = con.execute("SELECT nightly_build, duckdb_arch FROM 'inputs.json'").fetchall()
+            tested_binaries = [row[0] + "-" + row[1] for row in result]
+            print(tested_binaries)
         for tested_binary in tested_binaries:
             tested_binary = tested_binary + "_" + architecture if tested_binary == 'osx' else tested_binary.replace("-", "_")
             file_name_pattern = f"failed_ext/ext_{ tested_binary }*/list_failed_ext_{ tested_binary }*.csv"
