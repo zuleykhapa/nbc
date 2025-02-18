@@ -6,6 +6,17 @@ on:
     types:
       - completed
   workflow_dispatch:
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+  
+  # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+  # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+  concurrency:
+    group: "pages"
+    cancel-in-progress: false
 env:
     GH_TOKEN: ${{ github.token }}
 jobs:
@@ -31,19 +42,6 @@ jobs:
             cp *REPORT_FILE.md _posts/
             mv *REPORT_FILE.md docs/
             git add -f _posts/*REPORT_FILE.md
-            
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-            ruby-version: '2.7'
-
-      - name: Install Dependencies
-        run: |
-            gem install jekyll bundler
-            bundle install
-    
-      - name: Build Jekyll Site
-        run: bundle exec jekyll build
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -51,3 +49,6 @@ jobs:
           commit_message: "Update daily report $(date +'%Y-%m-%d')"
           branch: gh-pages
           file_pattern: _posts/*REPORT_FILE.md
+    
+      - name: Deploy to GH Pages
+        uses: actions/deploy-pages@v4
