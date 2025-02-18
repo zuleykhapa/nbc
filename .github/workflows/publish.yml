@@ -17,15 +17,15 @@ jobs:
           ref: gh-pages
 
       - name: Download report artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: REPORT
-          path: REPORT.md
+        shell: bash
+        run: |
+            gh run list -w "Check Nightly Build Status" -L 1 --json databaseId --jq '.[] | .databaseId' > run_id
+            gh run download $(cat run_id) -n REPORT
 
       - name: Move report to docs folder
         run: |
           mkdir -p docs
-          mv reports/REPORT.md docs/latest_report.md
+          mv reports/*REPORT.md docs/latest_report.md
           git add docs/latest_report.md
 
       - name: Commit and push changes

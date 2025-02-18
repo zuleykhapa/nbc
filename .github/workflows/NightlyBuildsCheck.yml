@@ -188,4 +188,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: REPORT.md
+          path: ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md
