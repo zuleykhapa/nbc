@@ -187,5 +187,5 @@ jobs:
       - name: Upload REPORT
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE
-          path: ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md
+          name: REPORT
+          path: REPORT.md
