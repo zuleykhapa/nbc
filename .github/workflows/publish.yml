@@ -5,6 +5,7 @@ on:
     workflows: ["Check Nightly Build Status"]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   deploy:
