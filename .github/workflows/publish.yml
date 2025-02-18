@@ -22,6 +22,7 @@ jobs:
         run: |
             gh run list -w "Check Nightly Build Status" -L 1 --json databaseId --jq '.[] | .databaseId' > run_id
             gh run download $(cat run_id) -n REPORT
+            ls
 
       - name: Move report to docs folder
         run: |
