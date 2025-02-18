@@ -27,6 +27,8 @@ jobs:
       - name: Move report to docs folder
         run: |
           mkdir -p docs
+          mkdir -p reports
+          cp *REPORT_FILE.md reports/
           mv *REPORT_FILE.md docs/latest_report.md
           git add docs/latest_report.md
 
@@ -35,4 +37,4 @@ jobs:
         with:
           commit_message: "Update daily report $(date +'%Y-%m-%d')"
           branch: gh-pages
-          file_pattern: reports/REPORT.md
+          file_pattern: docs/latest_report.md
