@@ -27,7 +27,7 @@ jobs:
       - name: Move report to docs folder
         run: |
           mkdir -p docs
-          mv reports/*REPORT_FILE.md docs/latest_report.md
+          mv *REPORT_FILE.md docs/latest_report.md
           git add docs/latest_report.md
 
       - name: Commit and push changes
