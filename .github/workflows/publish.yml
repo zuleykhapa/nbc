@@ -37,7 +37,7 @@ jobs:
   
       - name: Install Jekyll and Dependencies
         run: |
-            gem install jekyll bundler
+            gem install bundler
             bundle install
   
       - name: Build Jekyll Site
