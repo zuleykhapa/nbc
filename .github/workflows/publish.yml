@@ -26,15 +26,28 @@ jobs:
 
       - name: Move report to docs folder
         run: |
-          mkdir -p docs
-          mkdir -p reports
-          cp *REPORT_FILE.md reports/
-          mv *REPORT_FILE.md docs/latest_report.md
-          git add docs/latest_report.md
+            mkdir -p docs
+            mkdir -p _posts
+            cp *REPORT_FILE.md _posts/
+            mv *REPORT_FILE.md docs/
+            git add _posts/*REPORT_FILE.md
+            
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+            ruby-version: '2.7'
+
+      - name: Install Dependencies
+        run: |
+            gem install jekyll bundler
+            bundle install
+    
+      - name: Build Jekyll Site
+        run: bundle exec jekyll build
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update daily report $(date +'%Y-%m-%d')"
           branch: gh-pages
-          file_pattern: docs/latest_report.md
+          file_pattern: _posts/*REPORT_FILE.md
