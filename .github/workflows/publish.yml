@@ -5,7 +5,19 @@ on:
     workflows: ["Check Nightly Build Status"]
     types:
       - completed
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+    
+    # Allow one concurrent deployment
+concurrency:
+    group: "pages"
+    cancel-in-progress: true
 env:
     GH_TOKEN: ${{ github.token }}
 jobs:
@@ -30,26 +42,20 @@ jobs:
           cp *REPORT_FILE.md _posts/
           git add _posts/*REPORT_FILE.md
 
-      - name: Set up Ruby and Jekyll
-        uses: ruby/setup-ruby@v1
+      - name: Set up Pages
+        uses: actions/configure-pages@v2
+  
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-            ruby-version: '3.0'  # Use a compatible Ruby version
-  
-      - name: Install Jekyll and Dependencies
-        run: |
-            gem install bundler
-            bundle install
-  
-      - name: Build Jekyll Site
-        run: bundle exec jekyll build
-  
+            path: _posts/*REPORT_FILE.md
 
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update daily report $(date +'%Y-%m-%d')"
-          branch: gh-pages
-          file_pattern: _posts/*REPORT_FILE.md
+    #   - name: Commit and push changes
+    #     uses: stefanzweifel/git-auto-commit-action@v5
+    #     with:
+    #       commit_message: "Update daily report $(date +'%Y-%m-%d')"
+    #       branch: gh-pages
+    #       file_pattern: _posts/*REPORT_FILE.md
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
