@@ -44,10 +44,10 @@ jobs:
 
       - name: Move report to docs folder
         run: |
-          mkdir -p _posts
-          cp ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md _posts/ || (echo "No report file found!" && exit 1)
-          ls -l _posts/
-          git add _posts/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+          mkdir -p docs
+          cp ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md docs/ || (echo "No report file found!" && exit 1)
+          ls -l docs/
+          git add docs/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
 
       - name: Set up Pages
         uses: actions/configure-pages@v5
@@ -55,7 +55,7 @@ jobs:
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-            path: _posts/
+            path: docs/
 
       - name: Deploy to GitHub Pages
         id: deployment
