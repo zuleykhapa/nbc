@@ -102,6 +102,8 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                                         f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
                                     counter += 1
                                     f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ extension },{ action },{ actual_result }\n")
+                        else:
+                            break
             finally:
                 stop_container(container, container_name)
         
