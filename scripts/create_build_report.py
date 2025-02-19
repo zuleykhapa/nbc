@@ -36,6 +36,7 @@ def create_build_report(build_job, con):
 
     with open(REPORT_FILE, 'a') as f:
         if failures_count == 0:
+            f.write(f"\n\n")            
             f.write(f"\n## { build_job.get_build_job_name() }\n")            
             f.write(f"\n\n### { build_job.get_build_job_name() } nightly-build has succeeded.\n")            
             f.write(f"Latest run: [ Run Link ]({ url })\n")
@@ -85,7 +86,10 @@ def create_build_report(build_job, con):
                 ORDER BY createdAt DESC
                 LIMIT 7
             """).df()
-            f.write(failure_details.to_markdown(index=False) + "\n")
+            markdown_table = tabulate(failure_details, headers='keys', tablefmt='pipe', showindex=False)
+
+            f.write(markdown_table + "\n")
+            # f.write(failure_details.to_markdown(index=False) + "\n")
             
         f.write(f"\n#### Workflow Artifacts\n")
         artifacts_per_job = con.execute(f"""
