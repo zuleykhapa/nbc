@@ -54,6 +54,7 @@ def list_builds_for_python_versions(run_id):
 def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, run_id, architecture, runs_on, full_sha):
     python_versions = list_builds_for_python_versions(run_id)
     if runs_on.startswith("ubuntu"):
+        sha_mismatch_written = False
         for version in python_versions:
             client = docker.from_env() # to use docker installed on GH Actions machine by the workflow
             arch = f"linux/{ architecture }"
@@ -69,7 +70,7 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                 )
                 print(f"Result: { subprocess_result.output.decode() }")
                 short_sha = subprocess_result.output.decode().strip()
-                if sha_matching(short_sha, full_sha, nightly_build, architecture) is True:
+                if sha_matching(short_sha, full_sha, nightly_build, architecture, sha_mismatch_written) is True:
                     print(f"TESTING EXTENSIONS ON python{ version }")
                     # select_extensions = container.exec_run("""
                     #     python -c "import duckdb; res = duckdb.sql('SELECT extension_name FROM duckdb_extensions() WHERE NOT loaded').fetchall(); result =[row[0] for row in res]; print(result)"
@@ -103,7 +104,8 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                                     counter += 1
                                     f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ extension },{ action },{ actual_result }\n")
                         else:
-                            break
+                            if not sha_mismatch_written:
+                                sha_mismatch_written = True
             finally:
                 stop_container(container, container_name)
         
