@@ -79,7 +79,7 @@ def count_consecutive_failures(build_job, con):
     return consecutive_failures
 
 
-def sha_matching(short_sha, full_sha, tested_binary, architecture, sha_mismatch_written):
+def sha_matching(short_sha, full_sha, tested_binary, architecture, sha_mismatch_written = False):
     if not full_sha.startswith(short_sha):
         print(f"""
         Version of { tested_binary } tested binary doesn't match to the version that triggered the build.
