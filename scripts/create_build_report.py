@@ -86,9 +86,12 @@ def create_build_report(build_job, con):
                 ORDER BY createdAt DESC
                 LIMIT 7
             """).df()
-            markdown_table = tabulate(failure_details, headers='keys', tablefmt='pipe', showindex=False)
+            markdown_table = failure_details.to_markdown(index=False)
+            lines = markdown_table.splitlines()
+            lines[1] = '-' * len(lines[1])
+            cleaned_markdown_table = '\n'.join(lines)
 
-            f.write(markdown_table + "\n")
+            f.write(cleaned_markdown_table + "\n")
             # f.write(failure_details.to_markdown(index=False) + "\n")
             
         f.write(f"\n#### Workflow Artifacts\n")
