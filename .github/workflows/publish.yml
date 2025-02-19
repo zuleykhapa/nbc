@@ -66,4 +66,4 @@ jobs:
         with:
             commit_message: "Update daily report $(date +'%Y-%m-%d')"
             branch: gh-pages
-            file_pattern: reports/report.md
+            file_pattern: docs/report.md
