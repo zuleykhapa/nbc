@@ -59,7 +59,7 @@ jobs:
         run: |
             echo "<html><head><title>Reports Archive</title></head><body>" > docs/reports.html
             echo "<h1>All Reports</h1>" >> docs/reports.html
-            for file in $(ls -r docs/reports/report-*.md); do
+            for file in $(ls -r docs/reports/*_REPORT_FILE.md); do
                 filename=$(basename -- "$file")
                 date=${{ steps.curr-date.outputs.date }}
                 echo "<p><a href='reports/$filename'>$date</a></p>" >> docs/reports.html
