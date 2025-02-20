@@ -105,7 +105,7 @@ def test_extensions(tested_binary, file_name, extensions):
                         actual_result = 'failed'
                     else:
                         actual_result = 'passed'
-                    if not os.path(file_name) or os.path.getsize(file_name) == 0:
+                    if not os.path.exists(file_name) or os.path.getsize(file_name) == 0:
                         with open(file_name, "w") as f:
                             f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
                     with open(file_name, "a") as f:
