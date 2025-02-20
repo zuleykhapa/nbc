@@ -1,1 +1,0 @@
-- [Last report](latest_report.md)
