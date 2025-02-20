@@ -49,6 +49,16 @@ jobs:
           ls -l docs/
           git add docs/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
 
+      - name: Convert Markdown to HTML
+        run: |
+            sudo apt-get install -y pandoc  # Устанавливаем pandoc
+            pandoc -o docs/index.html reports/latest_report.md
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+            commit_message: "Update daily report $(date +'%Y-%m-%d')"
+            branch: gh-pages
+            file_pattern: docs/index.html
     #   - name: Set up Pages
     #     uses: actions/configure-pages@v5
 
@@ -61,9 +71,9 @@ jobs:
     #     id: deployment
     #     uses: actions/deploy-pages@v4
 
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-            commit_message: "Update daily report $(date +'%Y-%m-%d')"
-            branch: gh-pages
-            file_pattern: docs/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+    #   - name: Commit and push changes
+    #     uses: stefanzweifel/git-auto-commit-action@v5
+    #     with:
+    #         commit_message: "Update daily report $(date +'%Y-%m-%d')"
+    #         branch: gh-pages
+    #         file_pattern: docs/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
