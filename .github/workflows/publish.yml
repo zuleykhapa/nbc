@@ -42,12 +42,13 @@ jobs:
       - id: curr-date
         run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
-      - name: Move report to docs folder
+      - name: Move report to reports folder
         run: |
-          mkdir -p docs
-          cp ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md docs/ || (echo "No report file found!" && exit 1)
-          ls -l docs/
-          git add docs/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+            mkdir -p docs
+            mkdir -p reports
+            cp ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md reports
+            ls -l reports/
+            git add reports/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
 
       - name: Convert Markdown to HTML
         run: |
