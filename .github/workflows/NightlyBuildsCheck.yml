@@ -193,3 +193,11 @@ jobs:
         with:
           name: REPORT
           path: ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md
+      
+      - name: Upload REPORT to the _posts directory
+        shell: bash
+        run: |
+          mv ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md _posts
+          git add _posts/${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md
+          git commit -m "Adding ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md"
+          git push origin gh-pages
