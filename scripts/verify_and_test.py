@@ -105,10 +105,10 @@ def test_extensions(tested_binary, file_name, counter, extensions):
                         actual_result = 'failed'
                     else:
                         actual_result = 'passed'
-                    with open(file_name, "a") as f:
-                        if counter == 0:
+                    if not os.path(file_name) or os.path.getsize(file_name) == 0:
+                        with open(file_name, "w") as f:
                             f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
-                            counter += 1
+                    with open(file_name, "a") as f:
                         f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
 
                 except subprocess.CalledProcessError as e:
@@ -124,7 +124,6 @@ def test_extensions(tested_binary, file_name, counter, extensions):
 
 def main():
     file_name = "list_failed_ext_{}_{}.csv".format(nightly_build, architecture.replace("/", "-"))
-    counter = 0 # to add a header to list_failed_ext_nightly_build_architecture.csv only once
     full_sha = get_full_sha(run_id)
     extensions = list_extensions()
     if nightly_build in SHOULD_BE_TESTED:

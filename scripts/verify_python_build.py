@@ -98,11 +98,11 @@ def verify_and_test_python_linux(file_name, counter, extensions, nightly_build, 
                                     actual_result = 'failed'
                                 else:
                                     actual_result = 'passed'
-                                with open(file_name, 'a') as f:
-                                    if counter == 0:
+                                if not os.path(file_name) or os.path.getsize(file_name) == 0:
+                                    with open(file_name, "w") as f:
                                         f.write("nightly_build,architecture,runs_on,version,extension,statement,result\n")
-                                    counter += 1
-                                    f.write(f"{ nightly_build },{ architecture },{ runs_on },{ version },{ extension },{ action },{ actual_result }\n")
+                                with open(file_name, "a") as f:
+                                    f.write(f"{ nightly_build },{ architecture },{ runs_on },,{ ext },{ action },{ actual_result }\n")
                         else:
                             if not sha_mismatch_written:
                                 sha_mismatch_written = True
