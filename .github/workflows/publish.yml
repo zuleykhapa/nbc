@@ -46,32 +46,17 @@ jobs:
         run: |
             mkdir -p docs
             mkdir -p docs/reports
-            cp ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md docs/reports
+            mv ${{ steps.curr-date.outputs.date }}_REPORT_FILE.md docs/reports
+            cp docs/reports/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md docs/latest_report.md
             ls -l docs/reports/
-            git add docs/reports/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
-
-      - name: Convert Markdown to HTML
-        run: |
-            sudo apt-get install -y pandoc  # Устанавливаем pandoc
-            pandoc -o docs/index.html docs/reports/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
-
-      - name: Generate reports archive page
-        run: |
-            echo "<html><head><title>Reports Archive</title></head><body>" > docs/reports.html
-            echo "<h1>All Reports</h1>" >> docs/reports.html
-            for file in $(ls -r docs/reports/*_REPORT_FILE.md); do
-                filename=$(basename -- "$file")
-                date=${{ steps.curr-date.outputs.date }}
-                echo "<p><a href='reports/$filename'>$date</a></p>" >> docs/reports.html
-            done
-            echo "</body></html>" >> docs/reports.html  
+            # git add docs/reports/${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
             commit_message: "Update daily report $(date +'%Y-%m-%d')"
             branch: gh-pages
-            file_pattern: "docs/reports/*.md docs/index.html docs/reports.html"
+            file_pattern: docs/latest_report.md
     #   - name: Set up Pages
     #     uses: actions/configure-pages@v5
 
