@@ -2,15 +2,10 @@
 name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 
 on:
-  # # Runs on pushes targeting the default branch
-  # push:
-  #   branches: ["main"]
-  # workflow_run:
-  #   workflows: 
-  #     - "Check Nightly Build Status"
-  #   types: 
-  #     - completed
-  
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -30,11 +25,7 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    outputs:
-      date: ${{ steps.curr-date.outputs.date }}
     steps:
-      - id: curr-date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
@@ -42,7 +33,7 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./${{ steps.curr-date.outputs.date }}_REPORT_FILE.md
+          source: ./
           destination: ./_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
