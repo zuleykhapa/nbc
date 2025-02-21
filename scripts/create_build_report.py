@@ -75,7 +75,7 @@ def create_build_report(build_job, con):
                 latest_success_url = tmp_url[0] if tmp_url else ''
                 f.write(f"Latest successfull run: [ Run Link ]({ latest_success_url })\n")
 
-            f.write(f"\n#### Failure Details\n")
+            f.write(f"\n#### Failure Details\n\n")
             failure_details = con.execute(f"""
                 SELECT
                     conclusion as "Conclusion",
@@ -94,7 +94,7 @@ def create_build_report(build_job, con):
             f.write(cleaned_markdown_table + "\n")
             # f.write(failure_details.to_markdown(index=False) + "\n")
             
-        f.write(f"\n#### Workflow Artifacts\n")
+        f.write(f"\n#### Workflow Artifacts\n\n")
         artifacts_per_job = con.execute(f"""
             SELECT * FROM '{ build_job.get_artifacts_per_jobs_table_name() }' ORDER BY "Build (Architecture)" ASC;
             """).df()
@@ -135,7 +135,7 @@ def create_build_report(build_job, con):
                     if failed_extensions.empty:
                         f.write(f"None of extensions had failed to be installed or loaded.\n")
                     else:
-                        f.write("#### List of failed extensions:\n")
+                        f.write("#### List of failed extensions:\n\n")
                         f.write(failed_extensions.to_markdown(index=False) + "\n")
                 else:
                     file_name_pattern = f"failed_ext/ext_{ tested_binary }*/non_matching_sha_{ tested_binary }*.txt"
