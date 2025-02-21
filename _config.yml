@@ -10,7 +10,7 @@
 # ############################
 
 # # Name of website
-# title: My website
+title: DuckDB Nightly Builds Status
 
 # # Your name to show in the footer
 # author: Some Person
@@ -103,7 +103,7 @@
 # url-pretty: "MyWebsite.com"
 
 # # Add the website title to the title of every page
-# title-on-all-pages: true
+title-on-all-pages: true
 
 # # Excerpt word length - Truncate the excerpt of each post on the feed page to the specified number of words
 # excerpt_length: 50
@@ -259,10 +259,10 @@
 
 # # Output options (more information on Jekyll's site)
 # timezone: "America/Toronto"
-# markdown: kramdown
+markdown: kramdown
 # highlighter: rouge
-# permalink: /:year-:month-:day-:title/
-# paginate: 5
+permalink: /:year-:month-:day-:title/
+paginate: 5
 
 # kramdown:
 #   input: GFM
