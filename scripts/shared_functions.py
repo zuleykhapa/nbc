@@ -88,7 +88,7 @@ def sha_matching(short_sha, full_sha, tested_binary, architecture, sha_mismatch_
         """)
         if not sha_mismatch_written:
             non_matching_sha_file_name = "non_matching_sha_{}_{}.txt".format(tested_binary, architecture.replace("/", "-"))
-            with open(non_matching_sha_file_name, 'a') as f:
+            with open(non_matching_sha_file_name, 'w') as f:
                 f.write(f"""
                 Version of { tested_binary } { architecture } tested binary doesn't match to the version that triggered the build.
                 - Version triggered the build: { full_sha }
