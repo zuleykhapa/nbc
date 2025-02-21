@@ -11,7 +11,6 @@ import re
 GH_REPO = 'duckdb/duckdb'
 REPORT_FILE = f"nightly_builds_status.md"
 CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
-has_no_artifacts = ('Python', 'Julia', 'Swift', 'SwiftRelease')
 
 def get_value_for_key(key, nightly_build):
     value = duckdb.sql(f"""
@@ -47,19 +46,13 @@ def count_consecutive_failures(nightly_build, url, con):
     count_consecutive_failures = latest_success_rowid[0] if latest_success_rowid else -1 # when -1 then all runs in the json file have conclusion 'failure'
     return count_consecutive_failures
 
-def list_all_runs(con):
-    gh_run_list_file = f"GH_run_list.json"
+def list_all_runs(con, nightly_build):
+    gh_run_list_file = "GH_run_list.json"
     gh_run_list_command = [
         "gh", "run", "list",
         "--repo", GH_REPO,
-        "--event", "repository_dispatch",
-        "--created", CURR_DATE,
-        "-L", "50",
-        "--json", "status,conclusion,url,name,createdAt,databaseId,headSha",
-        "--jq", (
-            '.[] | select(.name == ("Android", "Julia", "LinuxRelease", "OSX", "Pyodide", '
-            '"Python", "R", "Swift", "SwiftRelease", "DuckDB-Wasm extensions", "Windows")) '
-        )
+        "--workflow", nightly_build,
+        "--json", "status,conclusion,url,name,createdAt,databaseId,headSha"
     ]
     fetch_data(gh_run_list_command, gh_run_list_file)
     result = con.execute(f"SELECT name FROM '{ gh_run_list_file }';").fetchall()
@@ -92,81 +85,66 @@ def prepare_data(nightly_build, con):
     fetch_data(artifacts_command, artifacts_file)
 
 def create_tables_for_report(nightly_build, con, url):
-    if nightly_build not in has_no_artifacts:
-        con.execute(f"""
-            CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
-                SELECT * FROM read_json('{ nightly_build }_jobs.json')
-            )
+    con.execute(f"""
+        CREATE OR REPLACE TABLE 'steps_{ nightly_build }' AS (
+            SELECT * FROM read_json('{ nightly_build }_jobs.json')
+        )
+    """)
+    con.execute(f"""
+            CREATE OR REPLACE TABLE 'artifacts_{ nightly_build }' AS (
+                SELECT * FROM read_json('{ nightly_build }_artifacts.json')
+            );
         """)
+    # check if the artifacts table is not empty
+    artifacts_count = con.execute(f"SELECT list_count(artifacts) FROM 'artifacts_{ nightly_build }';").fetchone()[0]
+    if artifacts_count > 0:
+        # Given a job and its steps, we want to find the artifacts uploaded by the job 
+        # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
         con.execute(f"""
-                CREATE OR REPLACE TABLE 'artifacts_{ nightly_build }' AS (
-                    SELECT * FROM read_json('{ nightly_build }_artifacts.json')
-                );
-            """)
-        # check if the artifacts table is not empty
-        artifacts_count = con.execute(f"SELECT list_count(artifacts) FROM 'artifacts_{ nightly_build }';").fetchone()[0]
-        if artifacts_count > 0:
-            # Given a job and its steps, we want to find the artifacts uploaded by the job 
-            # and make sure every 'upload artifact' step has indeed uploaded the expected artifact.
-            con.execute(f"""
-                SET VARIABLE base_url = "{ url }/artifacts/";
-                CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
+            SET VARIABLE base_url = "{ url }/artifacts/";
+            CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
+                SELECT
+                    t1.job_name AS "Build (Architecture)",
+                    t1.conclusion AS "Conclusion",
+                    '[' || t2.name || '](' || getvariable('base_url') || t2.artifact_id || ')' AS "Artifact",
+                    t2.updated_at AS "Uploaded at"
+                FROM (
                     SELECT
-                        t1.job_name AS "Build (Architecture)",
-                        t1.conclusion AS "Conclusion",
-                        '[' || t2.name || '](' || getvariable('base_url') || t2.artifact_id || ')' AS "Artifact",
-                        t2.updated_at AS "Uploaded at"
+                        job_name,
+                        steps.name step_name, 
+                        steps.conclusion conclusion,
+                        steps.startedAt startedAt
                     FROM (
                         SELECT
-                            job_name,
-                            steps.name step_name, 
-                            steps.conclusion conclusion,
-                            steps.startedAt startedAt
+                            unnest(steps) steps,
+                            job_name 
                         FROM (
                             SELECT
-                                unnest(steps) steps,
-                                job_name 
-                            FROM (
-                                SELECT
-                                    unnest(jobs)['steps'] steps,
-                                    unnest(jobs)['name'] job_name 
-                                FROM 'steps_{ nightly_build }'
-                                )
-                            )
-                        WHERE steps['name'] LIKE '%upload%'
-                        ORDER BY 
-                            conclusion DESC,
-                            startedAt
-                        ) t1
-                    POSITIONAL JOIN (
-                        SELECT
-                            art.name,
-                            art.expires_at expires_at,
-                            art.updated_at updated_at,
-                            art.id artifact_id
-                        FROM (
-                            SELECT
-                                unnest(artifacts) art
-                            FROM 'artifacts_{ nightly_build }'
-                            )
-                        ORDER BY expires_at
-                        ) as t2
-                    );
-                """)
-        else:
-            con.execute(f"""
-                CREATE OR REPLACE TABLE 'artifacts_per_jobs_{ nightly_build }' AS (
-                    SELECT job_name, conclusion 
-                    FROM (
-                        SELECT unnest(j['steps']) steps, j['name'] job_name, j['conclusion'] conclusion 
-                        FROM (
-                            SELECT unnest(jobs) j 
+                                unnest(jobs)['steps'] steps,
+                                unnest(jobs)['name'] job_name 
                             FROM 'steps_{ nightly_build }'
                             )
-                        ) 
-                    WHERE steps['name'] LIKE '%upload-artifact%'
-                    )
-                """)
+                        )
+                    WHERE steps['name'] LIKE '%upload%'
+                    ORDER BY 
+                        conclusion DESC,
+                        startedAt
+                    ) t1
+                POSITIONAL JOIN (
+                    SELECT
+                        art.name,
+                        art.expires_at expires_at,
+                        art.updated_at updated_at,
+                        art.id artifact_id
+                    FROM (
+                        SELECT
+                            unnest(artifacts) art
+                        FROM 'artifacts_{ nightly_build }'
+                        )
+                    ORDER BY expires_at
+                    ) as t2
+                );
+            """)
 
 def create_build_report(nightly_build, con, url):
     failures_count = count_consecutive_failures(nightly_build, url, con)
@@ -225,25 +203,21 @@ def create_build_report(nightly_build, con, url):
             f.write(failure_details.to_markdown(index=False))
             
         # check if the artifatcs table is not empty
-        if nightly_build not in has_no_artifacts:
-            f.write(f"\n#### Workflow Artifacts\n")
-            artifacts_per_job = con.execute(f"""
-                SELECT * FROM 'artifacts_per_jobs_{ nightly_build }';
-                """).df()
-            f.write(artifacts_per_job.to_markdown(index=False) + '\n')
-        else:
-            f.write(f"**{ nightly_build }** run doesn't upload artifacts.\n\n")
+        f.write(f"\n#### Workflow Artifacts\n")
+        artifacts_per_job = con.execute(f"""
+            SELECT * FROM 'artifacts_per_jobs_{ nightly_build }';
+            """).df()
+        f.write(artifacts_per_job.to_markdown(index=False) + '\n')
     
 def main():
+    nightly_build = "InvokeCI"
     con = duckdb.connect('run_info_tables.duckdb')
-    result = list_all_runs(con)
-    nightly_builds = [row[0] for row in result]
+    list_all_runs(con, nightly_build)
     # create complete report
-    for nightly_build in nightly_builds:
-        prepare_data(nightly_build, con)
-        url = con.execute(f"SELECT url FROM '{ nightly_build }.json'").fetchone()[0]
-        create_tables_for_report(nightly_build, con, url)
-        create_build_report(nightly_build, con, url)
+    prepare_data(nightly_build, con)
+    url = con.execute(f"SELECT url FROM '{ nightly_build }.json'").fetchone()[0]
+    create_tables_for_report(nightly_build, con, url)
+    create_build_report(nightly_build, con, url)
     con.close()
 
 if __name__ == "__main__":

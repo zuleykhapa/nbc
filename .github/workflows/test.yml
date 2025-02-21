@@ -1,0 +1,53 @@
+name: Test matrix from json
+on: 
+    workflow_dispatch:
+jobs:
+    create-json-file:
+        runs-on: ubuntu-latest
+        outputs:
+            file: ${{ steps.file.outputs.file }}
+        steps:
+            - id: file
+              run: |
+                echo '{
+                    "old_tests": [
+                        {
+                        "new_name": "main",
+                        "new_sha": "latest main SHA",
+                        "old_name": "main",
+                        "old_sha": "a week ago main SHA"
+                        },
+                        {
+                        "new_name": "main",
+                        "new_sha": "latest main SHA",
+                        "old_name": "v1.2-histrionicus",
+                        "old_sha": "latest v1.2-histrionicus SHA"
+                        }
+                    ]
+                    }' > j.json
+
+
+                matrix=$(cat j.json | jq -c '.')
+                echo "file=$matrix" >> $GITHUB_OUTPUT
+                cat j.json
+    use-matrix:
+        runs-on: ubuntu-latest
+        needs: create-json-file
+        outputs:
+            json: ${{ steps.to-json.outputs.file }}
+        steps:
+            - id: to-json
+              run: echo json=${{ toJson(needs.create-json-file.outputs.file )}} >> $GITHUB_OUTPUT
+    use:
+        runs-on: ubuntu-latest
+        needs: use-matrix
+        strategy:
+            matrix:
+                file: ${{ fromJson(needs.use-matrix.outputs.json) }}
+        steps:
+            - run: |
+                for item in ${{matrix.file}}; do
+                    echo $item
+                done
+
+        
