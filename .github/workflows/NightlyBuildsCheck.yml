@@ -199,6 +199,7 @@ jobs:
         env:
           CI_COMMIT_MESSAGE: "Add ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md"
           CI_COMMIT_AUTHOR: "Nightly Build Check CI"
+          GH_TOKEN: ${{ github.token }}
         run: |
           mv ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md _posts
           ls -lah _posts
