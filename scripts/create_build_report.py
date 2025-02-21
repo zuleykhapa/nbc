@@ -1,5 +1,5 @@
 '''
-The scripts/create_build_report.py script job is to create a final report file "{ CURR_DATE }_REPORT_FILE.md".
+The scripts/create_build_report.py script job is to create a final report file "{ CURR_DATE }-report.md".
     For each name of nightly-build it writes the latest run's conclusion, in case of failure,
     followed with a list of last 7 failed runs.
     Then it adds '{ build_job }_artifacts_per_jobs' table contents.
@@ -26,7 +26,7 @@ from shared_functions import BuildJob
 
 GH_REPO = os.environ.get('GH_REPO', 'duckdb/duckdb')
 CURR_DATE = os.environ.get('CURR_DATE', datetime.datetime.now().strftime('%Y-%m-%d'))
-REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
+REPORT_FILE = f"{ CURR_DATE }-report.md"
 
 def create_build_report(build_job, con):
     url = con.execute(f"""

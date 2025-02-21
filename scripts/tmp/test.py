@@ -1,7 +1,7 @@
 # import datetime
 
 # CURR_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
-# REPORT_FILE = f"{ CURR_DATE }_REPORT_FILE.md"
+# REPORT_FILE = f"{ CURR_DATE }-report.md"
 # print(REPORT_FILE)
 
 import argparse

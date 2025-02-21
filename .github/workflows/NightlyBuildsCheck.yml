@@ -192,12 +192,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: REPORT
-          path: ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md
+          path: ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md
       
       - name: Upload REPORT to the _posts directory
         shell: bash
         run: |
-          mv ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md _posts
-          git add _posts/${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md
-          git commit -m "Adding ${{ needs.get-run-info.outputs.CURR_DATE }}_REPORT_FILE.md"
+          mv ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md _posts
+          git add _posts/${{ needs.get-run-info.outputs.CURR_DATE }}-report.md
+          git commit -m "Adding ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md"
           git push origin gh-pages
