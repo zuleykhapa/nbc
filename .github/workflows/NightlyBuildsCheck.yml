@@ -196,14 +196,11 @@ jobs:
       
       - name: Upload REPORT to the _posts directory
         shell: bash
-        env:
-          CI_COMMIT_MESSAGE: "Add ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md"
-          CI_COMMIT_AUTHOR: "Nightly Build Check CI"
         run: |
           mv ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md _posts
-          git config --global user.name ${{ env.CI_COMMIT_AUTHOR }}
+          git config --global user.name "Nightly Build Check CI"
           git config --global user.email "username@users.noreply.com"
 
           git add _posts/${{ needs.get-run-info.outputs.CURR_DATE }}-report.md
-          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git commit -m "Add ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md"
           git push origin gh-pages
