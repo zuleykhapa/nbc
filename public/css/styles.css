@@ -1,0 +1,14 @@
+table {
+    width: 80%; /* Adjust width of the table */
+    margin: 0 auto; /* Center the table */
+ }
+ 
+ th, td {
+    padding: 12px;
+    text-align: center; /* Center align the text */
+ }
+ 
+ tr:nth-child(odd) {
+    background-color: #f1f1f1; /* Add alternating row colors */
+ }
+ 
