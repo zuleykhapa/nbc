@@ -107,6 +107,6 @@ def verify_and_test_python_linux(file_name, extensions, nightly_build, run_id, a
                             else:
                                 if not sha_mismatch_written:
                                     sha_mismatch_written = True
-        finally:
-            stop_container(container, container_name)
+                finally:
+                    stop_container(container, container_name)
         
