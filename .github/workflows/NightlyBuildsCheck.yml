@@ -209,7 +209,6 @@ jobs:
           mv ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md _posts
           ls -lah _posts
 
-
           git add _posts/${{ needs.get-run-info.outputs.CURR_DATE }}-report.md
           git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push origin main:gh-pages
