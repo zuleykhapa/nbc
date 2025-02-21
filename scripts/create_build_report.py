@@ -59,7 +59,6 @@ def create_build_report(build_job, con):
                 FROM '{ build_job.get_run_list_table_name() }'
             """).fetchone()[0]
 
-            f.write(f"## { build_job.get_build_job_name() }\n")            
             if failures_count == total_count:
                 f.write(f"### { build_job.get_build_job_name() } nightly-build has not succeeded more than **{ failures_count }** times.\n")
             else:

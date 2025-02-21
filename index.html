@@ -4,9 +4,6 @@ title: Home
 ---
 
 <div class="posts">
-  {% for post in site.posts %}
-  * [{{ post.title }}]({{ post.url }})
-  {% endfor %}
   {% for post in paginator.posts %}
   <div class="post">
     <h1 class="post-title">
