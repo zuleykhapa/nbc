@@ -198,6 +198,9 @@ jobs:
         shell: bash
         run: |
           mv ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md _posts
+          git config --global user.name "Github Actions"
+          git config --global user.email "actions@github.com"
+
           git add _posts/${{ needs.get-run-info.outputs.CURR_DATE }}-report.md
           git commit -m "Adding ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md"
-          git push origin gh-pages
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages
