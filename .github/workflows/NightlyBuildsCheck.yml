@@ -201,6 +201,7 @@ jobs:
           CI_COMMIT_AUTHOR: "hmeriann"
           GH_TOKEN: ${{ github.token }}
         run: |
+          git pull origin gh-pages
           mv ${{ needs.get-run-info.outputs.CURR_DATE }}-report.md _posts
           ls -lah _posts
 
