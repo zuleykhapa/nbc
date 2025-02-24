@@ -1,54 +1,54 @@
 ## InvokeCI
-### InvokeCI nightly-build has not succeeded the previous **1** times.
+### InvokeCI nightly-build has not succeeded the previous **4** times.
 Latest successfull run: [ Run Link ](https://github.com/duckdb/duckdb/actions/runs/13435610116)
 
 #### Failure Details
 | Conclusion   | Created at          | URL                                                       |
 --------------------------------------------------------------------------------------------------
+| failure      | 2025-02-24 00:35:25 | https://github.com/duckdb/duckdb/actions/runs/13488488967 |
+| failure      | 2025-02-23 00:36:39 | https://github.com/duckdb/duckdb/actions/runs/13477998085 |
+| failure      | 2025-02-22 00:32:42 | https://github.com/duckdb/duckdb/actions/runs/13467638491 |
 | failure      | 2025-02-21 00:34:18 | https://github.com/duckdb/duckdb/actions/runs/13447436002 |
 | failure      | 2025-02-20 00:34:07 | https://github.com/duckdb/duckdb/actions/runs/13425202981 |
 | failure      | 2025-02-19 00:33:56 | https://github.com/duckdb/duckdb/actions/runs/13402878741 |
 | failure      | 2025-02-18 00:33:32 | https://github.com/duckdb/duckdb/actions/runs/13380805083 |
-| failure      | 2025-02-17 00:35:51 | https://github.com/duckdb/duckdb/actions/runs/13360404871 |
-| failure      | 2025-02-16 00:36:52 | https://github.com/duckdb/duckdb/actions/runs/13350052135 |
-| failure      | 2025-02-15 00:33:09 | https://github.com/duckdb/duckdb/actions/runs/13339882250 |
 
 #### Workflow Artifacts
 | Build (Architecture)                                                        | Conclusion   | Artifact                                                                                                                | Uploaded at         |
 |:----------------------------------------------------------------------------|:-------------|:------------------------------------------------------------------------------------------------------------------------|:--------------------|
-| R / R Package Windows (Extensions)                                          | success      | [duckdb-extensions-windows_amd64_mingw](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627698142) | 2025-02-21 01:48:00 |
-| Wasm / Linux Extensions (x64) (wasm_eh)                                     | success      | [duckdb-extensions-wasm_eh](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627578135)             | 2025-02-21 01:10:47 |
-| Wasm / Linux Extensions (x64) (wasm_mvp)                                    | success      | [duckdb-extensions-wasm_mvp](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627565193)            | 2025-02-21 01:06:46 |
-| Wasm / Linux Extensions (x64) (wasm_threads)                                | success      | [duckdb-extensions-wasm_threads](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627563694)        | 2025-02-21 01:06:16 |
-| linux-release / Checks extension entries                                    | success      | [extension_entries.hpp](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627671110)                 | 2025-02-21 01:39:28 |
-| linux-release / Linux CLI (amd64)                                           | success      | [duckdb-binaries-linux-amd64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627727580)           | 2025-02-21 01:58:01 |
-| linux-release / Linux CLI (arm64)                                           | success      | [duckdb-binaries-linux-arm64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627744720)           | 2025-02-21 02:03:22 |
-| linux-release / Linux Extensions (aarch64) (linux_arm64, arm64-linux)       | success      | [duckdb-extensions-linux_arm64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627889026)         | 2025-02-21 02:48:41 |
-| linux-release / Linux Extensions (musl + x64) (linux_amd64_musl, x64-linux) | success      | [duckdb-extensions-linux_amd64_musl](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627804958)    | 2025-02-21 02:23:50 |
-| linux-release / Linux Extensions (x64) (linux_amd64, x64-linux)             | success      | [duckdb-extensions-linux_amd64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627621765)         | 2025-02-21 01:24:10 |
-| osx / OSX Extensions Release (arm64)                                        | success      | [duckdb-extensions-osx_arm64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2628158688)           | 2025-02-21 04:16:40 |
-| osx / OSX Extensions Release (x86_64)                                       | success      | [duckdb-extensions-osx_amd64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2628089933)           | 2025-02-21 03:53:18 |
-| osx / OSX Release                                                           | success      | [duckdb-binaries-osx](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2628045255)                   | 2025-02-21 03:37:06 |
-| pyodide / Build pyodide wheel (3.10, 0.22.1, 16, 'pydantic<2')              | success      | [pyodide-python0.22.1](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627511551)                  | 2025-02-21 00:51:07 |
-| pyodide / Build pyodide wheel (3.11, 0.25.1, 18, 'pydantic<2')              | success      | [pyodide-python0.25.1](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627505455)                  | 2025-02-21 00:49:18 |
-| pyodide / Build pyodide wheel (3.12, 0.26.1, 20)                            | success      | [pyodide-python0.26.1](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627508590)                  | 2025-02-21 00:50:14 |
-| pyodide / Build pyodide wheel (3.12, 0.27.2, 20)                            | success      | [pyodide-python0.27.2](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627509384)                  | 2025-02-21 00:50:28 |
-| python / Linux Extensions (linux_amd64_gcc4) (linux_amd64_gcc4, x64-linux)  | success      | [duckdb-extensions-linux_amd64_gcc4](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627734727)    | 2025-02-21 02:00:24 |
-| static-libraries / Linux amd64 static libs                                  | success      | [duckdb-static-lib-linux-amd64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627529467)         | 2025-02-21 00:56:24 |
-| static-libraries / Linux arm64 static libs                                  | success      | [duckdb-static-lib-linux-arm64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627540638)         | 2025-02-21 00:59:40 |
-| static-libraries / OSX static libs (macos-13, amd64)                        | success      | [duckdb-static-lib-osx-amd64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627507724)           | 2025-02-21 00:49:58 |
-| static-libraries / OSX static libs (macos-14, arm64)                        | success      | [duckdb-static-lib-osx-arm64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627513001)           | 2025-02-21 00:51:35 |
-| static-libraries / Windows MingW static libs                                | success      | [duckdb-static-lib-windows-mingw](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627653714)       | 2025-02-21 01:34:14 |
-| windows / Windows (64 Bit)                                                  | success      | [duckdb-binaries-windows-amd64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627611883)         | 2025-02-21 01:21:05 |
-| windows / Windows (ARM64)                                                   | success      | [duckdb-binaries-windows-arm64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627776929)         | 2025-02-21 02:13:42 |
-| windows / Windows Extensions (64-bit)                                       | success      | [duckdb-extensions-windows_amd64](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2628099768)       | 2025-02-21 03:57:06 |
-| windows / win-packaged-upload                                               | success      | [duckdb-binaries-windows](https://github.com/duckdb/duckdb/actions/runs/13447436002/artifacts/2627783953)               | 2025-02-21 02:16:20 |
+| R / R Package Windows (Extensions)                                          | success      | [duckdb-extensions-windows_amd64_mingw](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638475190) | 2025-02-24 01:49:19 |
+| Wasm / Linux Extensions (x64) (wasm_eh)                                     | success      | [duckdb-extensions-wasm_eh](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638381436)             | 2025-02-24 01:07:54 |
+| Wasm / Linux Extensions (x64) (wasm_mvp)                                    | success      | [duckdb-extensions-wasm_mvp](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638380251)            | 2025-02-24 01:07:17 |
+| Wasm / Linux Extensions (x64) (wasm_threads)                                | success      | [duckdb-extensions-wasm_threads](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638381478)        | 2025-02-24 01:07:55 |
+| linux-release / Checks extension entries                                    | success      | [extension_entries.hpp](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638391441)                 | 2025-02-24 01:12:30 |
+| linux-release / Linux CLI (amd64)                                           | success      | [duckdb-binaries-linux-amd64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638421702)           | 2025-02-24 01:27:33 |
+| linux-release / Linux CLI (arm64)                                           | success      | [duckdb-binaries-linux-arm64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638460101)           | 2025-02-24 01:42:47 |
+| linux-release / Linux Extensions (aarch64) (linux_arm64, arm64-linux)       | success      | [duckdb-extensions-linux_arm64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638494572)         | 2025-02-24 01:58:22 |
+| linux-release / Linux Extensions (musl + x64) (linux_amd64_musl, x64-linux) | success      | [duckdb-extensions-linux_amd64_musl](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638516795)    | 2025-02-24 02:07:57 |
+| linux-release / Linux Extensions (x64) (linux_amd64, x64-linux)             | success      | [duckdb-extensions-linux_amd64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638373126)         | 2025-02-24 01:03:53 |
+| osx / OSX Extensions Release (arm64)                                        | success      | [duckdb-extensions-osx_arm64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638792257)           | 2025-02-24 03:54:03 |
+| osx / OSX Extensions Release (x86_64)                                       | success      | [duckdb-extensions-osx_amd64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638751133)           | 2025-02-24 03:37:28 |
+| osx / OSX Release                                                           | success      | [duckdb-binaries-osx](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638720886)                   | 2025-02-24 03:24:47 |
+| pyodide / Build pyodide wheel (3.10, 0.22.1, 16, 'pydantic<2')              | success      | [pyodide-python0.22.1](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638346975)                  | 2025-02-24 00:51:49 |
+| pyodide / Build pyodide wheel (3.11, 0.25.1, 18, 'pydantic<2')              | success      | [pyodide-python0.25.1](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638343509)                  | 2025-02-24 00:50:18 |
+| pyodide / Build pyodide wheel (3.12, 0.26.1, 20)                            | success      | [pyodide-python0.26.1](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638345755)                  | 2025-02-24 00:51:16 |
+| pyodide / Build pyodide wheel (3.12, 0.27.2, 20)                            | success      | [pyodide-python0.27.2](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638344506)                  | 2025-02-24 00:50:45 |
+| python / Linux Extensions (linux_amd64_gcc4) (linux_amd64_gcc4, x64-linux)  | success      | [duckdb-extensions-linux_amd64_gcc4](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638447333)    | 2025-02-24 01:37:52 |
+| static-libraries / Linux amd64 static libs                                  | success      | [duckdb-static-lib-linux-amd64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638361642)         | 2025-02-24 00:58:26 |
+| static-libraries / Linux arm64 static libs                                  | success      | [duckdb-static-lib-linux-arm64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638364987)         | 2025-02-24 01:00:01 |
+| static-libraries / OSX static libs (macos-13, amd64)                        | success      | [duckdb-static-lib-osx-amd64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638331524)           | 2025-02-24 00:44:36 |
+| static-libraries / OSX static libs (macos-14, arm64)                        | success      | [duckdb-static-lib-osx-arm64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638326613)           | 2025-02-24 00:42:08 |
+| static-libraries / Windows MingW static libs                                | success      | [duckdb-static-lib-windows-mingw](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638437523)       | 2025-02-24 01:34:09 |
+| windows / Windows (64 Bit)                                                  | success      | [duckdb-binaries-windows-amd64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638407772)         | 2025-02-24 01:20:24 |
+| windows / Windows (ARM64)                                                   | success      | [duckdb-binaries-windows-arm64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638510101)         | 2025-02-24 02:04:59 |
+| windows / Windows Extensions (64-bit)                                       | success      | [duckdb-extensions-windows_amd64](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638758787)       | 2025-02-24 03:40:25 |
+| windows / win-packaged-upload                                               | success      | [duckdb-binaries-windows](https://github.com/duckdb/duckdb/actions/runs/13488488967/artifacts/2638515369)               | 2025-02-24 02:07:20 |
 
 ## linux_amd64
 
 #### Tested extensions
 The following extensions could be loaded and installed successfully:
-##### ['iceberg', 'spatial', 'tpch', 'postgres_scanner', 'mysql_scanner', 'azure', 'aws', 'inet', 'excel', 'sqlite_scanner', 'fts', 'httpfs', 'vss', 'arrow', 'tpcds']
+##### ['mysql_scanner', 'iceberg', 'postgres_scanner', 'azure', 'spatial', 'aws', 'tpch', 'vss', 'httpfs', 'arrow', 'fts', 'tpcds', 'inet', 'excel', 'sqlite_scanner']
 #### List of failed extensions:
 | nightly_build   | architecture   | runs_on       | version   | extension   | statement   | result   |
 |:----------------|:---------------|:--------------|:----------|:------------|:------------|:---------|
@@ -56,40 +56,17 @@ The following extensions could be loaded and installed successfully:
 | linux           | amd64          | ubuntu-latest |           | delta       | LOAD        | failed   |
 
 ## python_amd64
-#### failed_ext/ext_python_amd64/non_matching_sha_python_amd64.txt:
-                Version of python amd64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python amd64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python amd64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python amd64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python amd64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python amd64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python amd64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
+
+#### Tested extensions
+The following extensions could be loaded and installed successfully:
+##### []
+None of extensions had failed to be installed or loaded.
+
 ## windows_amd64
 
 #### Tested extensions
 The following extensions could be loaded and installed successfully:
-##### ['postgres_scanner', 'iceberg', 'mysql_scanner', 'azure', 'tpch', 'spatial', 'aws', 'excel', 'inet', 'sqlite_scanner', 'delta', 'httpfs', 'tpcds', 'fts', 'arrow', 'vss']
+##### ['iceberg', 'spatial', 'azure', 'tpch', 'postgres_scanner', 'mysql_scanner', 'aws', 'vss', 'httpfs', 'tpcds', 'fts', 'arrow', 'sqlite_scanner', 'excel', 'inet', 'delta']
 None of extensions had failed to be installed or loaded.
 
 ## linux_arm64
@@ -100,79 +77,56 @@ The following extensions could be loaded and installed successfully:
 #### List of failed extensions:
 | nightly_build   | architecture   | runs_on          | version   | extension        | statement   | result   |
 |:----------------|:---------------|:-----------------|:----------|:-----------------|:------------|:---------|
-| linux           | arm64          | ubuntu-22.04-arm |           | azure            | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | azure            | LOAD        | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | tpcds            | INSTALL     | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | tpcds            | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | delta            | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | delta            | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | vss              | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | vss              | LOAD        | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | httpfs           | INSTALL     | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | httpfs           | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | arrow            | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | arrow            | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | inet             | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | inet             | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | delta            | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | delta            | LOAD        | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | postgres_scanner | INSTALL     | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | postgres_scanner | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | aws              | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | aws              | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | tpch             | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | tpch             | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | spatial          | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | spatial          | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | mysql_scanner    | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | mysql_scanner    | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | arrow            | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | arrow            | LOAD        | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | fts              | INSTALL     | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | fts              | LOAD        | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | sqlite_scanner   | INSTALL     | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | sqlite_scanner   | LOAD        | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | iceberg          | INSTALL     | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | iceberg          | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | spatial          | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | spatial          | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | tpch             | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | tpch             | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | azure            | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | azure            | LOAD        | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | excel            | INSTALL     | failed   |
 | linux           | arm64          | ubuntu-22.04-arm |           | excel            | LOAD        | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | vss              | INSTALL     | failed   |
-| linux           | arm64          | ubuntu-22.04-arm |           | vss              | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | inet             | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | inet             | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | mysql_scanner    | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | mysql_scanner    | LOAD        | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | aws              | INSTALL     | failed   |
+| linux           | arm64          | ubuntu-22.04-arm |           | aws              | LOAD        | failed   |
 
 ## python_arm64
-#### failed_ext/ext_python_arm64/non_matching_sha_python_arm64.txt:
-                Version of python arm64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python arm64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python arm64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python arm64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python arm64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python arm64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
-                Version of python arm64 tested binary doesn't match to the version that triggered the build.
-                - Version triggered the build: d9ee15f45ec6285cba14892480384611c10a8fde
-                - Downloaded build version: 7e7236414c
-                
+
+#### Tested extensions
+The following extensions could be loaded and installed successfully:
+##### []
+None of extensions had failed to be installed or loaded.
+
 ## osx_amd64
 
 #### Tested extensions
 The following extensions could be loaded and installed successfully:
-##### ['delta', 'excel', 'sqlite_scanner', 'inet', 'aws', 'tpch', 'spatial', 'iceberg', 'azure', 'mysql_scanner', 'postgres_scanner', 'arrow', 'httpfs', 'tpcds', 'vss', 'fts']
+##### ['httpfs', 'fts', 'vss', 'arrow', 'tpcds', 'delta', 'inet', 'sqlite_scanner', 'excel', 'mysql_scanner', 'aws', 'tpch', 'postgres_scanner', 'azure', 'spatial', 'iceberg']
 None of extensions had failed to be installed or loaded.
 
 ## osx_arm64
 
 #### Tested extensions
 The following extensions could be loaded and installed successfully:
-##### ['arrow', 'tpcds', 'fts', 'vss', 'httpfs', 'sqlite_scanner', 'inet', 'delta', 'excel', 'spatial', 'aws', 'postgres_scanner', 'azure', 'mysql_scanner', 'tpch', 'iceberg']
+##### ['tpch', 'aws', 'spatial', 'iceberg', 'azure', 'mysql_scanner', 'postgres_scanner', 'arrow', 'fts', 'vss', 'tpcds', 'httpfs', 'sqlite_scanner', 'inet', 'delta', 'excel']
 None of extensions had failed to be installed or loaded.
