@@ -271,8 +271,7 @@ jobs:
     
   run-regression-tests:
     name: Run Regression Tests
-    if: success()
-    # if: always()
+    if: always()
     needs: 
       - define-matrix
       - configure-mount-and-download-benchmark-data
