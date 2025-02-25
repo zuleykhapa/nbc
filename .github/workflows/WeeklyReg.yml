@@ -114,12 +114,12 @@ jobs:
           sudo mount /dev/$mount_name ${{ env.mounted_directory_name }}
           sudo chown -R ubuntu ${{ env.mounted_directory_name }}
 
-      # - name: Load data for sf100 benchmarks.
-      #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name}}
-      #   run: |
-      #     wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
-      #     wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
+      - name: Load data for sf100 benchmarks.
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name}}
+        run: |
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
 
   define-matrix:
     name: Define matrix of pairs
@@ -159,7 +159,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - run: |
-          echo ${{ matrix.versions.new_name }}
+          echo ${{ matrix.versions.new_name }} ${{ matrix.versions.old_name }}
 
   build-and-setup:
     name: Build DuckDB versions and link the benchmarks
@@ -203,18 +203,18 @@ jobs:
           fetch-depth: 0
           path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.versions.old_name }}
 
-      # - name: Checkout duckdb-old to week ago version
-      #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
-      #   run: |
-      #     git checkout ${{ matrix.versions.old_sha }}
+      - name: Checkout duckdb-old to week ago version
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-main
+        run: |
+          git checkout ${{ matrix.versions.old_sha }}
 
-      # - name: Store current git hash of duckdb-curr
-      #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
-      #   run: |
-      #     # update duckdb_curr_version_main.txt
-      #     git rev-parse --verify HEAD > ../../duckdb_curr_version_main.txt
+      - name: Store current git hash of duckdb-curr
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-main
+        run: |
+          # update duckdb_curr_version_main.txt
+          git rev-parse --verify HEAD > ../../duckdb_curr_version_main.txt
 
       - name: Build old and current
         shell: bash
@@ -234,23 +234,23 @@ jobs:
           mkdir ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
           cp -r benchmark ../duckdb-curr-${{ matrix.versions.new_name }}
 
-      # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-      #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
-      #   run: |
-      #     mkdir duckdb_benchmark_data
-      #     cd duckdb_benchmark_data
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+        shell: bash 
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
+        run: |
+          mkdir duckdb_benchmark_data
+          cd duckdb_benchmark_data
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
-      # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-      #   shell: bash 
-      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
-      #   run: |
-      #     mkdir duckdb_benchmark_data
-      #     cd duckdb_benchmark_data
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+        shell: bash 
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
+        run: |
+          mkdir duckdb_benchmark_data
+          cd duckdb_benchmark_data
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
       - name: Generate micro_extended.csv and copy to duckdb-curr-main
         shell: bash
@@ -283,8 +283,7 @@ jobs:
       fail-fast: false
       matrix:
         versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
-        test: ['micro_extended.csv']
-        # test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
+        test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
         # exclude: 
         #   - versions: ${{ needs.build-and-setup.outputs.failed_build }}
     outputs:
