@@ -233,6 +233,9 @@ jobs:
           rm -rf ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
           mkdir ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
           cp -r benchmark ../duckdb-curr-${{ matrix.versions.new_name }}
+          ls -lah benchmark
+          ls -lah ../duckdb-curr-${{ matrix.versions.new_name }}
+
 
       - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
         shell: bash 
@@ -240,8 +243,8 @@ jobs:
         run: |
           mkdir duckdb_benchmark_data
           cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf1.duckdb .
+          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
       - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
         shell: bash 
@@ -249,19 +252,19 @@ jobs:
         run: |
           mkdir duckdb_benchmark_data
           cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf1.duckdb .
+          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
-      - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.versions.new_name }}
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
-        run: |
-          # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-          echo benchmark/micro/index/insert/insert_pk_fk.benchmark >> .github/regression/micro_extended.csv
-          echo benchmark/micro/pushdown/window_partition_pushdown.benchmark >> .github/regression/micro_extended.csv
-          sed -i 's/\(COPY lineitem to .* (.*\))\;/\1, OVERWRITE TRUE)\;/g' benchmark/micro/pushdown/window_partition_pushdown.benchmark
-          cat benchmark/micro/pushdown/window_partition_pushdown.benchmark
-          cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/micro_extended.csv
+      # - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.versions.new_name }}
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
+      #   run: |
+      #     # find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+      #     echo benchmark/micro/index/insert/insert_pk_fk.benchmark >> .github/regression/micro_extended.csv
+      #     echo benchmark/micro/pushdown/window_partition_pushdown.benchmark >> .github/regression/micro_extended.csv
+      #     sed -i 's/\(COPY lineitem to .* (.*\))\;/\1, OVERWRITE TRUE)\;/g' benchmark/micro/pushdown/window_partition_pushdown.benchmark
+      #     cat benchmark/micro/pushdown/window_partition_pushdown.benchmark
+      #     cp .github/regression/micro_extended.csv ../duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/micro_extended.csv
 
       # - id: failed-build
       #   shell: bash
@@ -270,7 +273,7 @@ jobs:
       #     echo "failed_build=${{ matrix.versions.new_name }}" >> $GITHUB_OUTPUT
     
   run-regression-tests:
-    name: ${{ matrix.test }} - ${{ matrix.versions.new_name }} - ${{ matrix.versions.old_name }} TEST
+    name: ${{ matrix.versions.new_name }} - ${{ matrix.versions.old_name }} TEST
     if: always()
     needs: 
       - define-matrix
@@ -301,7 +304,6 @@ jobs:
             test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\./_/g'  -e 's/-/_/g' -e 's/\.csv//')
             new_name=${{ matrix.versions.new_name }}
             old_name=${{ matrix.versions.old_name }}
-            rm -rf ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
             mkdir ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
             file_name="regression_output_${test_type}_${new_name}_${old_name}.txt"
             python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
