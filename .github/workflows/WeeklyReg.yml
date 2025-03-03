@@ -291,10 +291,11 @@ jobs:
         run: |
           export disable_timeout=""
 
-          tests=$('large/tpch.csv', 'large/ingestion.csv')
+          tests=('large/tpch.csv', 'large/ingestion.csv')
           # tests=('large/tpch.csv', 'large/ingestion.csv', 'large/tpcds.csv')
           for test in $tests; do
-            if [[ $test == large/tpcds.csv ]]; then
+            echo ${test}
+            if [[ ${test} == "large/tpcds.csv" ]]; then
               disable_timeout="--disable-timeout"
             fi
             test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\./_/g'  -e 's/-/_/g' -e 's/\.csv//')
