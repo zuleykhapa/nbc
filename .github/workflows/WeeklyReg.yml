@@ -118,8 +118,8 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name}}
         run: |
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf1.db -O tpch_sf100.duckdb
+          # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
 
   define-matrix:
     name: Define matrix of pairs
@@ -270,7 +270,7 @@ jobs:
       #     echo "failed_build=${{ matrix.versions.new_name }}" >> $GITHUB_OUTPUT
     
   run-regression-tests:
-    name: Run Regression Tests
+    name: ${{ matrix.test }} - ${{ matrix.versions.new_name }} - ${{ matrix.versions.old_name }} TEST
     if: always()
     needs: 
       - define-matrix
@@ -282,51 +282,39 @@ jobs:
       fail-fast: false
       matrix:
         versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
-        test: ['large/tpch.csv', 'large/ingestion.csv', 'micro_extended.csv', 'large/tpcds.csv']
-        # exclude: 
-        #   - versions: ${{ needs.build-and-setup.outputs.failed_build }}
-    outputs:
-      file_name: ${{ steps.create.outputs.file_name }}
         
     steps:
-      - name: Create a File Name 
-        if: always()
-        id: create
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          test=$(echo "${{ matrix.test }}" | sed -e 's/\//_/g'  -e 's/\./_/g'  -e 's/-/_/g' -e 's/\.csv//')
-          new_name=${{ matrix.versions.new_name }}
-          old_name=${{ matrix.versions.old_name }}
-          file_name=regression_output_${test}_${new_name}_${old_name}.txt
-          
-          echo $file_name
-          echo "file_name=$file_name">> $GITHUB_OUTPUT
-          
       - name: Run Regression Test
-        if: contains(${{ steps.create.outputs.file_name }}, 'regression')
         continue-on-error: true
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           export disable_timeout=""
-          if [[ ${{ matrix.test }} == large/tpcds.csv ]]; then
-            disable_timeout="--disable-timeout"
-          fi
-          if [[ ${{ matrix.test }} == large/tpch.csv ]]; then
+
+          tests=$('large/tpch.csv', 'large/ingestion.csv')
+          # tests=$('large/tpch.csv', 'large/ingestion.csv', 'large/tpcds.csv')
+          for test in $tests; do
+            if [[ $test == large/tpcds.csv ]]; then
+              disable_timeout="--disable-timeout"
+            fi
+            test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\./_/g'  -e 's/-/_/g' -e 's/\.csv//')
+            new_name=${{ matrix.versions.new_name }}
+            old_name=${{ matrix.versions.old_name }}
+            file_name=regression_output_${test_test_type}_${new_name}_${old_name}.txt
+            mkdir ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
             python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
               --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
               --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
-              --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/${{ matrix.test }} $disable_timeout \
-              --verbose > ${{ steps.create.outputs.file_name }}
-          fi
-                  
+              --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
+              --verbose > ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}/${file_name}
+          done    
+          
       - name: Upload results
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: ${{ steps.create.outputs.file_name }}
-          path: ${{ env.mounted_directory_name }}/${{ steps.create.outputs.file_name }}
+          name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
+          path: ${{ env.mounted_directory_name }}/${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}/*
           if-no-files-found: error
   
   collect-issues:
