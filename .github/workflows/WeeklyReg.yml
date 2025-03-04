@@ -118,7 +118,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name}}
         run: |
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf1.db -O tpch_sf100.duckdb
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
           # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
 
   define-matrix:
@@ -295,17 +295,20 @@ jobs:
           export disable_timeout=""
 
           tests=('large/tpch.csv' 'large/ingestion.csv')
-          # tests=('large/tpch.csv' 'large/ingestion.csv' 'large/tpcds.csv')
+            # tests=('large/tpch.csv' 'large/ingestion.csv' 'large/tpcds.csv')
           for test in $tests; do
-            echo ${test}
-            if [[ ${test} == "large/tpcds.csv" ]]; then
-              disable_timeout="--disable-timeout"
+            echo "test 📌: ${test}"
+            if [[ "${test}" == "large/tpcds.csv" ]]; then
+                disable_timeout="--disable-timeout"
             fi
-            test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\./_/g'  -e 's/-/_/g' -e 's/\.csv//')
+            test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
+            echo "test type 🦑: ${test_type}"
             new_name=${{ matrix.versions.new_name }}
             old_name=${{ matrix.versions.old_name }}
             dir_name="${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}"
             file_name="regression_output_${test_type}_${new_name}_${old_name}.txt"
+            mkdir -p "${dir_name}"
+            
             python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
               --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
               --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
