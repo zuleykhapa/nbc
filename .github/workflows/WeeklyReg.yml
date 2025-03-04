@@ -297,12 +297,10 @@ jobs:
           tests=('large/tpch.csv' 'large/ingestion.csv')
             # tests=('large/tpch.csv' 'large/ingestion.csv' 'large/tpcds.csv')
           for test in $tests; do
-            echo "test 📌: ${test}"
             if [[ "${test}" == "large/tpcds.csv" ]]; then
                 disable_timeout="--disable-timeout"
             fi
             test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
-            echo "test type 🦑: ${test_type}"
             new_name=${{ matrix.versions.new_name }}
             old_name=${{ matrix.versions.old_name }}
             dir_name="${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}"
@@ -313,8 +311,8 @@ jobs:
               --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
               --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
               --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
-              --verbose > ${file_name}
-            mv ${file_name} ${dir_name}
+              --verbose > "${file_name}"
+            mv "${file_name}" "${dir_name}"
           done    
       - name: Upload results
         uses: actions/upload-artifact@v4
