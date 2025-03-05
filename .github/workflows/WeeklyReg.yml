@@ -322,7 +322,7 @@ jobs:
         if: success()
         with:
           name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
-          path: ${{ env.mounted_directory_name }}/${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}/*
+          path: ${{ env.mounted_directory_name }}/${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}/regression_output_*
           if-no-files-found: error
   
   collect-issues:
