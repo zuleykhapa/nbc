@@ -118,7 +118,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name}}
         run: |
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf1.db -O tpch_sf1.duckdb
           # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
 
   define-matrix:
@@ -243,7 +243,7 @@ jobs:
         run: |
           mkdir duckdb_benchmark_data
           cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf1.duckdb .
           # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
       - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
@@ -252,7 +252,7 @@ jobs:
         run: |
           mkdir duckdb_benchmark_data
           cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf1.duckdb .
           # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
       # - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.versions.new_name }}
@@ -294,7 +294,7 @@ jobs:
         run: |
           export disable_timeout=""
 
-          tests=('large/tpch.csv' 'large/ingestion.csv')
+          tests=('tpch.csv' 'ingestion.csv')
             # tests=('large/tpch.csv' 'large/ingestion.csv' 'large/tpcds.csv')
           for test in $tests; do
             if [[ "${test}" == "large/tpcds.csv" ]]; then
