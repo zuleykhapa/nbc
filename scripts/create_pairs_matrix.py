@@ -172,13 +172,13 @@ def main():
     #     unique_pairs = create_pairs_from_old_pairs(old_pairs)
     # else:
     #     unique_pairs = create_pairs_from_branches()
-    new_pair = {
+    unique_pairs = [{
                 "new_name": "main",
                 "new_sha": "d0c7224b40",
                 "old_name": "main",
                 "old_sha": "920b39ad9643a3d89f33f0ff85ac7777c8948052"
-            }
-        pairs.append(new_pair)
+            }]
+    print(unique_pairs)
     with open(PAIRS_FILE_PATH, "w") as f:
         json.dump(unique_pairs, f, indent=4)
 
