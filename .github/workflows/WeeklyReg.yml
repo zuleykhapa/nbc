@@ -296,7 +296,7 @@ jobs:
 
           tests=('tpch.csv' 'ingestion.csv')
             # tests=('large/tpch.csv' 'large/ingestion.csv' 'large/tpcds.csv')
-          for test in $tests; do
+          for test in ${tests[@]}; do
             if [[ "${test}" == "large/tpcds.csv" ]]; then
                 disable_timeout="--disable-timeout"
             fi
