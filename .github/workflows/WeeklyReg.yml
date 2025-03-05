@@ -243,7 +243,7 @@ jobs:
         run: |
           mkdir duckdb_benchmark_data
           cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf1.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
           # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
       - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
@@ -252,7 +252,7 @@ jobs:
         run: |
           mkdir duckdb_benchmark_data
           cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf1.duckdb .
+          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
           # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
       
       # - name: Generate micro_extended.csv and copy to duckdb-curr-${{ matrix.versions.new_name }}
