@@ -349,11 +349,12 @@ jobs:
     steps:
       - name: Collect issues on Benchmarks
         if: contains(github.ref_name, 'main')
+        working-directory: ${{ env.mounted_directory_name }}
         run: |
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           
           # collect issues on benchmarks runs
-          for output in "${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"; do
+          for output in "regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
               printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n
               Hash info:\n
