@@ -304,7 +304,6 @@ jobs:
             test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
             new_name=${{ matrix.versions.new_name }}
             old_name=${{ matrix.versions.old_name }}
-            dir_name="${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}"
             file_name="regression_output_${test_type}_${new_name}_${old_name}.txt"
 
             python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
@@ -312,17 +311,13 @@ jobs:
               --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
               --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
               --verbose > "${file_name}"
-
-            
-            mkdir -p "${dir_name}"
-            mv "${file_name}" "${dir_name}"
           done    
       - name: Upload results
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
-          path: ${{ env.mounted_directory_name }}/${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}/regression_output_*
+          path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
           if-no-files-found: error
   
   collect-issues:
@@ -362,10 +357,10 @@ jobs:
               |:-|:-------|:----|
               | **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |
               | **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |
-              #### List of regressing tests\n" >> "$issue_body_file"
+              #### List of regressing tests\n" >> "${issue_body_file}"
               test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
-              printf -- "- **%s**\n" "$test_name" >> "$issue_body_file"
-              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "$issue_body_file"
+              printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "${issue_body_file}"
             fi
           done
 
