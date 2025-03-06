@@ -352,15 +352,15 @@ jobs:
           for output in "regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
               printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n
-              Hash info:\n
-              |  | Branch | SHA |
-              |:-|:-------|:----|
-              | **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |
-              | **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |
-              #### List of regressing tests\n" >> "${issue_body_file}"
+          Hash info:\n
+          |  | Branch | SHA |
+          |:-|:-------|:----|
+          | **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |
+          | **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |
+          #### List of regressing tests\n" >> "${issue_body_file}"
               test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
               printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
-              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "${issue_body_file}"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk 'REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "${issue_body_file}"
             fi
           done
 
