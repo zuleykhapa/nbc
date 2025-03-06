@@ -343,7 +343,7 @@ jobs:
 
     steps:
       - name: Collect issues on Benchmarks
-        if: contains(github.ref_name, 'main')
+        # if: contains(github.ref_name, 'main')
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
