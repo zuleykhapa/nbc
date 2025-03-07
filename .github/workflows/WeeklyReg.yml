@@ -162,7 +162,7 @@ jobs:
           echo ${{ matrix.versions.new_name }} ${{ matrix.versions.old_name }}
 
   build-and-setup:
-    name: Build DuckDB versions and link the benchmarks
+    name: BUILD - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
     needs:
       - check-matrix 
       - define-matrix
@@ -209,12 +209,12 @@ jobs:
         run: |
           git checkout ${{ matrix.versions.old_sha }}
 
-      - name: Store current git hash of duckdb-curr
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
-        run: |
-          # update duckdb_curr_version_${{ matrix.versions.new_name }}.txt
-          git rev-parse --verify HEAD > ../../duckdb_curr_version_${{ matrix.versions.new_name }}.txt
+      # - name: Store current git hash of duckdb-curr
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
+      #   run: |
+      #     # update duckdb_curr_version_${{ matrix.versions.new_name }}.txt
+      #     git rev-parse --verify HEAD > ../../duckdb_curr_version_${{ matrix.versions.new_name }}.txt
 
       - name: Build old and current
         shell: bash
@@ -273,7 +273,7 @@ jobs:
       #     echo "failed_build=${{ matrix.versions.new_name }}" >> $GITHUB_OUTPUT
     
   run-regression-tests:
-    name: ${{ matrix.versions.new_name }} - ${{ matrix.versions.old_name }} TEST
+    name: TEST - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
     if: always()
     needs: 
       - define-matrix
@@ -321,7 +321,7 @@ jobs:
           if-no-files-found: error
   
   collect-issues:
-    name: Collect issues
+    name: ISSUES - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
     needs: 
       - start-runner
       - define-matrix
