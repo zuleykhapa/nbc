@@ -145,20 +145,27 @@ def create_pairs_from_branches(old_main = ""):
     branch_names = [br for br in parsed_branches]
     # print(branch_names)
     for branch in branch_names:
+        # creates pairs with 'main'
         new_pair = {
                 "new_name": branch_names[0],
                 "new_sha": parsed_branches[branch_names[0]],
                 "old_name": branch,
                 "old_sha": parsed_branches[branch]
             }
-        pairs.append(new_pair)
+        if parsed_branches[branch_names[0]] != parsed_branches[branch]: 
+            pairs.append(new_pair)
         if branch in branch_names[:2]:
+            # creates pairs with 'main' and latest release
             new_pair = {
                 "new_name": branch,
                 "new_sha": parsed_branches[branch],
                 "old_name": branch,
                 "old_sha": old_main if (branch == 'main' and old_main) else parsed_branches[branch]
             }
+            # exists = any(obj["new_name"] == branch_names[0] and obj["old_name"] == branch for obj in pairs)
+            # if exists: 
+            #     print(f"Entry with new_name set to { branch_names[0] } and 'old_name' set to { branch } exists.")
+            # else:
             pairs.append(new_pair)
     unique_pairs = [dict(t) for t in {frozenset(item.items()) for item in pairs}]
     return unique_pairs
@@ -167,10 +174,13 @@ def main():
     old_txt = maybe_remove_txt_file()
     old_pairs = get_pairs_from_file()
     if old_txt:
+        print("OLD_TXT")
         unique_pairs = create_pairs_from_branches(old_txt)
-    elif old_pairs:
+    elif old_pairs and not old_txt:
+        print("OLD_PAIRS")
         unique_pairs = create_pairs_from_old_pairs(old_pairs)
     else:
+        print("ELSE")
         unique_pairs = create_pairs_from_branches()
     # unique_pairs = [{
     #             "new_name": "main",
