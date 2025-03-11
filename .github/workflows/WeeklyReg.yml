@@ -191,7 +191,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: ${{ matrix.versions.new_sha }}
+          ref: 'unittest-summarise-failures-output'
+          # ref: ${{ matrix.versions.new_sha }}
           fetch-depth: 0
           path: ${{ env.mounted_directory_name}}/duckdb-curr-${{ matrix.versions.new_name }}
 
@@ -199,7 +200,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
-          ref: ${{ matrix.versions.old_sha }}
+          ref: 'unittest-summarise-failures-output'
+          # ref: ${{ matrix.versions.old_sha }}
           fetch-depth: 0
           path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.versions.old_name }}
 
