@@ -190,7 +190,7 @@ jobs:
       - name: checkout duckdb-curr
         uses: actions/checkout@v4
         with:
-          repository: 'duckdb/duckdb'
+          repository: 'hmeriann/duckdb'
           ref: 'unittest-summarise-failures-output'
           # ref: ${{ matrix.versions.new_sha }}
           fetch-depth: 0
@@ -199,7 +199,7 @@ jobs:
       - name: checkout duckdb-old
         uses: actions/checkout@v4
         with:
-          repository: 'duckdb/duckdb'
+          repository: 'hmeriann/duckdb'
           ref: 'unittest-summarise-failures-output'
           # ref: ${{ matrix.versions.old_sha }}
           fetch-depth: 0
