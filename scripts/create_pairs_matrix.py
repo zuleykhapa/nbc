@@ -171,23 +171,23 @@ def create_pairs_from_branches(old_main = ""):
     return unique_pairs
 
 def main():
-    old_txt = maybe_remove_txt_file()
-    old_pairs = get_pairs_from_file()
-    if old_txt:
-        print("OLD_TXT")
-        unique_pairs = create_pairs_from_branches(old_txt)
-    elif old_pairs and not old_txt:
-        print("OLD_PAIRS")
-        unique_pairs = create_pairs_from_old_pairs(old_pairs)
-    else:
-        print("ELSE")
-        unique_pairs = create_pairs_from_branches()
-    # unique_pairs = [{
-    #             "new_name": "main",
-    #             "new_sha": "d0c7224b40408132d221f3424c4dc9c4dfc8b366",
-    #             "old_name": "main",
-    #             "old_sha": "920b39ad9643a3d89f33f0ff85ac7777c8948052"
-    #         }]
+    # old_txt = maybe_remove_txt_file()
+    # old_pairs = get_pairs_from_file()
+    # if old_txt:
+    #     print("OLD_TXT")
+    #     unique_pairs = create_pairs_from_branches(old_txt)
+    # elif old_pairs and not old_txt:
+    #     print("OLD_PAIRS")
+    #     unique_pairs = create_pairs_from_old_pairs(old_pairs)
+    # else:
+    #     print("ELSE")
+    #     unique_pairs = create_pairs_from_branches()
+    unique_pairs = [{
+                "new_name": "main",
+                "new_sha": "d0c7224b40408132d221f3424c4dc9c4dfc8b366",
+                "old_name": "main",
+                "old_sha": "920b39ad9643a3d89f33f0ff85ac7777c8948052"
+            }]
     print(unique_pairs)
     with open(PAIRS_FILE_PATH, "w") as f:
         json.dump(unique_pairs, f, indent=4)
