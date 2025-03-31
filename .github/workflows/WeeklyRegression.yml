@@ -1,7 +1,7 @@
 name: Weekly Regression
 on:
-  schedule:
-    - cron:  '0 1 * * MON' # runs at 2am CET MONDAY
+  # schedule:
+  #   - cron:  '0 1 * * MON' # runs at 2am CET MONDAY
   workflow_dispatch:
 
 concurrency:
