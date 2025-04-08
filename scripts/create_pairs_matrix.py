@@ -48,7 +48,9 @@ import subprocess
 import json
 import os
 import re
+import subprocess
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 PAIR_FILE = "duckdb_previous_version_pairs.json"
 TXT_FILE = "duckdb_curr_version_main.txt"
@@ -63,131 +65,73 @@ def maybe_remove_txt_file():
         os.remove(txt_file_path)
         return old_main_sha
 
-def get_pairs_from_file():
-    if os.path.isfile(PAIRS_FILE_PATH):
-        with open(PAIRS_FILE_PATH, "r") as f:
-            data = f.read()
-            if len(data):
-                loaded_data = json.loads(data)
-                return loaded_data
-            else:
-                print(f"""
-                `duckdb_previous_version_pairs.json` file found in { PARENT_DIR } but it's empty.
-                """)
-                return None        
-    else:
-        print(f"""
-        `duckdb_previous_version_pairs.json` not found in { PARENT_DIR }.
-        A new duckdb_previous_version_pairs.json will be created in a parent directory.
-        """)
-        return None
+def git_checkout(branch_name):
+    subprocess.run(["git", "checkout", branch_name])
 
-def get_branches():
-    command = [ "git", "ls-remote", "--heads", "https://github.com/duckdb/duckdb.git" ]
-    try:
-        branches = subprocess.run(command, capture_output=True).stdout
-    except subprocess.CalledProcessError as e:
-        print(f"Command failed with error: { e.stderr }")
-    return branches.decode().splitlines()
+def git_fetch(branch_name):
+    subprocess.run(["git", "fetch", "upstream", f"{branch_name}:{branch_name}"])
 
-def major_minor(version):
-    match = re.search(r'v(\d+)\.(\d+)-', version)
-    if match:
-        major, minor = match.groups()
-        return int(major), int(minor)
-    else:
-        return None
-
-def parse_branches():
-    branches_parsed = {}
-    branches = get_branches()
-
-    versioned_branches = [version for version in branches if major_minor(version)]
-    main_branch = [version for version in branches if 'main' in version][0]
-    latest = max(versioned_branches, key=major_minor)
-    versioned_branches.remove(latest)
-    previous = max(versioned_branches, key=major_minor)
+def get_current_sha():
+    result = subprocess.run(["git", "rev-list", "-1", "HEAD"], capture_output=True, text=True)
+    return result.stdout.strip()
     
-    branches_parsed[main_branch.split("/")[-1]] = main_branch.split()[0]
-    branches_parsed[latest.split("/")[-1]] = latest.split()[0]
-    branches_parsed[previous.split("/")[-1]] = previous.split()[0]
-            
-    return branches_parsed
+def get_sha_week_ago(branch_name):
+    date_week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    result = subprocess.run(["git", "rev-list", "-1", f"--before={date_week_ago}", f"{branch_name}"], capture_output=True, text=True)
+    return result.stdout.strip()
 
-def create_pairs_from_old_pairs(old_pairs):
-    pairs = []
-    parsed_branches = parse_branches()
-    branch_names = [br for br in parsed_branches]
-    for pair in old_pairs:
-        if pair["old_name"] in branch_names[1:]:
-            new_pair = {
-                "new_name": branch_names[0],
-                "new_sha": parsed_branches[branch_names[0]],
-                "old_name": pair["old_name"],
-                "old_sha": pair["old_sha"]
-            }
-            pairs.append(new_pair)
-        if pair["new_name"] in branch_names and pair["new_name"] == pair["old_name"]:
-            new_pair = {
-                "new_name": pair["new_name"],
-                "new_sha": parsed_branches[pair["new_name"]],
-                "old_name": pair["new_name"],
-                "old_sha": pair["new_sha"]
-            }
-            pairs.append(new_pair)
-    unique_pairs = [dict(t) for t in {frozenset(item.items()) for item in pairs}]
-    return unique_pairs
+def check_its(branch_name):
+    result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
+    return result.stdout.strip() == branch_name
 
-def create_pairs_from_branches(old_main = ""):
-    print(create_pairs_from_branches, old_main)
+def hardcode_versions():
+    main_branch = 'main'
+    release_branch = 'v1.2-histrionicus'
+    previous_release_branch = 'v1.1-eatoni'
     pairs = []
-    parsed_branches = parse_branches()
-    branch_names = [br for br in parsed_branches]
-    # print(branch_names)
-    for branch in branch_names:
-        # creates pairs with 'main'
-        new_pair = {
-                "new_name": branch_names[0],
-                "new_sha": parsed_branches[branch_names[0]],
-                "old_name": branch,
-                "old_sha": parsed_branches[branch]
-            }
-        if parsed_branches[branch_names[0]] != parsed_branches[branch]: 
-            pairs.append(new_pair)
-        if branch in branch_names[:2]:
-            # creates pairs with 'main' and latest release
-            new_pair = {
-                "new_name": branch,
-                "new_sha": parsed_branches[branch],
-                "old_name": branch,
-                "old_sha": old_main if (branch == 'main' and old_main) else parsed_branches[branch]
-            }
-            # exists = any(obj["new_name"] == branch_names[0] and obj["old_name"] == branch for obj in pairs)
-            # if exists: 
-            #     print(f"Entry with new_name set to { branch_names[0] } and 'old_name' set to { branch } exists.")
-            # else:
-            pairs.append(new_pair)
-    unique_pairs = [dict(t) for t in {frozenset(item.items()) for item in pairs}]
-    return unique_pairs
+
+    git_checkout(main_branch)
+    git_fetch(main_branch)
+    curr_main_sha = get_current_sha()
+    old_main_sha = get_sha_week_ago(main_branch)
+    pairs.append({
+        "new_name": main_branch,
+        "new_sha": curr_main_sha,
+        "old_name": main_branch,
+        "old_sha": old_main_sha
+    })
+    
+    git_fetch(release_branch)
+    git_checkout(release_branch)
+    curr_release_sha = get_current_sha()
+    old_release_sha = get_sha_week_ago(release_branch)
+    pairs.append({
+        "new_name": main_branch,
+        "new_sha": curr_main_sha,
+        "old_name": release_branch,
+        "old_sha": curr_release_sha
+    })
+    pairs.append({
+        "new_name": release_branch,
+        "new_sha": curr_release_sha,
+        "old_name": release_branch,
+        "old_sha": old_release_sha
+    })
+
+    git_fetch(previous_release_branch)
+    git_checkout(previous_release_branch)
+    curr_previous_release_sha = get_current_sha()
+    pairs.append({
+        "new_name": main_branch,
+        "new_sha": curr_main_sha,
+        "old_name": previous_release_branch,
+        "old_sha": curr_previous_release_sha
+    })
+    return pairs
 
 def main():
-    # old_txt = maybe_remove_txt_file()
-    # old_pairs = get_pairs_from_file()
-    # if old_txt:
-    #     print("OLD_TXT")
-    #     unique_pairs = create_pairs_from_branches(old_txt)
-    # elif old_pairs and not old_txt:
-    #     print("OLD_PAIRS")
-    #     unique_pairs = create_pairs_from_old_pairs(old_pairs)
-    # else:
-    #     print("ELSE")
-    #     unique_pairs = create_pairs_from_branches()
-    unique_pairs = [{
-                "new_name": "main",
-                "new_sha": "d0c7224b40408132d221f3424c4dc9c4dfc8b366",
-                "old_name": "main",
-                "old_sha": "920b39ad9643a3d89f33f0ff85ac7777c8948052"
-            }]
+    maybe_remove_txt_file()
+    unique_pairs = hardcode_versions()
     print(unique_pairs)
     with open(PAIRS_FILE_PATH, "w") as f:
         json.dump(unique_pairs, f, indent=4)
