@@ -129,18 +129,18 @@ jobs:
       versions: ${{ steps.create-version-pairs.outputs.pairs }}
 
     steps:
-      - name: checkout duckdb
-        uses: actions/checkout@v4
-        with:
-          repository: 'duckdb/duckdb'
-          fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}
-
       - name: Sparse-checkout repo with a script
         uses: actions/checkout@v4
         with:
           sparse-checkout: scripts/create_pairs_matrix.py
           path: ${{ env.mounted_directory_name }}
+
+      - name: checkout duckdb
+        uses: actions/checkout@v4
+        with:
+          repository: 'duckdb/duckdb'
+          fetch-depth: 0
+          path: ${{ env.mounted_directory_name}}/scripts
       
       - name: create pairs.json
         working-directory: ${{ env.mounted_directory_name }}
