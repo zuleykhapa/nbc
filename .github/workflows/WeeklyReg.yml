@@ -214,7 +214,7 @@ jobs:
 
       - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
         shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.curr_name }}
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
         run: |
           # make sure there is no duckdb_benchmark_data left over from the previous run
           rm -rf duckdb_benchmark_data
