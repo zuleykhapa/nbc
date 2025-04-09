@@ -133,18 +133,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: scripts/create_pairs_matrix.py
-          path: ${{ env.mounted_directory_name }}
+          path: ${{ env.mounted_directory_name }}/scripts
 
       - name: checkout duckdb
         uses: actions/checkout@v4
         with:
           repository: 'duckdb/duckdb'
           fetch-depth: 0
-          path: ${{ env.mounted_directory_name}}/scripts
+          path: ${{ env.mounted_directory_name}}/duckdb
       
       - name: create pairs.json
-        working-directory: ${{ env.mounted_directory_name }}
+        working-directory: ${{ env.mounted_directory_name }}/duckdb
         run: |
+          mv ../scripts/scripts/create_pairs_matrix.py ./scripts
           python scripts/create_pairs_matrix.py
       
       - name: Read JSON and create version pairs matrix
