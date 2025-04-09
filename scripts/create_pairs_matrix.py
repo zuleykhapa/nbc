@@ -69,7 +69,7 @@ def git_checkout(branch_name):
     subprocess.run(["git", "checkout", branch_name])
 
 def git_fetch(branch_name):
-    subprocess.run(["git", "fetch", "upstream", f"{branch_name}:{branch_name}"])
+    subprocess.run(["git", "fetch", "origin", f"{branch_name}"])
 
 def get_current_sha():
     result = subprocess.run(["git", "rev-list", "-1", "HEAD"], capture_output=True, text=True)
