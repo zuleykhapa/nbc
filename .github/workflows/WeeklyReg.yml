@@ -300,7 +300,8 @@ jobs:
 
     steps:
       - name: Collect issues on Benchmarks
-        if: contains(github.ref_name, 'main')
+        # if: contains(github.ref_name, 'main')
+        working-directory: ${{ env.mounted_directory_name }}
         run: |
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           
@@ -316,7 +317,7 @@ jobs:
           #### List of regressing tests\n" >> "${issue_body_file}"
               test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
               printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
-              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk 'REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "${issue_body_file}"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/ {print}' "$output")"  >> "${issue_body_file}"
             fi
           done
 
@@ -368,13 +369,19 @@ jobs:
             cat nightly_build*.md >> report.txt
           fi
 
-      - name: Create Issue
-        if: success()
-        run: |
-          if [ -f report.txt ]; then
-            # create issue
-            gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
-          fi
+      # - name: Create Issue
+      #   if: success()
+      #   run: |
+      #     if [ -f report.txt ]; then
+      #       # create issue
+      #       gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
+      #     fi
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: REPORT
+          path: ${{ env.mounted_directory_name }}/report.txt
+          if-no-files-found: error
 
   shutdown:
     name: shut down
