@@ -361,12 +361,13 @@ jobs:
             cat issue_body*.txt >> report.txt
             echo "Latest WeeklyRegression run: [Run Link](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }})" >> report.txt
           fi
-          cat report.txt
+          # cat report.txt
 
       - name: Add Nightly-Build Failures to Report
+        if: always()
         run: |
           ls -la
-          if grep -q "nightly-build" nightly_build*.md; then
+          if grep -q "Nightly Build" nightly_build*.md; then
             echo "Adding nightly-build report to GitHub issue."
             echo "# Nighly-Builds status on main" >> report.txt
             cat nightly_build*.md >> report.txt
