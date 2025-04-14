@@ -392,16 +392,16 @@ jobs:
           path: ${{ env.mounted_directory_name }}/report.txt
           if-no-files-found: error
 
-  # shutdown:
-  #   name: shut down
-  #   if: always()
-  #   runs-on: self-hosted
-  #   needs:
-  #     - start-runner
-  #     - check-nightly-builds
-  #     - file-issue
+  shutdown:
+    name: shut down
+    if: always()
+    runs-on: self-hosted
+    needs:
+      - start-runner
+      - check-nightly-builds
+      - file-issue
 
-  #   steps:
-  #     - name: shutdown
-  #       shell: bash
-  #       run: sudo shutdown
+    steps:
+      - name: shutdown
+        shell: bash
+        run: sudo shutdown
