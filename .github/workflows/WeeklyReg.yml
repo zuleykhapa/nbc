@@ -118,7 +118,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name}}
         run: |
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+          # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
           # wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
 
   define-matrix:
@@ -150,9 +150,12 @@ jobs:
       #     mv ../duckdb_previous_version_pairs.json ../..
       - name: create pairs.json
         run: |
+          pwd
           mv ${{ env.mounted_directory_name }}/scripts/scripts/create_pairs_matrix.py ${{ env.mounted_directory_name }}/duckdb/scripts
           cd ${{ env.mounted_directory_name }}/duckdb
           python scripts/create_pairs_matrix.py
+          ls $GITHUB_WORKSPACE
+          ls ${{ env.mounted_directory_name }}
           mv ${{ env.mounted_directory_name }}/duckdb_previous_version_pairs.json $GITHUB_WORKSPACE/
       
       - name: Read JSON and create version pairs matrix
