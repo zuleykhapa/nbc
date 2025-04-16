@@ -151,7 +151,8 @@ jobs:
       - name: create pairs.json
         run: |
           mv ${{ env.mounted_directory_name }}/scripts/scripts/create_pairs_matrix.py ${{ env.mounted_directory_name }}/duckdb/scripts
-          python ${{ env.mounted_directory_name }}/duckdb/scripts/create_pairs_matrix.py
+          cd duckdb
+          python scripts/create_pairs_matrix.py
           mv ${{ env.mounted_directory_name }}/duckdb_previous_version_pairs.json $GITHUB_WORKSPACE/
       
       - name: Read JSON and create version pairs matrix
