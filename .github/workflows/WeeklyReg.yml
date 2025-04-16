@@ -142,12 +142,17 @@ jobs:
           fetch-depth: 0
           path: ${{ env.mounted_directory_name}}/duckdb
       
+      # - name: create pairs.json
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb
+      #   run: |
+      #     mv ../scripts/scripts/create_pairs_matrix.py ./scripts
+      #     python scripts/create_pairs_matrix.py
+      #     mv ../duckdb_previous_version_pairs.json ../..
       - name: create pairs.json
-        working-directory: ${{ env.mounted_directory_name }}/duckdb
         run: |
-          mv ../scripts/scripts/create_pairs_matrix.py ./scripts
-          python scripts/create_pairs_matrix.py
-          mv ../duckdb_previous_version_pairs.json ../..
+          mv ${{ env.mounted_directory_name }}/scripts/scripts/create_pairs_matrix.py ${{ env.mounted_directory_name }}/duckdb/scripts
+          python ${{ env.mounted_directory_name }}/duckdb/scripts/create_pairs_matrix.py
+          mv ${{ env.mounted_directory_name }}/duckdb_previous_version_pairs.json $GITHUB_WORKSPACE/
       
       - name: Read JSON and create version pairs matrix
         working-directory: ${{ env.mounted_directory_name }}
