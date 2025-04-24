@@ -303,10 +303,11 @@ jobs:
         shell: bash
         run: |
           ls -lah
+          regression_outputs="${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           
           # collect issues on benchmarks runs
-          for output in "regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"; do
+          for output in "$regression_outputs"; do
             if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
               test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
               
