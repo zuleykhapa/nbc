@@ -308,19 +308,22 @@ jobs:
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           
           # collect issues on benchmarks runs
-          if ! grep -q "NO REGRESSIONS DETECTED" "$regression_outputs"; then
-            test_name=$(echo "$regression_outputs" | awk -F'_' '{print $3,$4}')
-            
-            printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "${issue_body_file}"
-            printf "Hash info:\n" >> "${issue_body_file}"
-            printf "|  | Branch | SHA |" >> "${issue_body_file}"
-            printf "|:-|:-------|:----|" >> "${issue_body_file}"
-            printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |" >> "${issue_body_file}"
-            printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |" >> "${issue_body_file}"
-            printf "#### List of regressed tests\n" >> "${issue_body_file}"
-            printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
-            printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk 'REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "${issue_body_file}"
-          fi
+          for output in $(ls regression_*_main_main.txt); do
+            echo "Processing file: $output"
+            if ! grep -q "NO REGRESSIONS DETECTED" $output; then
+              test_name=$(echo $regression_outputs | awk -F'_' '{print $3,$4}')
+              
+              printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "${issue_body_file}"
+              printf "Hash info:\n" >> "${issue_body_file}"
+              printf "|  | Branch | SHA |" >> "${issue_body_file}"
+              printf "|:-|:-------|:----|" >> "${issue_body_file}"
+              printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |" >> "${issue_body_file}"
+              printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |" >> "${issue_body_file}"
+              printf "#### List of regressed tests\n" >> "${issue_body_file}"
+              printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk 'REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "${issue_body_file}"
+            fi
+          done
 
   file-issue:
     name: File Issue
