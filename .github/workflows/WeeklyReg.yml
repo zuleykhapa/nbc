@@ -315,13 +315,13 @@ jobs:
               
               printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "${issue_body_file}"
               printf "Hash info:\n" >> "${issue_body_file}"
-              printf "|  | Branch | SHA |" >> "${issue_body_file}"
-              printf "|:-|:-------|:----|" >> "${issue_body_file}"
-              printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |" >> "${issue_body_file}"
-              printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |" >> "${issue_body_file}"
+              printf "|  | Branch | SHA |\n" >> "${issue_body_file}"
+              printf "|:-|:-------|:----|\n" >> "${issue_body_file}"
+              printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n" >> "${issue_body_file}"
+              printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n" >> "${issue_body_file}"
               printf "#### List of regressed tests\n" >> "${issue_body_file}"
-              printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
-              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"  >> "${issue_body_file}"
+              printf -- "- **%s**\n" "$test_name\n" >> "${issue_body_file}"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)\n"  >> "${issue_body_file}"
             fi
           done
 
