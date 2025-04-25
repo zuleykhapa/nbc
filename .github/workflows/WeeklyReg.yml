@@ -263,13 +263,13 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           export disable_timeout=""
-          # tests=('large/tpch.csv' 'large/tpcds.csv')
-          tests=('large/tpch.csv')
+          tests=('large/tpch.csv' 'large/tpcds.csv')
+          # tests=('large/tpch.csv')
           
           for test in ${tests[@]}; do
-            # if [[ "${test}" == "large/tpcds.csv" ]]; then
-            #     disable_timeout="--disable-timeout"
-            # fi  
+            if [[ "${test}" == "large/tpcds.csv" ]]; then
+                disable_timeout="--disable-timeout"
+            fi  
             test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
 
             file_name="regression_output_${test_type}_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
@@ -335,6 +335,8 @@ jobs:
 
                 # Set flag to true, indicating header has been written
                 header_written=true
+              else
+                echo "No Regressions Detected"
               fi
 
               # Write the regressed test info for this file
