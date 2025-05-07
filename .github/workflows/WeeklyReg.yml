@@ -279,40 +279,16 @@ jobs:
               --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
               --verbose > "${file_name}"
           done
-          
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
-          path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
-          if-no-files-found: error
-  
-  collect-issues:
-    name: ISSUES - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
-    needs: 
-      - define-matrix
-      - start-runner
-      - configure-mount-and-download-benchmark-data
-      - build-and-setup
-      - check-nightly-builds
-      - run-regression-tests
-    if: always()
-    runs-on: self-hosted
-    strategy:
-      matrix: 
-        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
-
-    steps:
-      - name: Collect issues on Benchmarks
-        # if: contains(github.ref_name, 'main')
+        
+      - name: Add detected regressions to report file while in matrix context
+        shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           regression_outputs="regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
           
-          # Flag to keep track of whether the header has been written
-          header_written=false
+          # # Flag to keep track of whether the header has been written
+          # header_written=false
 
           # Loop through the regression output files
           for output in $(ls regression_*_main_main.txt); do
@@ -323,27 +299,92 @@ jobs:
               test_name=$(echo $output | awk -F'_' '{print $3,$4}')
               
               # Check if the header has already been written
-              if [ "$header_written" = false ]; then
-                # Write the header once, if not already written
-                printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "${issue_body_file}"
-                printf "Hash info:\n" >> "${issue_body_file}"
-                printf "|  | Branch | SHA |\n" >> "${issue_body_file}"
-                printf "|:-|:-------|:----|\n" >> "${issue_body_file}"
-                printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n" >> "${issue_body_file}"
-                printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n" >> "${issue_body_file}"
-                printf "#### List of regressed tests\n" >> "${issue_body_file}"
+              # if [ "$header_written" = false ]; then
+              # Write the header once, if not already written
+              printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "${issue_body_file}"
+              printf "Hash info:\n" >> "${issue_body_file}"
+              printf "|  | Branch | SHA |\n" >> "${issue_body_file}"
+              printf "|:-|:-------|:----|\n" >> "${issue_body_file}"
+              printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n" >> "${issue_body_file}"
+              printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n" >> "${issue_body_file}"
+              printf "#### List of regressed tests\n" >> "${issue_body_file}"
 
-                # Set flag to true, indicating header has been written
-                header_written=true
-              else
-                echo "No Regressions Detected"
-              fi
-
-              # Write the regressed test info for this file
-              printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
-              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "${issue_body_file}"
+              # Set flag to true, indicating header has been written
+              header_written=true
+            else
+              echo "No Regressions Detected"
             fi
+
+            # Write the regressed test info for this file
+            printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
+            printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "${issue_body_file}"
+            # fi
           done
+          
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
+          path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
+          if-no-files-found: error
+  
+  # collect-issues:
+  #   name: ISSUES - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
+  #   needs: 
+  #     - define-matrix
+  #     - start-runner
+  #     - configure-mount-and-download-benchmark-data
+  #     - build-and-setup
+  #     - check-nightly-builds
+  #     - run-regression-tests
+  #   if: always()
+  #   runs-on: self-hosted
+  #   strategy:
+  #     matrix: 
+  #       versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
+
+  #   steps:
+  #     - name: Collect issues on Benchmarks
+  #       # if: contains(github.ref_name, 'main')
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       run: |
+  #         regression_outputs="regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
+  #         issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
+          
+  #         # Flag to keep track of whether the header has been written
+  #         header_written=false
+
+  #         # Loop through the regression output files
+  #         for output in $(ls regression_*_main_main.txt); do
+  #           echo "Processing file: $output"
+
+  #           # Check if regressions are detected in the current file
+  #           if ! grep -q "NO REGRESSIONS DETECTED" $output; then
+  #             test_name=$(echo $output | awk -F'_' '{print $3,$4}')
+              
+  #             # Check if the header has already been written
+  #             if [ "$header_written" = false ]; then
+  #               # Write the header once, if not already written
+  #               printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "${issue_body_file}"
+  #               printf "Hash info:\n" >> "${issue_body_file}"
+  #               printf "|  | Branch | SHA |\n" >> "${issue_body_file}"
+  #               printf "|:-|:-------|:----|\n" >> "${issue_body_file}"
+  #               printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n" >> "${issue_body_file}"
+  #               printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n" >> "${issue_body_file}"
+  #               printf "#### List of regressed tests\n" >> "${issue_body_file}"
+
+  #               # Set flag to true, indicating header has been written
+  #               header_written=true
+  #             else
+  #               echo "No Regressions Detected"
+  #             fi
+
+  #             # Write the regressed test info for this file
+  #             printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
+  #             printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "${issue_body_file}"
+  #           fi
+  #         done
 
   file-issue:
     name: File Issue
@@ -353,7 +394,7 @@ jobs:
       - build-and-setup
       - check-nightly-builds
       - run-regression-tests
-      - collect-issues
+      # - collect-issues
     if: always()
     runs-on: self-hosted
     steps:
