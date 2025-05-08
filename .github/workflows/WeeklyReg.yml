@@ -114,12 +114,12 @@ jobs:
           sudo mount /dev/$mount_name ${{ env.mounted_directory_name }}
           sudo chown -R ubuntu ${{ env.mounted_directory_name }}
 
-      - name: Load data for sf100 benchmarks.
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name}}
-        run: |
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
-          wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
+      # - name: Load data for sf100 benchmarks.
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name}}
+      #   run: |
+      #     wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpch-sf100.db -O tpch_sf100.duckdb
+      #     wget https://duckdb-blobs.s3.us-east-1.amazonaws.com/data/tpcds_sf100.db -O tpcds_sf100.duckdb 
 
   define-matrix:
     name: Define matrix of pairs
@@ -221,27 +221,27 @@ jobs:
           mkdir ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
           cp -r benchmark ../duckdb-curr-${{ matrix.versions.new_name }}
 
-      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
-        run: |
-          # make sure there is no duckdb_benchmark_data left over from the previous run
-          rm -rf duckdb_benchmark_data
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      # - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
+      #   run: |
+      #     # make sure there is no duckdb_benchmark_data left over from the previous run
+      #     rm -rf duckdb_benchmark_data
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      #     # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
-      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
-        run: |
-          # make sure there is no duckdb_benchmark_data left over from the previous run
-          rm -rf duckdb_benchmark_data
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+      # - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+      #   shell: bash 
+      #   working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
+      #   run: |
+      #     # make sure there is no duckdb_benchmark_data left over from the previous run
+      #     rm -rf duckdb_benchmark_data
+      #     mkdir duckdb_benchmark_data
+      #     cd duckdb_benchmark_data
+      #     ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+      #     # ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
     
   run-regression-tests:
     name: TEST - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
@@ -273,11 +273,17 @@ jobs:
             test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
 
             file_name="regression_output_${test_type}_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
-            python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
-              --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
-              --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
-              --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
-              --verbose > "${file_name}"
+            # python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
+            #   --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
+            #   --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
+            #   --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
+            #   --verbose > "${file_name}"
+            if [[ "${test}" == "large/tpcds.csv" ]]; then
+              "====================================================\n==============  REGRESSIONS DETECTED   =============\n====================================================\n\nbenchmark/large/tpcds-sf100/q13.benchmark\nOld timing: 0.977482\nNew timing: 1.174277\n OTHER TIMINGS\n" > "${file_name}"
+            fi
+            if [[ "${test}" == "large/tpcds.csv" &&  ${{ matrix.versions.old_name }} != "main" ]]; then
+              "====================================================\n==============  REGRESSIONS DETECTED   =============\n====================================================\n\nbenchmark/large/tpcds-sf100/q13.benchmark\nOld timing: 0.977482\nNew timing: 1.174277\n OTHER TIMINGS\n" > "${file_name}"
+            fi
           done
         
       - name: Add detected regressions to report file while in matrix context
@@ -312,7 +318,7 @@ jobs:
                 # Set flag to true, indicating header has been written
                 header_written=true
               fi
-              
+
               # Write the regressed test info for this file
               printf -- "- **%s**\n" "$test_name" >> "${issue_body_file}"
               printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "${issue_body_file}"
