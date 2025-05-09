@@ -12,6 +12,7 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   gh_issue_repo: duckdblabs/duckdb-internal
   mounted_directory_name: mount-point
+  NIGHTLY_BUILD_FILE: nightly_builds_status.md
 
 jobs:
   check-nightly-builds:
@@ -436,14 +437,12 @@ jobs:
       - name: Add Nightly-Build Failures to Report
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
-        if: always()
+        if: ${{ needs.check-nightly-builds.result == 'success' }}
         run: |
           ls -la
-          if grep -q "Nightly Build" nightly_build*.md; then
-            echo "Adding nightly-build report to GitHub issue."
-            echo "# Nighly-Builds status on main" >> report.txt
-            cat nightly_build*.md >> report.txt
-          fi
+          echo "Adding nightly-build report to GitHub issue."
+          echo "# Nighly-Builds status on main branch" >> report.txt
+          cat ${{ env.NIGHTLY_BUILD_FILE }} >> report.txt
           cat report.txt
 
       # - name: Create Issue
