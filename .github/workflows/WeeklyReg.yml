@@ -443,6 +443,7 @@ jobs:
           echo "Adding nightly-build report to GitHub issue."
           echo "# Nighly-Builds status on main branch" >> report.txt
           cat ${{ env.NIGHTLY_BUILD_FILE }}.md >> report.txt
+          echo "Latest Nightly Build Status Reports: [duckdb-build-status](https://duckdb.github.io/duckdb-build-status/)"
           cat report.txt
 
       # - name: Create Issue
