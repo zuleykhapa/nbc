@@ -354,14 +354,15 @@ jobs:
         # if: contains(github.ref_name, 'main')
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          regression_outputs="regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
-          issue_body_file="issue_body_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
+          compared_versions="${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}"
+          regression_outputs="regression_*_${compared_versions}.txt"
+          issue_body_file="issue_body_${compared_versions}.txt"
           
           # Flag to keep track of whether the header has been written
           header_written=false
 
           # Loop through the regression output files
-          for output in $(ls regression_*_main_main.txt); do
+          for output in $(ls regression_*${compared_versions}.txt); do
             echo "Processing file: $output"
 
             # Check if regressions are detected in the current file
