@@ -382,12 +382,13 @@ jobs:
 
                 # Set flag to true, indicating header has been written
                 header_written=true
-                # Write the regressed test info for this file
-                printf -- "- **%s**\n" "$test_name" >> "issue_body.txt"
-                printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "issue_body.txt"
-              else
-                echo "No Regressions Detected"
               fi
+              
+              # Write the regressed test info for this file
+              printf -- "- **%s**\n" "$test_name" >> "issue_body.txt"
+              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "issue_body.txt"
+            else
+              echo "No Regressions Detected"
             fi
           done
 
