@@ -276,7 +276,7 @@ jobs:
             if [[ "${test}" == "large/tpcds.csv" ]]; then
               echo "====================================================\n==============  REGRESSIONS DETECTED   =============\n====================================================\n\nbenchmark/large/tpcds-sf100/q13.benchmark\nOld timing: 0.977482\nNew timing: 1.174277\n OTHER TIMINGS\n" > "${file_name}"
             fi
-            if [[ "${test}" == "large/tpcds.csv" &&  ${{ matrix.versions.old_name }} != "main" ]]; then
+            if [[ "${test}" == "large/tpch.csv" &&  ${{ matrix.versions.old_name }} != "main" ]]; then
               echo "====================================================\n==============  REGRESSIONS DETECTED   =============\n====================================================\n\nbenchmark/large/tpcds-sf100/q13.benchmark\nOld timing: 0.977482\nNew timing: 1.174277\n OTHER TIMINGS\n" > "${file_name}"
             fi
           done
