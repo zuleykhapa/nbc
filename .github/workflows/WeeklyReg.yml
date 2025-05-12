@@ -267,7 +267,7 @@ jobs:
             fi  
             test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
 
-            # file_name="regression_output_${test_type}_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
+            file_name="regression_output_${test_type}_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
             # python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
             #   --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
             #   --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
