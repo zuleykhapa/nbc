@@ -8,6 +8,7 @@ on:
     inputs:
       base_hash:
         type: string
+        default: 120567b3d5
   repository_dispatch:
   push:
     branches-ignore:
