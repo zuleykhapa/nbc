@@ -94,23 +94,6 @@ jobs:
           make
           cd ..
 
-      # For NightlyTest we fetch the last commit hash that ran Regression on main
-      - name: Build Main and Previous Successful Regression Hash
-        if: ${{ github.repository == 'duckdb/duckdb' && github.ref == 'refs/heads/main' }}
-        shell: bash
-        run: |
-          make
-          git clone https://github.com/duckdb/duckdb.git
-          cd duckdb
-          if [[ -z "${BASE_HASH}" ]]; then
-            export CHECKOUT_HASH=$(gh run list --repo duckdb/duckdb --branch=main --workflow=Regression --event=repository_dispatch --status=completed --json=headSha --limit=1 --jq '.[0].headSha')
-          else
-            export CHECKOUT_HASH="$BASE_HASH"
-          fi
-          git checkout $CHECKOUT_HASH
-          make
-          cd ..
-
       - name: Set up benchmarks
         shell: bash
         run: |
