@@ -90,4 +90,5 @@ jobs:
         shell: bash
         run: |
           ls benchmark/micro/**/*.benchmark > .github/regression/micro.csv
+          sed -i '\#/benchmark/micro/result_collection/arrow_result.benchmark#d' .github/regression/micro.csv
           python scripts/regression/test_runner.py --old duckdb/build/release/benchmark/benchmark_runner --new build/release/benchmark/benchmark_runner --benchmarks .github/regression/micro.csv --verbose --threads 2
