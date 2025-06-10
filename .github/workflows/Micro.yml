@@ -58,6 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: duckdb/duckdb
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -68,24 +69,9 @@ jobs:
         shell: bash
         run: sudo apt-get update -y -qq && sudo apt-get install -y -qq ninja-build && pip install requests
 
-      - name: Setup Ccache
-        uses: hendrikmuhs/ccache-action@main
-        with:
-          key: ${{ github.job }}
-          save: ${{ github.ref == 'refs/heads/main' || github.repository != 'duckdb/duckdb' }}
-
-      - name: Checkout Private Regression
-        if: ${{ github.repository == 'duckdb/duckdb' && github.ref == 'refs/heads/main' }}
-        uses: actions/checkout@v4
-        with:
-          repository: duckdblabs/fivetran_regression
-          ref: main
-          token: ${{ secrets.DUCKDBLABS_BOT_TOKEN }}
-          path: benchmark/fivetran
-
       # For PRs we compare against the base branch
       - name: Build Current and Base Branch
-        if: ${{ !(github.repository == 'duckdb/duckdb' && github.ref == 'refs/heads/main') }}
+        # if: ${{ !(github.repository == 'duckdb/duckdb' && github.ref == 'refs/heads/main') }}
         shell: bash
         run: |
           make
