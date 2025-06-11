@@ -85,6 +85,21 @@ jobs:
         run: |
           cp -r benchmark duckdb/
 
+      - name: Clean up space
+        shell: bash
+        run: |
+          sudo apt-get clean
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /opt/pipx
+          sudo rm -rf /opt/microsoft
+          sudo rm -rf /opt/google
+          docker system prune -af
+
       - name: Regression Test Micro
         if: always()
         shell: bash
