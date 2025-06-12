@@ -348,30 +348,27 @@ jobs:
     strategy:
       matrix: 
         versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
+    outputs:
+      regressions: ${{ steps.collect.outputs.regressions }}
 
     steps:
       - name: Collect issues on Benchmarks
-        # if: contains(github.ref_name, 'main')
+        id: collect
+        shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          compared_versions="${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}"
-          regression_outputs="regression_*_${compared_versions}.txt"
-          issue_body_file="issue_body_${compared_versions}.txt"
-          
-          # Flag to keep track of whether the header has been written
           header_written=false
 
-          # Loop through the regression output files
-          for output in $(ls regression_*${compared_versions}.txt); do
-            echo "Processing file: $output"
-
+          for output in $(ls "regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"); do
+            echo "Processing output file $output..."
             # Check if regressions are detected in the current file
             if ! grep -q "NO REGRESSIONS DETECTED" $output; then
+              # Retrieve benchmark name from the regression_outputs file
               test_name=$(echo $output | awk -F'_' '{print $3,$4}')
               
               # Check if the header has already been written
               if [ "$header_written" = false ]; then
-                # Write the header once, if not already written
+                echo "Adding a header..."
                 printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "issue_body.txt"
                 printf "Hash info:\n" >> "issue_body.txt"
                 printf "|  | Branch | SHA |\n" >> "issue_body.txt"
@@ -380,20 +377,22 @@ jobs:
                 printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n" >> "issue_body.txt"
                 printf "#### List of regressed tests\n" >> "issue_body.txt"
 
-                # Set flag to true, indicating header has been written
                 header_written=true
               fi
-              
-              # Write the regressed test info for this file
+
+              # Add regressed tests data into the issue_body file
               printf -- "- **%s**\n" "$test_name" >> "issue_body.txt"
               printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "issue_body.txt"
+              echo "Regressions detected in $test_name $output. An issue should be filed."
             else
-              echo "No Regressions Detected"
+              echo "No Regressions Detected."
+              echo "regressions=false" >> $GITHUB_OUTPUT
             fi
           done
 
   file-issue:
     name: File Issue
+    if: ${{ needs.collect-issues.outputs.regressions != false && contains(github.ref_name, 'main') }}
     needs: 
       - start-runner
       - configure-mount-and-download-benchmark-data
@@ -401,7 +400,6 @@ jobs:
       - check-nightly-builds
       - run-regression-tests
       - collect-issues
-    if: always()
     runs-on: self-hosted
     steps:
       - name: Download nightly build status
@@ -431,24 +429,21 @@ jobs:
             cat issue_body.txt >> report.txt
             echo "Latest WeeklyRegression run: [Run Link](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }})" >> report.txt
           fi
-          # cat report.txt
 
       - name: Add Nightly-Build Failures to Report
         if: ${{ needs.check-nightly-builds.result == 'success' }}
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          ls -la
           echo "Adding nightly-build report to GitHub issue."
           echo "# Nighly-Builds status on main branch" >> report.txt
           cat ${{ env.NIGHTLY_BUILD_FILE }}.md >> report.txt
           echo "Latest Nightly Build Status Reports: [duckdb-build-status](https://duckdb.github.io/duckdb-build-status/)"
-          cat report.txt
 
       # - name: Create Issue
-        # shell: bash
-        # working-directory: ${{ env.mounted_directory_name }}
       #   if: success()
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name }}
       #   run: |
       #     if [ -f report.txt ]; then
       #       # create issue
