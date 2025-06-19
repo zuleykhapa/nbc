@@ -107,7 +107,62 @@ jobs:
           # ls benchmark/micro/**/*.benchmark > .github/regression/micro.csv
           # grep -v "arrow" .github/regression/micro.csv > tmp && mv tmp .github/regression/micro.csv
           # python scripts/regression/test_runner.py --old duckdb/build/release/benchmark/benchmark_runner --new build/release/benchmark/benchmark_runner --benchmarks .github/regression/micro.csv --verbose --threads 2
-          ./build/release/benchmark/benchmark_runner "benchmark/micro/.*" 
+          # benchmark/micro/result_collection/batched_arrow_result.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/result_collection/batched_stream_query.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/simd/auto-vectorization.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/bitstring.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/concat_long.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/concat_short.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/contains_integers.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/contains_long.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/contains_r.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/contains_re.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/contains_reg.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/contains_regular.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/equality_long.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/equality_short.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/greater_than_long.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/greater_than_short.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/inet_escape_function.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/inet_unescape_charrefs.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/inet_unescape_codepoints.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/length_long.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/length_short.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/like_regular.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/regexp_matches.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/string_agg_long.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/string_agg_order_by.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/string_agg_short.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/string/url_encode.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/timestamp/extract_month.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/timestamp/extract_year.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/update/update_with_join.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/view/many_values.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/mode_fixed_orderby.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/mode_variable_400.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/mode_variable_orderby.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/streaming_lag.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/streaming_lead.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_constant_aggregates.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_constant_count.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_count_star_fixed_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_count_star_variable_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_iqr_fixed_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_iqr_variable_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_list_aggr.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_mad_fixed_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_mad_variable_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_median_fixed_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_median_variable_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_mode_constant.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_mode_fixed_100.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_partition.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_rownumber_orderbys.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_streamed_sum.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/window/window_sum.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/zonemaps/data_skipping.benchmark
+          ./build/release/benchmark/benchmark_runner benchmark/micro/zonemaps/zonemaps.benchmark
+          # ./build/release/benchmark/benchmark_runner "benchmark/micro/.*" 
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
