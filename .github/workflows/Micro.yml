@@ -84,6 +84,13 @@ jobs:
           fetch-depth: 0
           path: duckdb-old-${{matrix.versions.old}}
 
+      - name: Setup Ccache
+        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature' }}
+        uses: hendrikmuhs/ccache-action@main
+        with:
+          key: ${{ github.job }}
+          save: ${{ github.ref == 'refs/heads/main' || github.repository != 'duckdb/duckdb' }}
+
       - name: Build new and old
         shell: bash
         run: |
@@ -105,9 +112,9 @@ jobs:
         if: always()
         shell: bash
         run: |
-          python duckdb-curr/scripts/regression/test_runner.py \
+          python duckdb-curr-${{matrix.versions.new}}/scripts/regression/test_runner.py \
               --old=duckdb-old-${{matrix.versions.old}}/build/release/benchmark/benchmark_runner \
-              --new=duckdb-curr/build/release/benchmark/benchmark_runner \
+              --new=duckdb-curr-${{matrix.versions.new}}/build/release/benchmark/benchmark_runner \
               --benchmarks=micro/micro.csv \
               --verbose > REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
           
@@ -194,5 +201,5 @@ jobs:
   #         path: REPORT
   #         if-no-files-found: error
 
-      # - name: Setup upterm session
-      #   uses: lhotari/action-upterm@v1
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
