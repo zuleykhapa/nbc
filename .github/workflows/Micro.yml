@@ -61,6 +61,7 @@ jobs:
     strategy:
       matrix:
         versions: [ { old: 'v1.2-histrionicus', new: 'v1.3-ossivalis' }, { old: 'v1.2.2', new: 'v1.3.1' } ]
+      fail-fast: false
     steps:
       - name: Sparse-checkout new micro.csv
         uses: actions/checkout@v4
