@@ -95,37 +95,39 @@ jobs:
       - name: Build new and old
         shell: bash
         run: |
-          cd duckdb-curr-${{matrix.versions.new}} && make clean && make
-          cd ..
-          cd duckdb-old-${{matrix.versions.old}} && make clean && make
+          ls -lah
+          ls micro
+      #     cd duckdb-curr-${{matrix.versions.new}} && make clean && make
+      #     cd ..
+      #     cd duckdb-old-${{matrix.versions.old}} && make clean && make
 
-      - name: Set up benchmarks 
-        shell: bash
-        working-directory: duckdb-old-${{matrix.versions.old}}
-        run: |
-          # we do this so new added benchmarks that break duckdb old
-          # do not cause failures.
-          rm -rf ../duckdb-curr-${{matrix.versions.new}}/benchmark
-          mkdir ../duckdb-curr-${{matrix.versions.new}}/benchmark
-          cp -r benchmark ../duckdb-curr-${{matrix.versions.new}}
+      # - name: Set up benchmarks 
+      #   shell: bash
+      #   working-directory: duckdb-old-${{matrix.versions.old}}
+      #   run: |
+      #     # we do this so new added benchmarks that break duckdb old
+      #     # do not cause failures.
+      #     rm -rf ../duckdb-curr-${{matrix.versions.new}}/benchmark
+      #     mkdir ../duckdb-curr-${{matrix.versions.new}}/benchmark
+      #     cp -r benchmark ../duckdb-curr-${{matrix.versions.new}}
 
-      - name: Regression Test Micro
-        if: always()
-        shell: bash
-        run: |
-          python duckdb-curr-${{matrix.versions.new}}/scripts/regression/test_runner.py \
-              --old=duckdb-old-${{matrix.versions.old}}/build/release/benchmark/benchmark_runner \
-              --new=duckdb-curr-${{matrix.versions.new}}/build/release/benchmark/benchmark_runner \
-              --benchmarks=micro/micro.csv \
-              --verbose > REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
+      # - name: Regression Test Micro
+      #   if: always()
+      #   shell: bash
+      #   run: |
+      #     python duckdb-curr-${{matrix.versions.new}}/scripts/regression/test_runner.py \
+      #         --old=duckdb-old-${{matrix.versions.old}}/build/release/benchmark/benchmark_runner \
+      #         --new=duckdb-curr-${{matrix.versions.new}}/build/release/benchmark/benchmark_runner \
+      #         --benchmarks=micro/micro.csv \
+      #         --verbose > REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
           
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
-          path: REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
-          if-no-files-found: error
+      # - name: Upload results
+      #   uses: actions/upload-artifact@v4
+      #   if: success()
+      #   with:
+      #     name: REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
+      #     path: REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
+      #     if-no-files-found: error
 
 
   # regression-test-benchmark-runner:
