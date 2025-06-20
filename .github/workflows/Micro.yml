@@ -62,6 +62,12 @@ jobs:
       matrix:
         versions: [ { old: 'v1.2-histrionicus', new: 'v1.3-ossivalis' }, { old: 'v1.2.2', new: 'v1.3.1' } ]
     steps:
+      - name: Sparse-checkout new micro.csv
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: micro.csv
+          path: micro
+
       - name: checkout duckdb-curr-${{matrix.versions.new}}
         uses: actions/checkout@v4
         with:
@@ -99,10 +105,10 @@ jobs:
         if: always()
         shell: bash
         run: |
-          python duckdb-cur/scripts/regression/test_runner.py \
+          python duckdb-curr/scripts/regression/test_runner.py \
               --old=duckdb-old-${{matrix.versions.old}}/build/release/benchmark/benchmark_runner \
-              --new=duckdb-cur/build/release/benchmark/benchmark_runner \
-              --benchmarks=duckdb-cur/.github/regression/micro.csv \
+              --new=duckdb-curr/build/release/benchmark/benchmark_runner \
+              --benchmarks=micro/micro.csv \
               --verbose > REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
           
       - name: Upload results
@@ -174,10 +180,10 @@ jobs:
   #       shell: bash
   #       run: |
   #         # python scripts/regression/test_runner.py --old duckdb/build/release/benchmark/benchmark_runner --new build/release/benchmark/benchmark_runner --benchmarks .github/regression/micro.csv --verbose --threads 2
-  #         python duckdb-cur/scripts/regression/test_runner.py \
+  #         python duckdb-curr/scripts/regression/test_runner.py \
   #             --old=duckdb-old-${{matrix.versions.old}}-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
-  #             --new=duckdb-cur/build/release/benchmark/benchmark_runner \
-  #             --benchmarks=duckdb-cur/.github/regression/micro.csv \
+  #             --new=duckdb-curr/build/release/benchmark/benchmark_runner \
+  #             --benchmarks=duckdb-curr/.github/regression/micro.csv \
   #             --verbose > REPORT
           
   #     - name: Upload results
