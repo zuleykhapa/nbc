@@ -116,11 +116,10 @@ jobs:
         if: always()
         shell: bash
         run: |
-          ls duckdb-curr-${{matrix.versions.new}}/benchmarks/mirco/**/*.benchmark > micro.csv
           python duckdb-curr-${{matrix.versions.new}}/scripts/regression/test_runner.py \
               --old=duckdb-old-${{matrix.versions.old}}/build/release/benchmark/benchmark_runner \
               --new=duckdb-curr-${{matrix.versions.new}}/build/release/benchmark/benchmark_runner \
-              --benchmarks=micro.csv \
+              --benchmarks="duckdb-old-${{matrix.versions.old}}/benchmarks/micro/.*/.*" \
               --verbose > REPORT_${{matrix.versions.new}}_${{matrix.versions.old}}
           
       - name: Upload results
