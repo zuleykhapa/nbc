@@ -21,7 +21,7 @@ jobs:
     if: >-
       ${{ github.event.pull_request.draft == false &&
       ((( github.ref == 'refs/heads/test' )) &&
-      (( github.repository == 'hmeriann/nbc' ))) }}
+      (( github.repository == 'zuleykhapa/nbc' ))) }}
     runs-on: ubuntu-latest
     steps:
         - run: echo ${{github.event.pull_request.draft}}
