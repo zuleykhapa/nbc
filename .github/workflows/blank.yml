@@ -20,8 +20,7 @@ jobs:
   build1:
     if: >-
       ${{ github.event.pull_request.draft == false &&
-      ((( github.ref == 'refs/heads/test' )) &&
-      (( github.repository == 'zuleykhapa/nbc' ))) }}
+      (( github.repository != 'duckdb/duckdb' ))) }}
     runs-on: ubuntu-latest
     steps:
         - run: echo ${{github.event.pull_request.draft}}
