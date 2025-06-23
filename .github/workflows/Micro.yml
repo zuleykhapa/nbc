@@ -103,12 +103,12 @@ jobs:
 
       - name: Set up benchmarks 
         shell: bash
-        working-directory: duckdb-curr-${{matrix.versions.old}}
+        working-directory: duckdb-curr-${{matrix.versions.new}}
         run: |
           # couldn't find some benchmarks so copying from curr
-          rm -rf ../duckdb-old-${{matrix.versions.new}}/benchmark
-          mkdir ../duckdb-old-${{matrix.versions.new}}/benchmark
-          cp -r benchmark ../duckdb-old-${{matrix.versions.new}}
+          rm -rf ../duckdb-old-${{matrix.versions.old}}/benchmark
+          mkdir ../duckdb-old-${{matrix.versions.old}}/benchmark
+          cp -r benchmark ../duckdb-old-${{matrix.versions.old}}
 
       - name: Regression Test Micro
         if: always()
