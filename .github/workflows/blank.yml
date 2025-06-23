@@ -18,7 +18,10 @@ on:
       - '!.github/patches/duckdb-wasm/**'
 jobs:
   build1:
-    if: github.event.pull_request.draft == false
+    if: >-
+      ${{ github.event.pull_request.draft == true &&
+      ((( startsWith(github.ref, 'refs/tags/t') || github.ref == 'refs/heads/main' || inputs.override_twine_upload == 'true' )) &&
+      (( github.repository == 'hmeriann/nbc' ))) }}
     runs-on: ubuntu-latest
     steps:
         - run: echo ${{github.event.pull_request.draft}}
