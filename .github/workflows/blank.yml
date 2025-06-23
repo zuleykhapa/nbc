@@ -1,0 +1,29 @@
+on:
+  workflow_dispatch:
+  repository_dispatch:
+  push:
+    branches-ignore:
+    #   - 'main'
+      - 'feature'
+      - 'v*.*-*'
+    paths-ignore:
+      - '**'
+      - '!.github/workflows/NightlyTests.yml'
+      - '!.github/patches/duckdb-wasm/**'
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    paths-ignore:
+      - '**'
+      - '!.github/workflows/NightlyTests.yml'
+      - '!.github/patches/duckdb-wasm/**'
+jobs:
+  build1:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+        - run: echo ${{github.event.pull_request.draft}}
+  build2: 
+    if: github.event.pull_request.draft == true
+    runs-on: ubuntu-latest
+    steps:
+        - run: echo ${{github.event.pull_request.draft}}
