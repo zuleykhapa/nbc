@@ -1,54 +1,29 @@
-name: Test matrix from json
-on: 
-    push:
-    workflow_dispatch:
+on:
+  workflow_dispatch:
+  repository_dispatch:
+  push:
+    branches-ignore:
+    #   - 'main'
+      - 'feature'
+      - 'v*.*-*'
+    paths-ignore:
+      - '**'
+      - '!.github/workflows/NightlyTests.yml'
+      - '!.github/patches/duckdb-wasm/**'
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    paths-ignore:
+      - '**'
+      - '!.github/workflows/NightlyTests.yml'
+      - '!.github/patches/duckdb-wasm/**'
 jobs:
-    create-json-file:
-        runs-on: ubuntu-latest
-        outputs:
-            file: ${{ steps.file.outputs.file }}
-        steps:
-            - id: file
-              run: |
-                echo '{
-                    "old_tests": [
-                        {
-                        "new_name": "main",
-                        "new_sha": "latest main SHA",
-                        "old_name": "main",
-                        "old_sha": "a week ago main SHA"
-                        },
-                        {
-                        "new_name": "main",
-                        "new_sha": "latest main SHA",
-                        "old_name": "v1.2-histrionicus",
-                        "old_sha": "latest v1.2-histrionicus SHA"
-                        }
-                    ]
-                    }' > j.json
-
-
-                matrix=$(cat j.json | jq -c '.')
-                echo "file=$matrix" >> $GITHUB_OUTPUT
-                cat j.json
-    use-matrix:
-        runs-on: ubuntu-latest
-        needs: create-json-file
-        outputs:
-            json: ${{ steps.to-json.outputs.file }}
-        steps:
-            - id: to-json
-              run: echo json=${{ toJson(needs.create-json-file.outputs.file )}} >> $GITHUB_OUTPUT
-    use:
-        runs-on: ubuntu-latest
-        needs: use-matrix
-        strategy:
-            matrix:
-                file: ${{ fromJson(needs.use-matrix.outputs.json) }}
-        steps:
-            - run: |
-                for item in ${{matrix.file}}; do
-                    echo $item
-                done
-
-        
+  build1:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+        - run: echo ${{github.event.pull_request.draft}}
+  build2: 
+    if: github.event.pull_request.draft == true
+    runs-on: ubuntu-latest
+    steps:
+        - run: echo ${{github.event.pull_request.draft}}
