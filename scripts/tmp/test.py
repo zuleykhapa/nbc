@@ -25,6 +25,7 @@ new_data = {"test": "test/sql/copy/csv/test_skip.test_slow", "return_code": 1, "
 error_container.append(new_data)
 
 def main():
+    error_list = error_container.get_errors()
     with open("failures_summary.json", 'w') as f:
         json.dump(error_list, f, indent=2)
     print(
