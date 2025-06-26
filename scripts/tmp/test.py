@@ -39,6 +39,7 @@ def main():
         print(error["stderr"])
 
         subprocess.run(f'echo "::warning::{i}: {error["test"]}"', shell=True)
+        subprocess.run(f'echo "::warning::{i}: {error["stderr"]}"', shell=True)
 
         # print(f'echo "::warning::{i}: {error["test"]}"')
         # print(f'echo "::warning::{error["stderr"]}"')
