@@ -21,11 +21,12 @@ jobs:
           
           echo "cat failures_summary.json"
           cat failures_summary.json
+          echo
           
           JSON_CONTENT=$(cat failures_summary.json)
           ESCAPED_JSON_CONTENT=$(echo "$JSON_CONTENT" | jq -c '.')
 
-          echo "::warning file=failures_summary.json::Failures detected: $ESCAPED_JSON_CONTENT"
-
-          # rm failures_summary.json
-          # rm $GITHUB_STEP_SUMMARY
+          for failure in ESCAPED_JSON_CONTENT; do
+            echo "::warning::Failures detected: $failure
+          done
+          
