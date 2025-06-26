@@ -36,8 +36,6 @@ jobs:
         run: |
           echo "This is the warning content from the previous step: $WARNING_OUTPUT"
 
-          name: Example Workflow with Warning Annotations
-
       - name: Read failures_summary.json and add annotations
         run: |
           # Read the contents of the JSON file
