@@ -37,10 +37,12 @@ jobs:
           echo "cat failures_summary.json"
           cat failures_summary.json
           
-          echo "::warning::$(cat failures_summary.json)"
+          JSON_CONTENT=$(cat failures_summary.json)
+
+          echo "::warning file=failures_summary.json::Failures detected: $JSON_CONTENT"
           # rm failures_summary.json
           # rm $GITHUB_STEP_SUMMARY
 
-      - name: Use warning output in the next step
-        run: |
-          echo "This is the warning content from the previous step: $WARNING_OUTPUT"
+      # - name: Use warning output in the next step
+      #   run: |
+      #     echo "This is the warning content from the previous step: $WARNING_OUTPUT"
