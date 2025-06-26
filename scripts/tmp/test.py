@@ -25,6 +25,8 @@ new_data = {"test": "test/sql/copy/csv/test_skip.test_slow", "return_code": 1, "
 error_container.append(new_data)
 
 def main():
+    with open("failures_summary.json", 'w') as f:
+        json.dump(error_list, f, indent=2)
     print(
     '''\n\n====================================================
 ================  FAILURES SUMMARY  ================
@@ -35,7 +37,7 @@ def main():
         print(f"\n{i}:", error["test"], "\n")
         print(error["stderr"])
 
-        print(f'echo "::warning::{i}: {error["test"]}"')
-        print(f'echo "::warning::{error["stderr"]}"')
+        # print(f'echo "::warning::{i}: {error["test"]}"')
+        # print(f'echo "::warning::{error["stderr"]}"')
 if __name__ == "__main__":
     main()

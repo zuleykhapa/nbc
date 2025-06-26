@@ -13,27 +13,27 @@ jobs:
         uses: actions/checkout@v2
 
       # Add your logic to generate or upload failures_summary.json
-      - name: Upload failures_summary.json (example step)
-        run: |
-          echo '{"failure_count": 3, "details": ["Test1 failed", "Test2 failed", "Test3 failed"]}' > failures_summary.json
+      # - name: Upload failures_summary.json (example step)
+      #   run: |
+      #     echo '{"failure_count": 3, "details": ["Test1 failed", "Test2 failed", "Test3 failed"]}' > failures_summary.json
 
       - name: Read failures_summary.json and add annotations
         run: |
           python scripts/tmp/test.py
-          # Read the contents of the JSON file
-          JSON_CONTENT=$(cat failures_summary.json)
+          # # Read the contents of the JSON file
+          # JSON_CONTENT=$(cat failures_summary.json)
           
-          # Add the contents as a warning annotation
-          echo "::warning file=failures_summary.json::Failures detected: $JSON_CONTENT"
+          # # Add the contents as a warning annotation
+          # echo "::warning file=failures_summary.json::Failures detected: $JSON_CONTENT"
           
-          # If you want to add multiple warnings (e.g., for each failure):
-          echo "::warning file=failures_summary.json::Failure count: 3"
-          echo "::warning file=failures_summary.json::Test1 failed"
-          echo "::warning file=failures_summary.json::Test2 failed"
-          echo "::warning file=failures_summary.json::Test3 failed"
+          # # If you want to add multiple warnings (e.g., for each failure):
+          # echo "::warning file=failures_summary.json::Failure count: 3"
+          # echo "::warning file=failures_summary.json::Test1 failed"
+          # echo "::warning file=failures_summary.json::Test2 failed"
+          # echo "::warning file=failures_summary.json::Test3 failed"
           
-          # Optionally save the warning message to the environment if needed for subsequent steps
-          echo "WARNING_OUTPUT=$JSON_CONTENT" >> $GITHUB_ENV
+          # # Optionally save the warning message to the environment if needed for subsequent steps
+          # echo "WARNING_OUTPUT=$JSON_CONTENT" >> $GITHUB_ENV
 
           echo "$(cat failures_summary.json)" >> $GITHUB_STEP_SUMMARY
           rm failures_summary.json
