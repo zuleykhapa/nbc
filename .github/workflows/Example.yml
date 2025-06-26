@@ -19,14 +19,14 @@ jobs:
         run: |
           python scripts/tmp/test.py
           
-          echo "cat failures_summary.json"
-          cat failures_summary.json
-          echo
-          
-          JSON_CONTENT=$(cat failures_summary.json)
-          ESCAPED_JSON_CONTENT=$(echo "$JSON_CONTENT" | jq -c '.')
+          # echo "cat failures_summary.json"
+          # cat failures_summary.json
+          # echo
 
-          for failure in ESCAPED_JSON_CONTENT; do
-            echo "::warning::Failures detected: $failure
-          done
+          # JSON_CONTENT=$(cat failures_summary.json)
+          # ESCAPED_JSON_CONTENT=$(echo "$JSON_CONTENT" | jq -c '.')
+
+          # for failure in ESCAPED_JSON_CONTENT; do
+          #   echo "::warning::Failures detected: $failure
+          # done
           

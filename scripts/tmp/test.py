@@ -38,6 +38,8 @@ def main():
         print(f"\n{i}:", error["test"], "\n")
         print(error["stderr"])
 
+        subprocess.run(f'echo "::warning::{i}: {error["test"]}"', shell=True)
+
         # print(f'echo "::warning::{i}: {error["test"]}"')
         # print(f'echo "::warning::{error["stderr"]}"')
 if __name__ == "__main__":
