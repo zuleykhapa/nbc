@@ -34,8 +34,8 @@ def main():
     for i, error in enumerate(error_container.get_errors(), start=1):
         print(f"\n{i}:", error["test"], "\n")
         print(error["stderr"])
-        print(f'echo "::warning::{i}:", {error["test"]}, "\n')
-        print(f'echo "::warning::{error["stderr"]}, "\n')
 
+        print(f'echo "::warning::{i}: {error["test"]}"')
+        print(f'echo "::warning::{error["stderr"]}"')
 if __name__ == "__main__":
     main()
