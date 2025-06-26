@@ -21,11 +21,17 @@ jobs:
         run: |
           # Read the contents of the JSON file
           JSON_CONTENT=$(cat failures_summary.json)
+          
+          # Output to the summary
           echo "### Warnings from Failure Summary" >> $GITHUB_STEP_SUMMARY
           echo "$JSON_CONTENT" >> $GITHUB_STEP_SUMMARY
+          
           # Display a warning in the logs with the file content
           echo "::warning::$(cat failures_summary.json)"
+          
+          # Save output to an environment file (this is the new way to set output)
+          echo "WARNING_OUTPUT=$JSON_CONTENT" >> $GITHUB_ENV
 
-      - name: Add warning to summary
+      - name: Use warning output in the next step
         run: |
-          echo "::set-output name=warning::$(cat failures_summary.json)"
+          echo "This is the warning content from the previous step: $WARNING_OUTPUT"
