@@ -38,6 +38,7 @@ jobs:
 
       - name: Read failures_summary.json and add annotations
         run: |
+          python scripts/tmp/test.py
           # Read the contents of the JSON file
           JSON_CONTENT=$(cat failures_summary.json)
           
