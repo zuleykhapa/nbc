@@ -1,0 +1,34 @@
+name: Example Workflow with Warnings
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run a job that could potentially warn
+        run: |
+          echo "This is a normal output."
+          echo "This is a warning: Something could go wrong!"
+          echo "::warning file=example.txt::Warning message!"
+          
+      - name: Set the warning in the summary
+        run: |
+          echo "This is a warning for the workflow summary."
+          echo "::set-output name=warning::This is a warning in the summary!"
+          
+      - name: Add warning message to workflow summary
+        run: |
+          echo "### Workflow Warnings" >> $GITHUB_ENV
+          echo "This is a custom warning message" >> $GITHUB_ENV
+          
+      - name: Post a custom message
+        run: |
+          echo "### Custom Summary Message" >> $GITHUB_STEP_SUMMARY
+          echo "This is the message for the summary" >> $GITHUB_STEP_SUMMARY
