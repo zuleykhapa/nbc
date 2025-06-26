@@ -1,4 +1,4 @@
-name: Example Workflow with Warnings
+name: Example Workflow with Warning and File Upload
 
 on:
   push:
@@ -12,23 +12,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Run a job that could potentially warn
+      # Add your logic to generate or upload failures_summary.json
+      - name: Upload failures_summary.json (example step)
         run: |
-          echo "This is a normal output."
-          echo "This is a warning: Something could go wrong!"
-          echo "::warning file=example.txt::Warning message!"
+          echo '{"failure_count": 3, "details": ["Test1 failed", "Test2 failed", "Test3 failed"]}' > failures_summary.json
           
-      - name: Set the warning in the summary
+      - name: Display the content of failures_summary.json in a warning
         run: |
-          echo "This is a warning for the workflow summary."
-          echo "::set-output name=warning::This is a warning in the summary!"
-          
-      - name: Add warning message to workflow summary
+          # Read the contents of the JSON file
+          JSON_CONTENT=$(cat failures_summary.json)
+          echo "### Warnings from Failure Summary" >> $GITHUB_STEP_SUMMARY
+          echo "$JSON_CONTENT" >> $GITHUB_STEP_SUMMARY
+          # Display a warning in the logs with the file content
+          echo "::warning::$(cat failures_summary.json)"
+
+      - name: Add warning to summary
         run: |
-          echo "### Workflow Warnings" >> $GITHUB_ENV
-          echo "This is a custom warning message" >> $GITHUB_ENV
-          
-      - name: Post a custom message
-        run: |
-          echo "### Custom Summary Message" >> $GITHUB_STEP_SUMMARY
-          echo "This is the message for the summary" >> $GITHUB_STEP_SUMMARY
+          echo "::set-output name=warning::$(cat failures_summary.json)"
