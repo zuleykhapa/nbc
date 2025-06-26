@@ -34,10 +34,12 @@ jobs:
           
           # # Optionally save the warning message to the environment if needed for subsequent steps
           # echo "WARNING_OUTPUT=$JSON_CONTENT" >> $GITHUB_ENV
-
-          echo "$(cat failures_summary.json)" >> $GITHUB_STEP_SUMMARY
-          rm failures_summary.json
-          rm $GITHUB_STEP_SUMMARY
+          echo "cat failures_summary.json"
+          cat failures_summary.json
+          
+          echo "::warning::$(cat failures_summary.json)"
+          # rm failures_summary.json
+          # rm $GITHUB_STEP_SUMMARY
 
       - name: Use warning output in the next step
         run: |
