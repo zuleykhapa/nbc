@@ -20,7 +20,7 @@ jobs:
           cat failures_summary.json
           
           JSON_CONTENT=$(cat failures_summary.json)
-          ESCAPED_JSON_CONTENT=$(echo "$JSON_CONTENT" | sed 's/"/\\"/g')
+          ESCAPED_JSON_CONTENT=$(echo "$JSON_CONTENT" | tr -d '\n' | sed 's/"/\\"/g')
 
           echo "::warning file=failures_summary.json::Failures detected: $ESCAPED_JSON_CONTENT"
 
