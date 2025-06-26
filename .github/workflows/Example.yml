@@ -16,25 +16,6 @@ jobs:
       - name: Upload failures_summary.json (example step)
         run: |
           echo '{"failure_count": 3, "details": ["Test1 failed", "Test2 failed", "Test3 failed"]}' > failures_summary.json
-          
-      - name: Display the content of failures_summary.json in a warning
-        run: |
-          # Read the contents of the JSON file
-          JSON_CONTENT=$(cat failures_summary.json)
-          
-          # Output to the summary
-          echo "### Warnings from Failure Summary" >> $GITHUB_STEP_SUMMARY
-          echo "$JSON_CONTENT" >> $GITHUB_STEP_SUMMARY
-          
-          # Display a warning in the logs with the file content
-          echo "::warning::$(cat failures_summary.json)"
-          
-          # Save output to an environment file (this is the new way to set output)
-          echo "WARNING_OUTPUT=$JSON_CONTENT" >> $GITHUB_ENV
-
-      - name: Use warning output in the next step
-        run: |
-          echo "This is the warning content from the previous step: $WARNING_OUTPUT"
 
       - name: Read failures_summary.json and add annotations
         run: |
@@ -53,6 +34,10 @@ jobs:
           
           # Optionally save the warning message to the environment if needed for subsequent steps
           echo "WARNING_OUTPUT=$JSON_CONTENT" >> $GITHUB_ENV
+
+          echo "$(cat failures_summary.json)" >> $GITHUB_STEP_SUMMARY
+          rm failures_summary.json
+          rm $GITHUB_STEP_SUMMARY
 
       - name: Use warning output in the next step
         run: |
