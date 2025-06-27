@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: github.event.pull_request.draft == false || !github.event_name.pull_request
     steps:
-      - run: echo github.event.pull_request.draft
+      - run: echo ${{ github.event_name }}
 
   test:
     name: Test
