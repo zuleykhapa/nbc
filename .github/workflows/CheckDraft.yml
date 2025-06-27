@@ -12,7 +12,7 @@ jobs:
   check-draft:
     name: Decide if the workflow runs
     runs-on: ubuntu-24.04
-    if: ${{ github.event.pull_request.draft == 'false' }}
+    if: ${{ github.event.pull_request.draft == false }}
     # outputs:
     #   is_draft: ${{ steps.check-draft.outputs.is_draft }}
     steps:
