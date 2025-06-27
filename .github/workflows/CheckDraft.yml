@@ -17,7 +17,7 @@ jobs:
     steps:
     - id: check-draft
       run: |
-        echo "is_draft=$(${{ github.event.pull_request.draft }} == 'true')" >> $GITHUB_OUTPUT
+        echo "is_draft=${{ github.event.pull_request.draft }}" >> $GITHUB_OUTPUT
         # if [ ${{ github.event.pull_request.draft }} == 'true' ]; then
         #   echo "is_draft=true" >> $GITHUB_OUTPUT
         # else
@@ -28,7 +28,7 @@ jobs:
     name: Test
     runs-on: ubuntu-24.04
     needs: check-draft
-    if: ${{ needs.check-draft.outputs.is_draft == 'false' }}
+    if: ${{ needs.check-draft.outputs.is_draft == false }}
 
     steps:
     - run: echo ${{needs.check-draft.outputs.is_draft}}
@@ -37,6 +37,7 @@ jobs:
     name: Another Test
     runs-on: ubuntu-24.04
     needs: check-draft
+    if: ${{ needs.check-draft.outputs.is_draft == true }}
 
     steps:
     - run: ${{needs.check-draft.outputs.is_draft}}
