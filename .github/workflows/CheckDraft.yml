@@ -42,7 +42,7 @@ jobs:
     name: Another Test
     runs-on: ubuntu-24.04
     needs: check-draft
-    if: ${{ needs.check-draft.result == 'success' }}
+    if: ${{ needs.check-draft.result == 'failure' }}
 
     steps:
     - run: echo ${{needs.check-draft.result}}
