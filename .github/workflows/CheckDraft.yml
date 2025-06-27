@@ -20,7 +20,7 @@ jobs:
     needs: check-draft
     steps:
     - name: Checkout Code
-        uses: actions/checkout@v3
+      uses: actions/checkout@v3
 
     - name: Set up C++ environment
       uses: actions/setup-cpp@v1
