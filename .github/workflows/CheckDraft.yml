@@ -17,7 +17,7 @@ jobs:
     steps:
     - id: check-draft
       run: |
-        if [ ${{ github.event.pull_request.draft }} == 'true']; then
+        if [ ${{ github.event.pull_request.draft }} == 'true' ]; then
           exit 1
         else
           exit 0
