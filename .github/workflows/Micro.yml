@@ -10,28 +10,28 @@ on:
         type: string
         default: 120567b3d5
   repository_dispatch:
-  push:
-    branches-ignore:
-      - 'main'
-      - 'feature'
-      - 'v*.*-*'
-    paths-ignore:
-      - '**.md'
-      - 'tools/**'
-      - '!tools/pythonpkg/**'
-      - '.github/patches/duckdb-wasm/**'
-      - '.github/workflows/**'
-      - '!.github/workflows/Regression.yml'
-  merge_group:
-  pull_request:
-    types: [opened, reopened, ready_for_review]
-    paths-ignore:
-      - '**.md'
-      - 'tools/**'
-      - '!tools/pythonpkg/**'
-      - '.github/patches/duckdb-wasm/**'
-      - '.github/workflows/**'
-      - '!.github/workflows/Regression.yml'
+  # push:
+  #   branches-ignore:
+  #     - 'main'
+  #     - 'feature'
+  #     - 'v*.*-*'
+  #   paths-ignore:
+  #     - '**.md'
+  #     - 'tools/**'
+  #     - '!tools/pythonpkg/**'
+  #     - '.github/patches/duckdb-wasm/**'
+  #     - '.github/workflows/**'
+  #     - '!.github/workflows/Regression.yml'
+  # merge_group:
+  # pull_request:
+  #   types: [opened, reopened, ready_for_review]
+  #   paths-ignore:
+  #     - '**.md'
+  #     - 'tools/**'
+  #     - '!tools/pythonpkg/**'
+  #     - '.github/patches/duckdb-wasm/**'
+  #     - '.github/workflows/**'
+  #     - '!.github/workflows/Regression.yml'
 
 
 concurrency:
