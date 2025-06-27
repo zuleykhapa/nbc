@@ -17,11 +17,12 @@ jobs:
     steps:
     - id: check-draft
       run: |
-        if [ ${{ github.event.pull_request.draft }} == 'true' ]; then
-          echo "is_draft=true" >> $GITHUB_OUTPUT
-        else
-          echo "is_draft=false" >> $GITHUB_OUTPUT
-        fi
+        echo "is_draft=$(${{ github.event.pull_request.draft }} == 'true')" >> $GITHUB_OUTPUT
+        # if [ ${{ github.event.pull_request.draft }} == 'true' ]; then
+        #   echo "is_draft=true" >> $GITHUB_OUTPUT
+        # else
+        #   echo "is_draft=false" >> $GITHUB_OUTPUT
+        # fi
 
   test:
     name: Test
