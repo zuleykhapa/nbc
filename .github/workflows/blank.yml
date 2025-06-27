@@ -1,21 +1,21 @@
 on:
   workflow_dispatch:
   repository_dispatch:
-  push:
-    branches-ignore:
-    #   - 'main'
-      - 'feature'
-      - 'v*.*-*'
-    paths-ignore:
-      - '**'
-      - '!.github/workflows/NightlyTests.yml'
-      - '!.github/patches/duckdb-wasm/**'
-  pull_request:
-    types: [opened, reopened, ready_for_review]
-    paths-ignore:
+  # push:
+  #   branches-ignore:
+  #   #   - 'main'
+  #     - 'feature'
+  #     - 'v*.*-*'
+  #   paths-ignore:
+  #     - '**'
+  #     - '!.github/workflows/NightlyTests.yml'
+  #     - '!.github/patches/duckdb-wasm/**'
+  # pull_request:
+    # types: [opened, reopened, ready_for_review]
+    # paths-ignore:
       # - '**'
-      - '!.github/workflows/NightlyTests.yml'
-      - '!.github/patches/duckdb-wasm/**'
+      # - '!.github/workflows/NightlyTests.yml'
+      # - '!.github/patches/duckdb-wasm/**'
 jobs:
   build1:
     if: |
