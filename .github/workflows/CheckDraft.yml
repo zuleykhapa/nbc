@@ -32,3 +32,5 @@ jobs:
     - name: Compile C++ code
       run: |
         g++ -o ci_warnings ci_warnings.cpp
+    
+    - run: chmod +x ci_warnings && ./ci_warnings
