@@ -1,0 +1,41 @@
+name: CheckDraft
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, converted_to_draft]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}
+  cancel-in-progress: true
+
+jobs:          
+  check-draft:
+    name: Decide if the workflow runs
+    runs-on: ubuntu-24.04
+    outputs:
+      is_draft: ${{ steps.check-draft.outputs.is_draft }}
+    steps:
+    - id: check-draft
+      run: |
+        if [ ${{ github.event.pull_request.draft }} == 'true' ]; then
+          echo "is_draft=true" >> $GITHUB_OUTPUT
+        else
+          echo "is_draft=false" >> $GITHUB_OUTPUT
+        fi
+
+  test:
+    name: Test
+    runs-on: ubuntu-24.04
+    needs: check-draft
+    if: ${{ needs.check-draft.outputs.is_draft == 'false' }}
+
+    steps:
+    - run: echo ${{needs.check-draft.outputs.is_draft}}
+
+  another-test:
+    name: Another Test
+    runs-on: ubuntu-24.04
+    needs: check-draft
+
+    steps:
+    - run: ${{needs.check-draft.outputs.is_draft}}
