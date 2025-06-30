@@ -24,20 +24,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:          
-  check-draft:
-    name: Decide if the workflow runs
+  heck-draft:
+    name: Don't trigger further jobs to run on draft PR
     runs-on: ubuntu-24.04
-    outputs:
-      is_draft: ${{ steps.check-draft.outputs.is_draft }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     steps:
-    - id: check-draft
-      run: |
-        echo "is_draft=${{ github.event.pull_request.draft }}" >> $GITHUB_OUTPUT
-        # if [ ${{ github.event.pull_request.draft }} == 'true' ]; then
-        #   echo "is_draft=true" >> $GITHUB_OUTPUT
-        # else
-        #   echo "is_draft=false" >> $GITHUB_OUTPUT
-        # fi
+      - run: echo ${{ github.event.pull_request.draft }}
 
   test:
     name: Test
