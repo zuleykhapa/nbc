@@ -5,7 +5,22 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, reopened, ready_for_review, converted_to_draft]
-
+  push:
+    branches-ignore:
+      - 'main'
+      - 'feature'
+      - 'v*.*-*'
+    paths-ignore:
+      - '**.md'
+      - 'examples/**'
+      - 'test/**'
+      - 'tools/**'
+      - '!tools/pythonpkg/**'
+      - '.github/patches/duckdb-wasm/**'
+      - '.github/workflows/**'
+      - '!.github/workflows/Python.yml'
+      - '.github/config/out_of_tree_extensions.cmake'
+  merge_group:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}
   cancel-in-progress: true
