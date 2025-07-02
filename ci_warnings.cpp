@@ -3,7 +3,7 @@
 
 int main() {
     // Example notice message for GitHub Actions
-    std::cout << "::notice title={"This is a notice message in the CI workflow!"}::{"❌"} << std::endl;
+    std::cout << "::notice title={"This is a notice message in the CI workflow!"}::{"❌"}" << std::endl;
 
     // Example warning message for GitHub Actions
     std::cout << "::warning::This is a warning message in the CI workflow!" << std::endl;
