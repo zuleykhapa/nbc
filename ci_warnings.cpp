@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstdlib>
-#include <ostringstream>
+#include <sstream>
 
 int main() {
     // Example notice message for GitHub Actions
