@@ -277,7 +277,7 @@ jobs:
         run: |
           header_written=false
 
-          for output in $(ls "regression_output_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"); do
+          for output in $(ls regression_output_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt); do
             echo "Processing output file $output..."
             # Check if regressions are detected in the current file
             if ! grep -q "NO REGRESSIONS DETECTED" $output; then
