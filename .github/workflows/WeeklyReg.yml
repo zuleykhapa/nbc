@@ -275,40 +275,52 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
+          # exit immediately on error, return all error essages that failed in a pipe
+          set -eo pipefail
+          # to expand * in for loop
+          shopt -s nullglob
+
           header_written=false
-          regressions=false
 
           for output in $(ls regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt); do
             echo "Processing output file $output..."
             # Check if regressions are detected in the current file
             if ! grep -q "NO REGRESSIONS DETECTED" $output; then
+              # write 'true' only first time we find regression
+              if [ "$header_written" != "true" ]; then
+                header_written=true
+                if [ ! -s has_regressions.flag ]; then
+                  echo "true" > has_regressions.flag
+                fi
+              fi
               # Retrieve benchmark name from the regression_outputs file
               test_name=$(echo $output | awk -F'_' '{print $3,$4}')
               
               # Check if the header has already been written
               if [ "$header_written" = false ]; then
                 echo "Adding a header..."
-                printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n" >> "issue_body.txt"
-                printf "Hash info:\n" >> "issue_body.txt"
-                printf "|  | Branch | SHA |\n" >> "issue_body.txt"
-                printf "|:-|:-------|:----|\n" >> "issue_body.txt"
-                printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n" >> "issue_body.txt"
-                printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n" >> "issue_body.txt"
-                printf "#### List of regressed tests\n" >> "issue_body.txt"
+                {
+                  printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n"
+                  printf "Hash info:\n"
+                  printf "|  | Branch | SHA |\n"
+                  printf "|:-|:-------|:----|\n"
+                  printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n"
+                  printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n"
+                  printf "#### List of regressed tests\n"
+                } >> "issue_body.txt"
 
                 header_written=true
               fi
 
               # Add regressed tests data into the issue_body file
-              printf -- "- **%s**\n" "$test_name" >> "issue_body.txt"
-              printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)" >> "issue_body.txt"
+              {
+                printf -- "- **%s**\n" "$test_name"
+                printf -- "\`\`\`\n%s\n\`\`\`\n" "$(awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' $output)"
+              } >> "issue_body.txt"
+              
               echo "Regressions detected in $test_name $output. An issue should be filed."
-              regressions=true
-            else
-              echo "No Regressions Detected in $output."
-            fi
           done
-          echo "regressions=$regressions" >> $GITHUB_OUTPUT
+          echo "regressions=$header_written" >> $GITHUB_OUTPUT
 
   file-issue:
     name: File Issue
