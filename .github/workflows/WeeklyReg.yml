@@ -252,58 +252,74 @@ jobs:
           name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
           path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
           if-no-files-found: error
+collect-issues:
+    name: ISSUES - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
+    needs: 
+      - define-matrix
+      - start-runner
+      - configure-mount-and-download-benchmark-data
+      - build-and-setup
+      - run-regression-tests
+    if: always()
+    runs-on: self-hosted
+    strategy:
+      matrix: 
+        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
+    outputs:
+      regressions: ${{ steps.collect.outputs.regressions }}
 
-  - name: Collect issues
-  id: collect
-  shell: bash
-  working-directory: ${{ env.mounted_directory_name }}
-  run: |
-    # exit immediately on error; propagate pipe failures
-    set -eo pipefail
-    shopt -s nullglob
-
-    header_written=false
-    : > issue_body.txt
-
-    files=( regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt )
-    if (( ${#files[@]} == 0 )); then
-      echo "No regression output files found."
-    fi
-
-    for output in "${files[@]}"; do
-      echo "Processing output file $output..."
-
-      if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-        # Заголовок + флаг — только при первом нахождении регрессии
-        if [ "$header_written" = false ]; then
-          {
-            printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n"
-            printf "Hash info:\n"
-            printf "|  | Branch | SHA |\n"
-            printf "|:-|:-------|:----|\n"
-            printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n"
-            printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n"
-            printf "#### List of regressed tests\n"
-          } >> "issue_body.txt"
-          header_written=true
-          # запишем маркер только если его ещё нет/пустой
-          [ -s has_regressions.flag ] || echo "true" > has_regressions.flag
+    steps:
+    - name: Collect issues
+      id: collect
+      shell: bash
+      working-directory: ${{ env.mounted_directory_name }}
+      run: |
+        # exit immediately on error; propagate pipe failures
+        set -eo pipefail
+        shopt -s nullglob
+    
+        header_written=false
+        : > issue_body.txt
+    
+        files=( regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt )
+        if (( ${#files[@]} == 0 )); then
+          echo "No regression output files found."
         fi
-
-        # Имя теста и блок логов
-        test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
-        {
-          printf -- "- **%s**\n" "$test_name"
-          printf '```\n'
-          awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' "$output"
-          printf '\n```\n'
-        } >> "issue_body.txt"
-
-        echo "Regressions detected in $test_name $output. An issue should be filed."
-      fi  # <--- ВОТ ЭТОГО fi у тебя не хватало
-    done
-
-    echo "regressions=$header_written" >> "$GITHUB_OUTPUT"
+    
+        for output in "${files[@]}"; do
+          echo "Processing output file $output..."
+    
+          if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
+            # Заголовок + флаг — только при первом нахождении регрессии
+            if [ "$header_written" = false ]; then
+              {
+                printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n"
+                printf "Hash info:\n"
+                printf "|  | Branch | SHA |\n"
+                printf "|:-|:-------|:----|\n"
+                printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n"
+                printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n"
+                printf "#### List of regressed tests\n"
+              } >> "issue_body.txt"
+              header_written=true
+              # запишем маркер только если его ещё нет/пустой
+              [ -s has_regressions.flag ] || echo "true" > has_regressions.flag
+            fi
+    
+            # Имя теста и блок логов
+            test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
+            {
+              printf -- "- **%s**\n" "$test_name"
+              printf '```\n'
+              awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' "$output"
+              printf '\n```\n'
+            } >> "issue_body.txt"
+    
+            echo "Regressions detected in $test_name $output. An issue should be filed."
+          fi  # <--- ВОТ ЭТОГО fi у тебя не хватало
+        done
+    
+        echo "regressions=$header_written" >> "$GITHUB_OUTPUT"
 
 
   file-issue:
