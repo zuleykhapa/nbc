@@ -252,7 +252,8 @@ jobs:
           name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
           path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
           if-no-files-found: error
-collect-issues:
+  
+  collect-issues:
     name: ISSUES - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
     needs: 
       - define-matrix
