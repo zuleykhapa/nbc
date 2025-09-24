@@ -291,7 +291,6 @@ jobs:
           echo "Processing output file $output..."
     
           if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-            # Заголовок + флаг — только при первом нахождении регрессии
             if [ "$header_written" = false ]; then
               {
                 printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n"
@@ -303,11 +302,9 @@ jobs:
                 printf "#### List of regressed tests\n"
               } >> "issue_body.txt"
               header_written=true
-              # запишем маркер только если его ещё нет/пустой
-              [ -s has_regressions.flag ] || echo "true" > has_regressions.flag
+              [ -s has_regressions.flag ] || echo "true " >> has_regressions.flag
             fi
     
-            # Имя теста и блок логов
             test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
             {
               printf -- "- **%s**\n" "$test_name"
@@ -317,21 +314,40 @@ jobs:
             } >> "issue_body.txt"
     
             echo "Regressions detected in $test_name $output. An issue should be filed."
-          fi  # <--- ВОТ ЭТОГО fi у тебя не хватало
+          fi
         done
     
-        echo "regressions=$header_written" >> "$GITHUB_OUTPUT"
+        # echo "regressions=$header_written" >> "$GITHUB_OUTPUT"
+        # echo $regressions
+        cat has_regressions.flag
 
-
+  flag:
+    name: Check Regressions File
+    runs-on: self-hosted
+    needs:
+      - start-runner
+      - configure-mount-and-download-benchmark-data
+      - build-and-setup
+      - run-regression-tests
+      - collect-issues
+    outputs:
+      regressions: ${{ steps.collect.outputs.regressions }}
+    steps:
+      - id: collect
+        run: |
+          echo "regressions=$(if grep 'true' has_regressions.flag; then echo "true"; else echo "false"; fi) >> $GITHUB_OUTPUT
+          echo $regressions
+      
   file-issue:
     name: File Issue
-    if: ${{ contains(github.ref_name, 'main') && needs.collect-issues.outputs.regressions != 'false' }}
+    if: ${{ contains(github.ref_name, 'main') && needs.flag.outputs.regressions != 'false' }}
     needs: 
       - start-runner
       - configure-mount-and-download-benchmark-data
       - build-and-setup
       - run-regression-tests
       - collect-issues
+      - flag
     runs-on: self-hosted
     steps:
       - name: File issue on preparation steps
