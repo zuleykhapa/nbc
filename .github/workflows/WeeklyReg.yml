@@ -255,7 +255,7 @@ jobs:
   
   file-issue:
     name: File Issue
-    if: ${{ contains(github.ref_name, 'main') }}
+    # if: ${{ contains(github.ref_name, 'main') }}
     needs: 
       - define-matrix
       - start-runner
