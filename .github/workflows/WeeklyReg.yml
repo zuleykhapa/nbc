@@ -1,7 +1,7 @@
 name: Weekly Regression
 on:
-  schedule:
-    - cron:  '0 1 * * MON' # runs at 2am CET MONDAY
+  # schedule:
+  #   - cron:  '0 1 * * MON' # runs at 2am CET MONDAY
   workflow_dispatch:
 
 concurrency:
@@ -253,103 +253,27 @@ jobs:
           path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
           if-no-files-found: error
   
-  collect-issues:
-    name: ISSUES - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
+  file-issue:
+    name: File Issue
+    if: ${{ contains(github.ref_name, 'main') }}
     needs: 
       - define-matrix
       - start-runner
       - configure-mount-and-download-benchmark-data
       - build-and-setup
       - run-regression-tests
-    if: always()
     runs-on: self-hosted
-    strategy:
-      matrix: 
-        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
     outputs:
       regressions: ${{ steps.collect.outputs.regressions }}
 
     steps:
-    - name: Collect issues
-      id: collect
-      shell: bash
-      working-directory: ${{ env.mounted_directory_name }}
-      run: |
-        # exit immediately on error; propagate pipe failures
-        set -eo pipefail
-        shopt -s nullglob
-    
-        header_written=false
-        : > issue_body.txt
-    
-        files=( regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt )
-        if (( ${#files[@]} == 0 )); then
-          echo "No regression output files found."
-        fi
-    
-        for output in "${files[@]}"; do
-          echo "Processing output file $output..."
-    
-          if ! grep -q "NO REGRESSIONS DETECTED" "$output"; then
-            if [ "$header_written" = false ]; then
-              {
-                printf "### Regression detected between \`${{ matrix.versions.new_name }}\` and \`${{ matrix.versions.old_name }}\`\n"
-                printf "Hash info:\n"
-                printf "|  | Branch | SHA |\n"
-                printf "|:-|:-------|:----|\n"
-                printf "| **NEW** | ${{ matrix.versions.new_name }} | ${{ matrix.versions.new_sha }} |\n"
-                printf "| **OLD** | ${{ matrix.versions.old_name }} | ${{ matrix.versions.old_sha }} |\n"
-                printf "#### List of regressed tests\n"
-              } >> "issue_body.txt"
-              header_written=true
-              [ -s has_regressions.flag ] || echo "true " >> has_regressions.flag
-            fi
-    
-            test_name=$(echo "$output" | awk -F'_' '{print $3,$4}')
-            {
-              printf -- "- **%s**\n" "$test_name"
-              printf '```\n'
-              awk '/REGRESSIONS DETECTED/,/OTHER TIMINGS/' "$output"
-              printf '\n```\n'
-            } >> "issue_body.txt"
-    
-            echo "Regressions detected in $test_name $output. An issue should be filed."
-          fi
-        done
-    
-        # echo "regressions=$header_written" >> "$GITHUB_OUTPUT"
-        # echo $regressions
-        cat has_regressions.flag
-
-  flag:
-    name: Check Regressions File
-    runs-on: self-hosted
-    needs:
-      - start-runner
-      - configure-mount-and-download-benchmark-data
-      - build-and-setup
-      - run-regression-tests
-      - collect-issues
-    outputs:
-      regressions: ${{ steps.collect.outputs.regressions }}
-    steps:
-      - id: collect
+      - name: Collect issues on Benchmarks
+        id: collect
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
         run: |
-          echo "regressions=$(if grep 'true' has_regressions.flag; then echo "true"; else echo "false"; fi) >> $GITHUB_OUTPUT
-          echo $regressions
-      
-  file-issue:
-    name: File Issue
-    if: ${{ contains(github.ref_name, 'main') && needs.flag.outputs.regressions != 'false' }}
-    needs: 
-      - start-runner
-      - configure-mount-and-download-benchmark-data
-      - build-and-setup
-      - run-regression-tests
-      - collect-issues
-      - flag
-    runs-on: self-hosted
-    steps:
+          python scripts/engineering/weekly_regression/collect_issues.py ${{ needs.define-matrix.outputs.versions }}
+
       - name: File issue on preparation steps
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
@@ -372,25 +296,12 @@ jobs:
             echo "Latest WeeklyRegression run: [Run Link](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }})" >> report.txt
           fi
 
-      # - name: Create Issue
-      #   if: success()
-      #   shell: bash
-      #   working-directory: ${{ env.mounted_directory_name }}
-      #   run: |
-      #     if [ -f report.txt ]; then
-      #       # create issue
-      #       gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
-      #     fi
-
-  shutdown:
-    name: shut down
-    if: always()
-    runs-on: self-hosted
-    needs:
-      - start-runner
-      - file-issue
-
-    steps:
-      - name: shutdown
+      - name: Create Issue
+        if: success()
         shell: bash
-        run: sudo shutdown
+        working-directory: ${{ env.mounted_directory_name }}
+        run: |
+          if [ -f report.txt ]; then
+            # create issue
+            gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
+          fi
