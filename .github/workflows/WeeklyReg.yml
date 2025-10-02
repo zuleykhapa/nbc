@@ -293,6 +293,7 @@ jobs:
       - name: Create Regressions Report
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
+        if: ${{ needs.collect.outputs.regressions == 'true' }}
         run: |
           if grep -q "REGRESSIONS DETECTED" issue_body.txt; then
             echo "Regressions detected, GitHub issue will be filed."
@@ -302,7 +303,7 @@ jobs:
           fi
 
       - name: Create Issue
-        if: success()
+        if: ${{ needs.collect.outputs.regressions == 'true' }}
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
