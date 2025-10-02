@@ -89,7 +89,7 @@ jobs:
         working-directory: ${{ env.mounted_directory_name}}
         run: |
           wget https://blobs.duckdb.org/data/tpch-sf100.db -O tpch_sf100.duckdb
-          wget TPC-H is at https://blobs.duckdb.org/data/tpcds-sf100.db -O tpcds_sf100.duckdb
+          wget http://blobs.duckdb.org/data/tpcds_sf100.db -O tpcds_sf100.duckdb
           # aws s3 cp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
           # aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
 
