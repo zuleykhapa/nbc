@@ -47,7 +47,7 @@ jobs:
     steps:
       - name: Install
         shell: bash
-        run: sudo apt-get update -y -qq && sudo apt-get install -y -qq g++ ninja-build cmake make python-is-python3 libssl-dev pip gh jq python3-requests
+        run: sudo apt-get update -y -qq && sudo apt-get install -y -qq g++ ninja-build cmake make python-is-python3 libssl-dev pip gh jq python3-requests libcurl4-openssl-dev
 
       - name: umount mount-point (helps with debugging)
         shell: bash
