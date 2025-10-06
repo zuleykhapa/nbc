@@ -2,12 +2,9 @@ import argparse
 import json
 import os
 import glob
-from collections import defaultdict
-from github import Github, Auth
 import sys
 import string
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 
 VERSIONS = json.loads(sys.argv[1])
