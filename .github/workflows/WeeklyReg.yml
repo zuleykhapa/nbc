@@ -273,12 +273,14 @@ jobs:
         with:
           sparse-checkout: scripts/engineering/weekly_regression/collect_issues.py
           path: ${{ env.mounted_directory_name }}/also_scripts
+      - name: Save versions to file
+        run: echo '${{ needs.define-matrix.outputs.versions }}' > versions.json
       - name: Collect issues on Benchmarks
         id: collect
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          python also_scripts/scripts/engineering/weekly_regression/collect_issues.py "${{ needs.define-matrix.outputs.versions }}"
+          python also_scripts/scripts/engineering/weekly_regression/collect_issues.py versions.json
 
       - name: File issue on preparation steps
         shell: bash
