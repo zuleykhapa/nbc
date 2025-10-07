@@ -7,7 +7,14 @@ import string
 import re
 from pathlib import Path
 
-VERSIONS = json.loads(sys.argv[1])
+filename = sys.argv[1]
+
+if not os.path.exists(filename):
+    print(f"❌ '{filename}' file not found.")
+    sys.exit(1)
+with open(filename) as f:
+    VERSIONS = json.load(f)
+    
 ISSUE_FILE = Path("issue_body.txt")
 
 def construct_header(version):
