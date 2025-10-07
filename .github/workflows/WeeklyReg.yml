@@ -278,8 +278,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          pairs=$(cat ../duckdb_previous_version_pairs.json | jq -c '.')
-          python also_scripts/scripts/engineering/weekly_regression/collect_issues.py $pairs
+          python also_scripts/scripts/engineering/weekly_regression/collect_issues.py ${{ fromJSON(needs.define-matrix.outputs.versions) }}
 
       - name: File issue on preparation steps
         shell: bash
