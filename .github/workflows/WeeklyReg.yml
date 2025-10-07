@@ -131,6 +131,14 @@ jobs:
           pairs=$(cat ../duckdb_previous_version_pairs.json | jq -c '.')
           echo "pairs=$pairs" >> $GITHUB_OUTPUT
 
+      - name: Upload pairs
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          path: ../duckdb_previous_version_pairs.json
+          name: versions
+          if-no-files-found: error
+          
   # build-and-setup:
   #   name: BUILD - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
   #   needs: 
@@ -273,14 +281,17 @@ jobs:
         with:
           sparse-checkout: scripts/engineering/weekly_regression/collect_issues.py
           path: ${{ env.mounted_directory_name }}/also_scripts
-      - name: Save versions to file
-        run: echo '${{ needs.define-matrix.outputs.versions }}' > versions.json
+      - name: download pairs
+        uses: actions/download-artifact@v4
+        with:
+          name: versions
+          path: .
       - name: Collect issues on Benchmarks
         id: collect
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          python also_scripts/scripts/engineering/weekly_regression/collect_issues.py versions.json
+          python also_scripts/scripts/engineering/weekly_regression/collect_issues.py duckdb_previous_version_pairs.json
 
       - name: File issue on preparation steps
         shell: bash
