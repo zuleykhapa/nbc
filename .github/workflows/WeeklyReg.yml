@@ -264,8 +264,6 @@ jobs:
       - build-and-setup
       - run-regression-tests
     runs-on: self-hosted
-    outputs:
-      regressions: ${{ steps.collect.outputs.regressions }}
 
     steps:
       - name: Sparse-checkout repo with a script
@@ -275,7 +273,6 @@ jobs:
           path: ${{ env.mounted_directory_name }}/also_scripts
 
       - name: Collect issues on Benchmarks
-        id: collect
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
@@ -296,7 +293,6 @@ jobs:
       - name: Create Regressions Report
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
-        if: ${{ needs.collect.outputs.regressions == 'true' }}
         run: |
           if grep -q "REGRESSIONS DETECTED" issue_body.txt; then
             echo "Regressions detected, GitHub issue will be filed."
@@ -306,7 +302,6 @@ jobs:
           fi
 
       - name: Create Issue
-        if: ${{ needs.collect.outputs.regressions == 'true' }}
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
