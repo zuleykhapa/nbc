@@ -177,6 +177,22 @@ jobs:
           cd ..
           cd duckdb-old-${{ matrix.versions.old_name }} && make clean && make
 
+      - name: generate micro_extended.csv in duckdb-old-${{ matrix.versions.old_name }}
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
+        run: |
+          find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
+          
+          ls -lah duckdb-curr-${{ matrix.versions.new_name }}/benchmark
+          
+      - name: copy micro_extended to duckdb-curr-${{ matrix.versions.new_name }}
+        shell: bash
+        working-directory: ${{ env.mounted_directory_name }}
+        run: |
+          cp duckdb-old-${{ matrix.versions.old_name }}/.github/regression/micro_extended.csv duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/
+          
+          ls -lah duckdb-curr-${{ matrix.versions.new_name }}/benchmark
+          
       - name: Set up benchmarks 
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
