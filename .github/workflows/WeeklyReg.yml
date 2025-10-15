@@ -183,7 +183,7 @@ jobs:
         run: |
           find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
           
-          ls -lah duckdb-curr-${{ matrix.versions.new_name }}/benchmark
+          ls -lah ${{ env.mounted_directory_name}}/duckdb-curr-${{ matrix.versions.new_name }}/benchmark
           
       - name: copy micro_extended to duckdb-curr-${{ matrix.versions.new_name }}
         shell: bash
