@@ -327,15 +327,15 @@ jobs:
           fi
 
 
-  shutdown:
-    name: shut down
-    if: always()
-    runs-on: self-hosted
-    needs:
-      - start-runner
-      - file-issue
+  # shutdown:
+  #   name: shut down
+  #   if: always()
+  #   runs-on: self-hosted
+  #   needs:
+  #     - start-runner
+  #     - file-issue
 
-    steps:
-      - name: shutdown
-        shell: bash
-        run: sudo shutdown
+  #   steps:
+  #     - name: shutdown
+        # shell: bash
+        # run: sudo shutdown
