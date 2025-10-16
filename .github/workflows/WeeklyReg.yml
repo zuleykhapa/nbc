@@ -310,7 +310,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}
         run: |
-          if grep -q "REGRESSIONS DETECTED" issue_body.txt; then
+          if [ -f  issue_body.txt ]; then
             echo "Regressions detected, GitHub issue will be filed."
             echo "# Regression tests" >> report.txt
             cat issue_body.txt >> report.txt
