@@ -336,7 +336,7 @@ jobs:
   #     - start-runner
   #     - file-issue
 
-    steps:
-      - name: shutdown
-        shell: bash
-        run: sudo shutdown
+    # steps:
+    #   - name: shutdown
+    #     shell: bash
+    #     run: sudo shutdown
