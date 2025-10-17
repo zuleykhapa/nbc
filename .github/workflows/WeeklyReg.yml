@@ -244,7 +244,7 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           export disable_timeout=""
-          tests=('large/tpch.csv' 'large/tpcds.csv')
+          tests=('large/tpch.csv' 'large/tpcds.csv', 'micro_extended.csv')
           
           for test in ${tests[@]}; do
             if [[ "${test}" == "large/tpcds.csv" ]]; then
@@ -323,20 +323,20 @@ jobs:
         run: |
           if [ -f report.txt ]; then
             # create issue
-            # gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
+            gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
             cat report.txt
           fi
 
 
-  # shutdown:
-  #   name: shut down
-  #   if: always()
-  #   runs-on: self-hosted
-  #   needs:
-  #     - start-runner
-  #     - file-issue
+  shutdown:
+    name: shut down
+    if: always()
+    runs-on: self-hosted
+    needs:
+      - start-runner
+      - file-issue
 
-    # steps:
-    #   - name: shutdown
-    #     shell: bash
-    #     run: sudo shutdown
+    steps:
+      - name: shutdown
+        shell: bash
+        run: sudo shutdown
