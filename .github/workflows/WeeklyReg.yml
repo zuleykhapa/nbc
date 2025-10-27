@@ -247,7 +247,7 @@ jobs:
         working-directory: ${{ env.mounted_directory_name }}
         run: |
           export disable_timeout=""
-          tests=('large/tpch.csv' 'large/tpcds.csv', 'micro_extended.csv')
+          tests=('large/tpch.csv' 'large/tpcds.csv' 'micro_extended.csv')
           
           for test in ${tests[@]}; do
             if [[ "${test}" == "large/tpcds.csv" ]]; then
