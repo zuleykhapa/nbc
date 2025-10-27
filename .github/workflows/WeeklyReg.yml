@@ -326,17 +326,24 @@ jobs:
             gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
             cat report.txt
           fi
+      
+      - name: Upload report file
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: REPORT
+          path: ${{ env.mounted_directory_name }}/report.txt
+          if-no-files-found: error
 
+  # shutdown:
+  #   name: shut down
+  #   if: always()
+  #   runs-on: self-hosted
+  #   needs:
+  #     - start-runner
+  #     - file-issue
 
-  shutdown:
-    name: shut down
-    if: always()
-    runs-on: self-hosted
-    needs:
-      - start-runner
-      - file-issue
-
-    steps:
-      - name: shutdown
-        shell: bash
-        run: sudo shutdown
+  #   steps:
+  #     - name: shutdown
+  #       shell: bash
+  #       run: sudo shutdown
