@@ -181,9 +181,11 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}/
         run: |
-          find duckdb-old-${{ matrix.versions.old_name }}/benchmark/micro | grep ".*.benchmark" | sort > .github/regression/old_micro_extended.csv
-          find duckdb-new-${{ matrix.versions.new_name }}/benchmark/micro | grep ".*.benchmark" | sort > .github/regression/new_micro_extended.csv
-          grep -Fif .github/regression/old_micro_extended.csv .github/regression/new_micro_extended.csv > .github/regression/micro_extended.csv
+          old_dir_name="duckdb-new-${{ matrix.versions.new_name }}"
+          new_dir_name="duckdb-curr-${{ matrix.versions.new_name }}"
+          find ${old_dir_name}/benchmark/micro | grep ".*.benchmark" | sort > ${old_dir_name}/.github/regression/old_micro_extended.csv
+          find ${new_dir_name}/benchmark/micro | grep ".*.benchmark" | sort > ${new_dir_name}/.github/regression/new_micro_extended.csv
+          grep -Fif ${old_dir_name}/.github/regression/old_micro_extended.csv ${new_dir_name}/.github/regression/new_micro_extended.csv > ${old_dir_name}/.github/regression/micro_extended.csv
 
           cat .github/regression/micro_extended.csv
           
