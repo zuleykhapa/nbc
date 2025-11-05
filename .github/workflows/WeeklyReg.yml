@@ -179,164 +179,165 @@ jobs:
 
       - name: generate micro_extended.csv in duckdb-old-${{ matrix.versions.old_name }}
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
+        working-directory: ${{ env.mounted_directory_name }}/
         run: |
-          find benchmark/micro | grep ".*.benchmark" | sort > .github/regression/micro_extended.csv
-          
-          ls -lah .github/regression/
-          ls -lah
-          
-      - name: copy micro_extended to duckdb-curr-${{ matrix.versions.new_name }}
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          cp duckdb-old-${{ matrix.versions.old_name }}/.github/regression/micro_extended.csv duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/
-          
-          ls -lah duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/
-          ls -lah duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/large
-          
-      - name: Set up benchmarks 
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
-        run: |
-          # we do this so new added benchmarks that break duckdb old
-          # do not cause failures.
-          rm -rf ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
-          mkdir ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
-          cp -r benchmark ../duckdb-curr-${{ matrix.versions.new_name }}
-          ls -lah ../duckdb-curr-${{ matrix.versions.new_name }}
+          find duckdb-old-${{ matrix.versions.old_name }}/benchmark/micro | grep ".*.benchmark" | sort > .github/regression/old_micro_extended.csv
+          find duckdb-new-${{ matrix.versions.new_name }}/benchmark/micro | grep ".*.benchmark" | sort > .github/regression/new_micro_extended.csv
+          grep -Fif .github/regression/old_micro_extended.csv .github/regression/new_micro_extended.csv > .github/regression/micro_extended.csv
 
-      - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
-        run: |
-          # make sure there is no duckdb_benchmark_data left over from the previous run
-          rm -rf duckdb_benchmark_data
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
-    
-      - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
-        shell: bash 
-        working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
-        run: |
-          # make sure there is no duckdb_benchmark_data left over from the previous run
-          rm -rf duckdb_benchmark_data
-          mkdir duckdb_benchmark_data
-          cd duckdb_benchmark_data
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
-          ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
-    
-  run-regression-tests:
-    name: TEST - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
-    if: always()
-    needs: 
-      - define-matrix
-      - configure-mount-and-download-benchmark-data
-      - build-and-setup
-    runs-on: self-hosted
-    strategy:
-      fail-fast: false
-      matrix:
-        versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
-    steps:          
-      - name: Run Regression Test ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
-        continue-on-error: true
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          export disable_timeout=""
-          tests=('large/tpch.csv' 'large/tpcds.csv' 'micro_extended.csv')
+          cat .github/regression/micro_extended.csv
           
-          for test in ${tests[@]}; do
-            if [[ "${test}" == "large/tpcds.csv" ]]; then
-                disable_timeout="--disable-timeout"
-            fi  
+  #     - name: copy micro_extended to duckdb-curr-${{ matrix.versions.new_name }}
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       run: |
+  #         cp duckdb-old-${{ matrix.versions.old_name }}/.github/regression/micro_extended.csv duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/
+          
+  #         ls -lah duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/
+  #         ls -lah duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/large
+          
+  #     - name: Set up benchmarks 
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
+  #       run: |
+  #         # we do this so new added benchmarks that break duckdb old
+  #         # do not cause failures.
+  #         rm -rf ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
+  #         mkdir ../duckdb-curr-${{ matrix.versions.new_name }}/benchmark
+  #         cp -r benchmark ../duckdb-curr-${{ matrix.versions.new_name }}
+  #         ls -lah ../duckdb-curr-${{ matrix.versions.new_name }}
+
+  #     - name: Link duckdb-curr/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+  #       shell: bash 
+  #       working-directory: ${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}
+  #       run: |
+  #         # make sure there is no duckdb_benchmark_data left over from the previous run
+  #         rm -rf duckdb_benchmark_data
+  #         mkdir duckdb_benchmark_data
+  #         cd duckdb_benchmark_data
+  #         ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+  #         ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+    
+  #     - name: Link duckdb-old/duckdb_benchmark_data to tpch_sf100.duckdb and tpcds_sf100.duckdb
+  #       shell: bash 
+  #       working-directory: ${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}
+  #       run: |
+  #         # make sure there is no duckdb_benchmark_data left over from the previous run
+  #         rm -rf duckdb_benchmark_data
+  #         mkdir duckdb_benchmark_data
+  #         cd duckdb_benchmark_data
+  #         ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpch_sf100.duckdb .
+  #         ln -s ${{ github.workspace }}/${{ env.mounted_directory_name }}/tpcds_sf100.duckdb .
+    
+  # run-regression-tests:
+  #   name: TEST - ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
+  #   if: always()
+  #   needs: 
+  #     - define-matrix
+  #     - configure-mount-and-download-benchmark-data
+  #     - build-and-setup
+  #   runs-on: self-hosted
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       versions: ${{ fromJSON(needs.define-matrix.outputs.versions) }}
+  #   steps:          
+  #     - name: Run Regression Test ${{ matrix.versions.new_name }} vs ${{ matrix.versions.old_name }}
+  #       continue-on-error: true
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       run: |
+  #         export disable_timeout=""
+  #         tests=('large/tpch.csv' 'large/tpcds.csv' 'micro_extended.csv')
+          
+  #         for test in ${tests[@]}; do
+  #           if [[ "${test}" == "large/tpcds.csv" ]]; then
+  #               disable_timeout="--disable-timeout"
+  #           fi  
             
-            test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
-            file_name="regression_output_${test_type}_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
+  #           test_type=$(echo "${test}" | sed -e 's/\//_/g'  -e 's/\.csv//' )
+  #           file_name="regression_output_${test_type}_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt"
 
-            python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
-              --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
-              --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
-              --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
-              --regression-threshold-seconds=${{ env.REGESSION_THRESHOLD_SECONDS }} --verbose > "${file_name}"
-          done
+  #           python duckdb-curr-${{ matrix.versions.new_name }}/scripts/regression/test_runner.py \
+  #             --old=duckdb-old-${{ matrix.versions.old_name }}/build/release/benchmark/benchmark_runner \
+  #             --new=duckdb-curr-${{ matrix.versions.new_name }}/build/release/benchmark/benchmark_runner \
+  #             --benchmarks=duckdb-curr-${{ matrix.versions.new_name }}/.github/regression/$test $disable_timeout \
+  #             --regression-threshold-seconds=${{ env.REGESSION_THRESHOLD_SECONDS }} --verbose > "${file_name}"
+  #         done
           
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
-          path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
-          if-no-files-found: error
+  #     - name: Upload results
+  #       uses: actions/upload-artifact@v4
+  #       if: success()
+  #       with:
+  #         name: ${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}
+  #         path: ${{ env.mounted_directory_name }}/regression_*_${{ matrix.versions.new_name }}_${{ matrix.versions.old_name }}.txt
+  #         if-no-files-found: error
   
-  file-issue:
-    name: File Issue
-    if: always()
-    # if: ${{ contains(github.ref_name, 'main') }}
-    needs: 
-      - define-matrix
-      - start-runner
-      - configure-mount-and-download-benchmark-data
-      - build-and-setup
-      - run-regression-tests
-    runs-on: self-hosted
+  # file-issue:
+  #   name: File Issue
+  #   if: always()
+  #   # if: ${{ contains(github.ref_name, 'main') }}
+  #   needs: 
+  #     - define-matrix
+  #     - start-runner
+  #     - configure-mount-and-download-benchmark-data
+  #     - build-and-setup
+  #     - run-regression-tests
+  #   runs-on: self-hosted
 
-    steps:
-      - name: Sparse-checkout repo with a script
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: scripts/engineering/weekly_regression/collect_issues.py
-          path: ${{ env.mounted_directory_name }}/also_scripts
+  #   steps:
+  #     - name: Sparse-checkout repo with a script
+  #       uses: actions/checkout@v4
+  #       with:
+  #         sparse-checkout: scripts/engineering/weekly_regression/collect_issues.py
+  #         path: ${{ env.mounted_directory_name }}/also_scripts
 
-      - name: Collect issues on Benchmarks
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          cp ../duckdb_previous_version_pairs.json versions.json
-          python also_scripts/scripts/engineering/weekly_regression/collect_issues.py versions.json
+  #     - name: Collect issues on Benchmarks
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       run: |
+  #         cp ../duckdb_previous_version_pairs.json versions.json
+  #         python also_scripts/scripts/engineering/weekly_regression/collect_issues.py versions.json
 
-      - name: File issue on preparation steps
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        if: |
-            contains(github.ref_name, 'main') && 
-            (needs.configure-mount-and-download-benchmark-data.result != 'success' ||
-            needs.build-and-setup.result != 'success')
-        run: |
-          echo -e "Benchmark preparation steps have failed, please check the \
-            [workflow run](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }}) for details.\n\n" > report.txt
+  #     - name: File issue on preparation steps
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       if: |
+  #           contains(github.ref_name, 'main') && 
+  #           (needs.configure-mount-and-download-benchmark-data.result != 'success' ||
+  #           needs.build-and-setup.result != 'success')
+  #       run: |
+  #         echo -e "Benchmark preparation steps have failed, please check the \
+  #           [workflow run](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }}) for details.\n\n" > report.txt
 
-      - name: Create Regressions Report
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          if [ -f  issue_body.txt ]; then
-            echo "Regressions detected, GitHub issue will be filed."
-            echo "# Regression tests" >> report.txt
-            cat issue_body.txt >> report.txt
-            echo "Latest WeeklyRegression run: [Run Link](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }})" >> report.txt
-          fi
+  #     - name: Create Regressions Report
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       run: |
+  #         if [ -f  issue_body.txt ]; then
+  #           echo "Regressions detected, GitHub issue will be filed."
+  #           echo "# Regression tests" >> report.txt
+  #           cat issue_body.txt >> report.txt
+  #           echo "Latest WeeklyRegression run: [Run Link](https://github.com/duckdblabs/duckdb-internal/actions/runs/${{ github.run_id }})" >> report.txt
+  #         fi
 
-      - name: Create Issue
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          if [ -f report.txt ]; then
-            # create issue
-            gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
-            cat report.txt
-          fi
+  #     - name: Create Issue
+  #       shell: bash
+  #       working-directory: ${{ env.mounted_directory_name }}
+  #       run: |
+  #         if [ -f report.txt ]; then
+  #           # create issue
+  #           gh issue create --repo ${{ env.gh_issue_repo }} --title "Weekly Regression Test Failure" --body-file report.txt
+  #           cat report.txt
+  #         fi
       
-      - name: Upload report file
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: REPORT
-          path: ${{ env.mounted_directory_name }}/report.txt
-          if-no-files-found: error
+  #     - name: Upload report file
+  #       uses: actions/upload-artifact@v4
+  #       if: success()
+  #       with:
+  #         name: REPORT
+  #         path: ${{ env.mounted_directory_name }}/report.txt
+  #         if-no-files-found: error
 
   # shutdown:
   #   name: shut down
