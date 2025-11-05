@@ -181,7 +181,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name }}/
         run: |
-          old_dir_name="duckdb-new-${{ matrix.versions.new_name }}"
+          old_dir_name="duckdb-old-${{ matrix.versions.old_name }}"
           new_dir_name="duckdb-curr-${{ matrix.versions.new_name }}"
           find ${old_dir_name}/benchmark/micro | grep ".*.benchmark" | sort > ${old_dir_name}/.github/regression/old_micro_extended.csv
           find ${new_dir_name}/benchmark/micro | grep ".*.benchmark" | sort > ${new_dir_name}/.github/regression/new_micro_extended.csv
