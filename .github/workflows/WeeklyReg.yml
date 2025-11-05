@@ -185,12 +185,13 @@ jobs:
           new_dir_name="duckdb-curr-${{ matrix.versions.new_name }}"
           cd ${old_dir_name}/benchmark/micro
           grep ".*.benchmark" | sort > old_micro_extended.csv
-          cd -
+          cat old_micro_extended.csv
+          cd ${old_dir_name}
           cd ${new_dir_name}/benchmark/micro
           grep ".*.benchmark" | sort > new_micro_extended.csv
-          cd -
-          grep -Fif ${old_dir_name}/.github/regression/old_micro_extended.csv ${new_dir_name}/.github/regression/new_micro_extended.csv > ${old_dir_name}/.github/regression/micro_extended.csv
-
+          cat new_micro_extended.csv
+          cd ${new_dir_name}
+          grep -Fxf ${old_dir_name}/.github/regression/old_micro_extended.csv ${new_dir_name}/.github/regression/new_micro_extended.csv > ${old_dir_name}/.github/regression/micro_extended.csv
           cat .github/regression/micro_extended.csv
           
   #     - name: copy micro_extended to duckdb-curr-${{ matrix.versions.new_name }}
