@@ -183,8 +183,12 @@ jobs:
         run: |
           old_dir_name="duckdb-old-${{ matrix.versions.old_name }}"
           new_dir_name="duckdb-curr-${{ matrix.versions.new_name }}"
-          find ${old_dir_name}/benchmark/micro | grep ".*.benchmark" | sort > ${old_dir_name}/.github/regression/old_micro_extended.csv
-          find ${new_dir_name}/benchmark/micro | grep ".*.benchmark" | sort > ${new_dir_name}/.github/regression/new_micro_extended.csv
+          cd ${old_dir_name}/benchmark/micro
+          grep ".*.benchmark" | sort > old_micro_extended.csv
+          cd -
+          cd ${new_dir_name}/benchmark/micro
+          grep ".*.benchmark" | sort > new_micro_extended.csv
+          cd -
           grep -Fif ${old_dir_name}/.github/regression/old_micro_extended.csv ${new_dir_name}/.github/regression/new_micro_extended.csv > ${old_dir_name}/.github/regression/micro_extended.csv
 
           cat .github/regression/micro_extended.csv
