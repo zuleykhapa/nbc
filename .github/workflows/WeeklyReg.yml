@@ -88,8 +88,8 @@ jobs:
         shell: bash
         working-directory: ${{ env.mounted_directory_name}}
         run: |
-          wget https://blobs.duckdb.org/data/tpch-sf100.db -O tpch_sf100.duckdb
-          wget http://blobs.duckdb.org/data/tpcds_sf100.db -O tpcds_sf100.duckdb
+          # wget https://blobs.duckdb.org/data/tpch-sf100.db -O tpch_sf100.duckdb
+          # wget http://blobs.duckdb.org/data/tpcds_sf100.db -O tpcds_sf100.duckdb
           # aws s3 cp s3://duckdb-blobs/data/tpch-sf100.db tpch_sf100.duckdb
           # aws s3 cp s3://duckdb-blobs/data/tpcds_sf100.db tpcds_sf100.duckdb
 
@@ -169,13 +169,13 @@ jobs:
           fetch-depth: 0
           path: ${{ env.mounted_directory_name}}/duckdb-old-${{ matrix.versions.old_name }}
 
-      - name: Build new (${{ matrix.versions.new_name }}) and old (${{ matrix.versions.old_name }})
-        shell: bash
-        working-directory: ${{ env.mounted_directory_name }}
-        run: |
-          cd duckdb-curr-${{ matrix.versions.new_name }} && make clean && make
-          cd ..
-          cd duckdb-old-${{ matrix.versions.old_name }} && make clean && make
+      # - name: Build new (${{ matrix.versions.new_name }}) and old (${{ matrix.versions.old_name }})
+      #   shell: bash
+      #   working-directory: ${{ env.mounted_directory_name }}
+      #   run: |
+      #     cd duckdb-curr-${{ matrix.versions.new_name }} && make clean && make
+      #     cd ..
+      #     cd duckdb-old-${{ matrix.versions.old_name }} && make clean && make
 
       - name: generate micro_extended.csv in duckdb-old-${{ matrix.versions.old_name }}
         shell: bash
