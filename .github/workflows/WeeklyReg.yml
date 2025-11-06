@@ -190,8 +190,8 @@ jobs:
           find micro | grep ".*.benchmark" | sort > new_micro_extended.csv
           cat new_micro_extended.csv
           cd ../..
-          grep -Fxf ${old_dir_name}/benchmark/micro/old_micro_extended.csv ${new_dir_name}/benchmark/micro/new_micro_extended.csv > ${old_dir_name}/.github/regression/micro_extended.csv
-          cat .github/regression/micro_extended.csv
+          grep -Fxf ${old_dir_name}/benchmark/old_micro_extended.csv ${new_dir_name}/benchmark/new_micro_extended.csv > ${old_dir_name}/.github/regression/micro_extended.csv
+          cat ${old_dir_name}/.github/regression/micro_extended.csv
           
   #     - name: copy micro_extended to duckdb-curr-${{ matrix.versions.new_name }}
   #       shell: bash
