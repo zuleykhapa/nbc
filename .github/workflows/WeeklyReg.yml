@@ -179,10 +179,10 @@ jobs:
 
       - name: generate micro_extended.csv in duckdb-old-${{ matrix.versions.old_name }}
         shell: bash
-        working-directory: ${{ env.mounted_directory_name }}/
+        working-directory: ${{ env.mounted_directory_name }}
         run: |
-          old_dir_name="${{ env.mounted_directory_name }}/duckdb-old-${{ matrix.versions.old_name }}"
-          new_dir_name="${{ env.mounted_directory_name }}/duckdb-curr-${{ matrix.versions.new_name }}"
+          old_dir_name="duckdb-old-${{ matrix.versions.old_name }}"
+          new_dir_name="duckdb-curr-${{ matrix.versions.new_name }}"
           cd ${old_dir_name}/benchmark
           find micro | grep ".*.benchmark" | sort > old_micro_extended.csv
           cat old_micro_extended.csv
